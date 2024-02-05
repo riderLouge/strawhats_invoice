@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
 import { Card, Button } from "@mui/material";
-
-// project imports
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import MainCard from "../../ui-component/cards/MainCard";
 
 const shopDetails = [
@@ -30,6 +29,8 @@ const shopDetails = [
 ];
 
 const Shops = () => {
+  const [hoveredRow, setHoveredRow] = useState(null);
+
   const columns = useMemo(
     () => [
       {
@@ -48,9 +49,24 @@ const Shops = () => {
         accessorKey: "lastOrder",
         header: "Last Order",
       },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        Cell: ({ row }) => (
+          <VisibilityIcon
+            style={{
+              cursor: "pointer",
+              color: hoveredRow === row.id ? "blue" : "inherit",
+            }}
+            onMouseEnter={() => setHoveredRow(row.id)}
+            onMouseLeave={() => setHoveredRow(null)}
+          />
+        ),
+      },
     ],
-    []
+    [hoveredRow]
   );
+
   const [rowSelection, setRowSelection] = useState({});
 
   useEffect(() => {
@@ -82,7 +98,7 @@ const Shops = () => {
         }}
         onClick={() => {}}
       >
-        Download Order
+        Update Debit / Credit
       </Button>
     </MainCard>
   );

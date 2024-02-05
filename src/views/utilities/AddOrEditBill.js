@@ -38,7 +38,7 @@ const UtilitiesAddOrEditBill = () => (
   <MainCard title="Invoice">
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
-        <SubCard title="Add or edit bills page"></SubCard>
+        <SubCard title="Manage BIlls"></SubCard>
       </Grid>
     </Grid>
   </MainCard>

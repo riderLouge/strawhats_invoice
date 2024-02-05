@@ -3,6 +3,8 @@ import { lazy } from "react";
 // project imports
 import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
+import DeliveryStats from "../views/utilities/DeliveryStats";
+import ManageEmployees from "../views/utilities/ManageEmployes";
 
 // dashboard routing
 const DashboardDefault = Loadable(
@@ -66,6 +68,24 @@ const MainRoutes = {
         {
           path: "util-CreateBill",
           element: <UtilsCreateBill />,
+        },
+      ],
+    },
+    {
+      path: "utils",
+      children: [
+        {
+          path: "util-ManageEmployes",
+          element: <ManageEmployees />,
+        },
+      ],
+    },
+    {
+      path: "utils",
+      children: [
+        {
+          path: "util-DeliveryStats",
+          element: <DeliveryStats />,
         },
       ],
     },

@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  userid      Int    @id @default(autoincrement())
+  name    String
+  email   String @unique
+  phoneNumber BigInt
+  address String
+}
+
+
+model Staff {
+  userid                 Int    @id @default(autoincrement())
+  name                   String
+  email                  String @unique
+  phoneNumber            BigInt
+  address                String
+  designation            String
+  shopId                 Int
+}
+
+
+model Shop {
+  shopId                 Int    @id @default(autoincrement())
+  shopName               String
+  shopEmail              String @unique
+  shopPhoneNumber        BigInt
+  shopAddress            String
+  shopGstinNumber        Int
+}
+
+
+model Product {
+  id                    Int      @id @default(autoincrement())
+  productName           String
+  hsnNumber             Int
+  productPrice          Int
+  productQuantity       Int
+  shopId         Int
+  // suppliersId
+}
+
+
+
+model Customer {
+  customerId             Int    @id @default(autoincrement())
+  customerName           String
+  customerType           String
+  customerAddress        String
+  customerPhoneNumber    BigInt
+  shopId                 Int
+  ladtOrder              DateTime
+  pendingBalance         Int
+}
+
+
+model Supplier {
+  id                     Int      @id @default(autoincrement())
+  supplierName           String
+  shopId                 Int
+  // products
+}
+
+
+model Invoice {
+  invoiceNumber         Int       @id
+  productId             Int
+  productQuantity       Int
+  currentPrice          Int
+  invoiceDate           DateTime
+  shopId                Int
+  total                 Int
+}
+
+
+model Bill {
+  billNumber           Int        @id
+  invoiceNumber        Int
+  // Invoice table
+  paymentMode          String
+  pendingPayment       Int
+  billDate             DateTime
+}
+
+
+model Delivery {
+  billNumber           Int        @id
+  staffId              Int
+  area                 String
+  status               String
+}

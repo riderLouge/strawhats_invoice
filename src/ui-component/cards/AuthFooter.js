@@ -12,16 +12,16 @@ const AuthFooter = () => (
       target="_blank"
       underline="hover"
     >
-      Strawhat Invoicedashboard.io
+      TEST
     </Typography>
     <Typography
       variant="subtitle2"
       component={Link}
-      href="https://codedthemes.com"
+      href=""
       target="_blank"
       underline="hover"
     >
-      &copy; codedthemes.com
+      &copy; TEST
     </Typography>
   </Stack>
 );

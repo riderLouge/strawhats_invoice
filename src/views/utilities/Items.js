@@ -27,6 +27,27 @@ const groceryProducts = [
     price: 1.79,
     quantity: 3,
   },
+  {
+    id: 4,
+    name: "Apples",
+    category: "Fruits",
+    price: 1.99,
+    quantity: 10,
+  },
+  {
+    id: 5,
+    name: "Bread",
+    category: "Bakery",
+    price: 2.49,
+    quantity: 5,
+  },
+  {
+    id: 6,
+    name: "Milk",
+    category: "Dairy",
+    price: 1.79,
+    quantity: 3,
+  },
 ];
 
 const Items = () => {
@@ -55,7 +76,6 @@ const Items = () => {
   const [rowSelection, setRowSelection] = useState({});
 
   useEffect(() => {
-    // Handle row selection changes here...
     console.info({ rowSelection });
   }, [rowSelection]);
 
@@ -73,9 +93,21 @@ const Items = () => {
       </Card>
       <Button
         variant="contained"
+        color="secondary"
+        style={{
+          top: "10px",
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={() => {}}
+      >
+        Stock Adjustment
+      </Button>
+      <Button
+        variant="contained"
         color="primary"
         style={{
-          position: "absolute",
           top: "10px",
           right: "10px",
           margin: "8px",
