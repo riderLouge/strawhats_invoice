@@ -61,7 +61,7 @@ const FirebaseLogin = ({ ...others }) => {
     <>
       <Grid container direction="column" justifyContent="center" spacing={2}>
         <Grid item xs={12}>
-          <AnimateButton>
+          {/* <AnimateButton>
             <Button
               disableElevation
               fullWidth
@@ -85,9 +85,9 @@ const FirebaseLogin = ({ ...others }) => {
               </Box>
               Sign in with Google
             </Button>
-          </AnimateButton>
+          </AnimateButton> */}
         </Grid>
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <Box
             sx={{
               alignItems: "center",
@@ -116,8 +116,8 @@ const FirebaseLogin = ({ ...others }) => {
 
             <Divider sx={{ flexGrow: 1 }} orientation="horizontal" />
           </Box>
-        </Grid>
-        <Grid
+        </Grid> */}
+        {/* <Grid
           item
           xs={12}
           container
@@ -129,7 +129,7 @@ const FirebaseLogin = ({ ...others }) => {
               Sign in with Email address
             </Typography>
           </Box>
-        </Grid>
+        </Grid> */}
       </Grid>
 
       <Formik
