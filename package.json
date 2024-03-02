@@ -2,7 +2,7 @@
   "name": "StrawhatInvoiceHome",
   "version": "3.3.2",
   "private": true,
-  "homepage": "https://StrawhatInvoicedashboard.io/home",
+  "homepage": "https://StrawhatInvoicedashboard.io/home/pages/login/login3",
   "dependencies": {
     "@emotion/cache": "^11.9.3",
     "@emotion/react": "^11.9.3",
@@ -16,6 +16,7 @@
     "@tabler/icons": "^1.72.0",
     "apexcharts": "^3.35.3",
     "axios": "^1.6.0",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "faker": "^6.6.6",
     "formik": "^2.2.9",
@@ -33,7 +34,7 @@
     "react-perfect-scrollbar": "^1.5.8",
     "react-redux": "^8.0.2",
     "react-router": "6.3.0",
-    "react-router-dom": "6.3.0",
+    "react-router-dom": "^6.3.0",
     "react-scripts": "^5.0.1",
     "redux": "^4.2.0",
     "yup": "^0.32.11"

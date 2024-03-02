@@ -86,7 +86,7 @@ const Shops = () => {
           state={{ rowSelection }}
         />
       </Card>
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         style={{
@@ -99,6 +99,32 @@ const Shops = () => {
         onClick={() => {}}
       >
         Update Debit / Credit
+      </Button> */}
+      <Button
+        variant="contained"
+        color="secondary"
+        style={{
+          top: "10px",
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={() => {}}
+      >
+        Update Debit / Credit
+      </Button>
+      <Button
+        variant="contained"
+        color="primary"
+        style={{
+          top: "10px",
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={() => {}}
+      >
+        Add Customer
       </Button>
     </MainCard>
   );

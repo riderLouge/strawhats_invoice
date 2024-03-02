@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { Divider, Grid, Stack, Typography, useMediaQuery } from "@mui/material";
 import "../../../../layout/MainLayout/Header/Header.css";
+import { useHistory } from "react-router-dom";
 
 // project imports
 import AuthWrapper1 from "../AuthWrapper1";
