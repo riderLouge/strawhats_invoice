@@ -22,10 +22,9 @@ const other = {
       id: "Suppliers",
       title: "Suppliers",
       type: "item",
-      // url: "https://codedthemes.gitbook.io/Strawhat Invoice/",
+      url: "/suppliers",
       icon: icons.IconClipboardList,
-      external: true,
-      target: true,
+      breadcrumbs: false,
     },
   ],
 };

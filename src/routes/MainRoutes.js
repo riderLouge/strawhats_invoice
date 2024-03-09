@@ -13,6 +13,9 @@ const DashboardDefault = Loadable(
 
 // utilities routing
 const UtilsItems = Loadable(lazy(() => import("../views/utilities/Items")));
+const UtilsSuppliers = Loadable(
+  lazy(() => import("../views/utilities/Suppliers"))
+);
 const UtilsShops = Loadable(lazy(() => import("../views/utilities/Shops")));
 const UtilsCreateBill = Loadable(
   lazy(() => import("../views/utilities/CreateBill"))
@@ -36,73 +39,82 @@ const MainRoutes = {
       element: <DashboardDefault />,
     },
     {
-      path: "dashboard",
+      path: "/",
       children: [
         {
-          path: "default",
+          path: "dashboard",
           element: <DashboardDefault />,
         },
       ],
     },
     {
-      path: "utils",
+      path: "/",
       children: [
         {
-          path: "util-items",
+          path: "items",
           element: <UtilsItems />,
         },
       ],
     },
     {
-      path: "utils",
+      path: "/",
       children: [
         {
-          path: "util-shops",
+          path: "suppliers",
+          element: <UtilsSuppliers />,
+        },
+      ],
+    },
+    {
+      path: "/",
+      children: [
+        {
+          path: "shops",
           element: <UtilsShops />,
         },
       ],
     },
     {
-      path: "utils",
+      path: "/",
       children: [
         {
-          path: "util-CreateBill",
+          path: "CreateBill",
           element: <UtilsCreateBill />,
         },
       ],
     },
     {
-      path: "utils",
+      path: "",
       children: [
         {
-          path: "util-ManageEmployes",
+          path: "ManageEmployes",
           element: <ManageEmployees />,
         },
       ],
     },
     {
-      path: "utils",
+      path: "/",
       children: [
         {
-          path: "util-DeliveryStats",
+          path: "DeliveryStats",
           element: <DeliveryStats />,
         },
       ],
     },
     {
-      path: "utils",
+      path: "/",
       children: [
         {
-          path: "util-AddOrEditBills",
+          path: "AddOrEditBills",
           element: <UtilsAddOrEditBills />,
         },
       ],
     },
     {
-      path: "icons",
+      path: "/",
       children: [
         {
-          path: "utils-delivery",
+          path: "delivery",
           element: <UtilsDelivery />,
         },
       ],

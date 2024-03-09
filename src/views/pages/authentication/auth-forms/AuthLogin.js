@@ -75,7 +75,7 @@ const FirebaseLogin = ({ ...others }) => {
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
-              navigate("/dashboard/default");
+              navigate("/dashboard");
             }
           } catch (err) {
             console.error(err);
@@ -186,6 +186,7 @@ const FirebaseLogin = ({ ...others }) => {
                 variant="subtitle1"
                 color="secondary"
                 sx={{ textDecoration: "none", cursor: "pointer" }}
+                onClick={navigate("/forgot-password")}
               >
                 Forgot Password?
               </Typography>

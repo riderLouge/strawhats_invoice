@@ -41,16 +41,28 @@ model Shop {
 
 
 model Product {
-  id                    Int      @id @default(autoincrement())
-  productName           String
-  hsnNumber             Int
-  productPrice          Int
-  productQuantity       Int
-  shopId         Int
-  // suppliersId
+  ID                Int      @id @default(autoincrement())
+  CNAME             String
+  NAME              String
+  MRP               Float    // Assuming MRP can have decimal values
+  PPRICE            Float    // Assuming product price can have decimal values
+  SPRICE            Float    // Assuming selling price can have decimal values
+  GST               Float    // Assuming GST can have decimal values
+  HSN               Int
+  CESSP             Float    // Assuming CESSP can have decimal values
+  CMCODE            Int
+  FITEC             String
+  FQTY              Int
+  FREE              Int
+  DISCP             Float    // Assuming discount percentage can have decimal values
 }
 
 
+model Company {
+  id                    Int     @id @default(autoincrement())
+  cName                 String
+  cShort                String
+}
 
 model Customer {
   customerId             Int    @id @default(autoincrement())
