@@ -2,6 +2,7 @@ import {
   Button,
   Divider,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   OutlinedInput,
@@ -31,11 +32,14 @@ export default function ResetPassword() {
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (newPassword !== "") {
-      navigate("/dashboard");
+    if (newPassword === confirmPassword) {
+      navigate("/");
+    } else {
+      setErrorMessage('Password is not matching!')
     }
   };
   return (
@@ -105,7 +109,7 @@ export default function ResetPassword() {
                       </InputLabel>
                       <OutlinedInput
                         id="outlined-adornment-email-login"
-                        type="email"
+                        type="text"
                         value={newPassword}
                         name="email"
                         onChange={(e) => setNewPassword(e.target.value)}
@@ -119,13 +123,14 @@ export default function ResetPassword() {
                       </InputLabel>
                       <OutlinedInput
                         id="outlined-adornment-email-login"
-                        type="email"
+                        type="text"
                         value={confirmPassword}
                         name="email"
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         label="Confirm Password"
                         inputProps={{}}
                       />
+                      <FormHelperText error>{ errorMessage}</FormHelperText>
                     </FormControl>
                     <Box sx={{ mt: 2 }}>
                       <AnimateButton>

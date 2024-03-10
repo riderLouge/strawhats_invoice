@@ -2,6 +2,7 @@ import {
   Button,
   Divider,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   OutlinedInput,
@@ -29,11 +30,14 @@ export default function ForgorPassword() {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [email, setEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
     if (email !== "") {
       navigate("/reset-password");
+    } else {
+      setErrorMessage('Please enter your mail')
     }
   };
   return (
@@ -52,50 +56,27 @@ export default function ForgorPassword() {
         >
           <Grid item sx={{ m: { xs: 1, sm: 3 }, mb: 0 }}>
             <AuthCardWrapper>
-              <Grid
-                container
-                spacing={2}
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Grid item sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: 'column', rowGap: 5, width: 'clamp(200px, 25vw, 300px)', textAlign: 'center' }}>
+                <Box>
                   <Typography style={softwareNameStyle}>
                     <span className="strawhat">Straw</span>
                     <span className="hat">hat</span> Invoice
                   </Typography>{" "}
-                </Grid>
-                <Grid item xs={12}>
-                  <Grid
-                    container
-                    direction={matchDownSM ? "column-reverse" : "row"}
-                    alignItems="center"
-                    justifyContent="center"
+                  <Typography
+                    color={theme.palette.secondary.main}
+                    gutterBottom
+                    variant={matchDownSM ? "h3" : "h2"}
                   >
-                    <Grid item>
-                      <Stack
-                        alignItems="center"
-                        justifyContent="center"
-                        spacing={1}
-                      >
-                        <Typography
-                          color={theme.palette.secondary.main}
-                          gutterBottom
-                          variant={matchDownSM ? "h3" : "h2"}
-                        >
-                          Hi, Welcome Back
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          fontSize="16px"
-                          textAlign={matchDownSM ? "center" : "inherit"}
-                        >
-                          Enter your Email to continue
-                        </Typography>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Grid>
-                <Grid item xs={12}>
+                    Hi, Welcome Back
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    fontSize="16px"
+                    textAlign={matchDownSM ? "center" : "inherit"}
+                  >
+                    Enter your Email to continue
+                  </Typography>
+                </Box>
                   <form onSubmit={handleSubmit}>
                     <FormControl fullWidth>
                       <InputLabel htmlFor="outlined-adornment-email-login">
@@ -110,14 +91,15 @@ export default function ForgorPassword() {
                         label="Email Address"
                         inputProps={{}}
                       />
+                      <FormHelperText error>{ errorMessage}</FormHelperText>
                     </FormControl>
                     <Box
                       sx={{
-                        mt: 2,
+                        mt: 8,
                         display: "flex",
                         justifyContent: "end",
                         alignItems: "center",
-                        columnGap: 2,
+                        gap: 2,
                       }}
                     >
                       <AnimateButton>
@@ -125,10 +107,9 @@ export default function ForgorPassword() {
                           disableElevation
                           fullWidth
                           size="large"
-                          type="submit"
-                          variant="contained"
+                          variant="outlined"
                           color="secondary"
-                          onClick={() => navigate("/login")}
+                          onClick={() => navigate("/")}
                         >
                           Back
                         </Button>
@@ -147,29 +128,8 @@ export default function ForgorPassword() {
                       </AnimateButton>
                     </Box>
                   </form>
-                </Grid>
-                <Grid item xs={12}>
-                  <Divider />
-                </Grid>
-                <Grid item xs={12}>
-                  <Grid
-                    item
-                    container
-                    direction="column"
-                    alignItems="center"
-                    xs={12}
-                  >
-                    {/* <Typography
-                    component={Link}
-                    to="/pages/register/register3"
-                    variant="subtitle1"
-                    sx={{ textDecoration: "none" }}
-                  >
-                    Don&apos;t have an account?
-                  </Typography> */}
-                  </Grid>
-                </Grid>
-              </Grid>
+
+              </Box>
             </AuthCardWrapper>
           </Grid>
         </Grid>

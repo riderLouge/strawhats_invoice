@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // material-ui
 import { useTheme } from "@mui/material/styles";
@@ -186,9 +186,10 @@ const FirebaseLogin = ({ ...others }) => {
                 variant="subtitle1"
                 color="secondary"
                 sx={{ textDecoration: "none", cursor: "pointer" }}
-                onClick={navigate("/forgot-password")}
               >
-                Forgot Password?
+                <Link to="/forgot-password" style={{ textDecoration: "none", color: "inherit" }}>
+                  Forgot Password?
+                </Link>
               </Typography>
             </Stack>
             {errors.submit && (
