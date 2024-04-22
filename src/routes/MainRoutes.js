@@ -5,6 +5,7 @@ import MainLayout from "../layout/MainLayout";
 import Loadable from "../ui-component/Loadable";
 import DeliveryStats from "../views/utilities/DeliveryStats";
 import ManageEmployees from "../views/utilities/ManageEmployes";
+import UtilitiesCreateSupplierBill from "../views/utilities/CreateSupplierInvoice";
 
 // dashboard routing
 const DashboardDefault = Loadable(
@@ -107,6 +108,15 @@ const MainRoutes = {
         {
           path: "AddOrEditBills",
           element: <UtilsAddOrEditBills />,
+        },
+      ],
+    },
+    {
+      path: "/",
+      children: [
+        {
+          path: "supplierInvoice",
+          element: <UtilitiesCreateSupplierBill />,
         },
       ],
     },

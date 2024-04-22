@@ -32,29 +32,45 @@ model Staff {
 
 model Shop {
   shopId                 Int    @id @default(autoincrement())
-  shopName               String
-  shopEmail              String @unique
-  shopPhoneNumber        BigInt
-  shopAddress            String
-  shopGstinNumber        Int
+  GRPNAM                 String
+  CUSNAM                 String
+  ADRONE                 String
+  ADRTWO                 String
+  ADRTHR                 String
+  ADRFOU                 String
+  PLC                    String
+  PINCOD                 String
+  CNTPER                 String
+  SLNO                   String
+  TNGST                  String
+  TELNUM                 String
+  ZONNAM                 String
 }
+
+model LoginAuth {
+  Id                     Int    @id @default(autoincrement())
+  name                   String
+  email                  String @unique
+  password               String
+}
+
 
 
 model Product {
   ID                Int      @id @default(autoincrement())
   CNAME             String
   NAME              String
-  MRP               Float    // Assuming MRP can have decimal values
-  PPRICE            Float    // Assuming product price can have decimal values
-  SPRICE            Float    // Assuming selling price can have decimal values
-  GST               Float    // Assuming GST can have decimal values
-  HSN               Int
-  CESSP             Float    // Assuming CESSP can have decimal values
-  CMCODE            Int
+  MRP               String    // Assuming MRP can have decimal values
+  PPRICE            String    // Assuming product price can have decimal values
+  SPRICE            String    // Assuming selling price can have decimal values
+  GST               String    // Assuming GST can have decimal values
+  HSN               String
+  CESSP             String    // Assuming CESSP can have decimal values
+  CMCODE            String
   FITEC             String
-  FQTY              Int
-  FREE              Int
-  DISCP             Float    // Assuming discount percentage can have decimal values
+  FQTY              String
+  FREE              String
+  DISCP             String    // Assuming discount percentage can have decimal values
 }
 
 

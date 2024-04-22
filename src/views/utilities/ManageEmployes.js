@@ -91,7 +91,7 @@ const ManageEmployees = () => {
       },
       {
         accessorKey: "role",
-        header: "Role",
+        header: "Role", 
       },
       {
         accessorKey: "email",

@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
 
 // material-ui
 import { useTheme } from "@mui/material/styles";
@@ -18,6 +19,7 @@ import AuthFooter from "../../../../ui-component/cards/AuthFooter";
 const Login = () => {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
 
   const softwareNameStyle = {
     fontSize: "26px",
@@ -25,6 +27,13 @@ const Login = () => {
     color: "#b06dd4",
   };
 
+  useEffect(() => {
+    // Check if user is authenticated
+    const isAuthenticated = localStorage.getItem("authenticated");
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
   return (
     <AuthWrapper1>
       <Grid

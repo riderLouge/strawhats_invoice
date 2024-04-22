@@ -1,15 +1,16 @@
 import PropTypes from "prop-types";
+import React, { useEffect, useMemo, useState } from "react";
 
 // material-ui
-import { Box, Card, Grid } from "@mui/material";
+import { Box, Card, Grid, Button } from "@mui/material";
+import DialogTemplate from "../../ui-component/Dialog";
 
 // project imports
 import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
 import SecondaryAction from "../../ui-component/cards/CardSecondaryAction";
 import { gridSpacing } from "../../store/constant";
-
-// ===============================|| SHADOW BOX ||=============================== //
+import InvoiceTemplate from "./ViewInvoice";
 
 const ShadowBox = ({ shadow }) => (
   <Card sx={{ mb: 3, boxShadow: shadow }}>
@@ -31,17 +32,45 @@ const ShadowBox = ({ shadow }) => (
 ShadowBox.propTypes = {
   shadow: PropTypes.string.isRequired,
 };
-console.log("in");
-// ============================|| UTILITIES SHADOW ||============================ //
 
-const UtilitiesAddOrEditBill = () => (
-  <MainCard title="Invoice">
-    <Grid container spacing={gridSpacing}>
-      <Grid item xs={12}>
-        <SubCard title="Manage BIlls"></SubCard>
+export default function Invoice() {
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleSubmitDialog = async () => {};
+
+  return (
+    <MainCard title="Invoice">
+      <Grid container spacing={gridSpacing}>
+        <Grid item xs={12}>
+          <SubCard title="Manage BIlls"></SubCard>
+          <Button
+            variant="contained"
+            color="primary"
+            style={{
+              top: "10px",
+              right: "10px",
+              margin: "8px",
+              zIndex: 1,
+            }}
+            onClick={() => {
+              setOpenDialog(true);
+            }}
+          >
+            test
+          </Button>
+        </Grid>
+        <DialogTemplate
+          open={openDialog}
+          title={"Invoice"}
+          body={<InvoiceTemplate />}
+          handleCloseDialog={handleCloseDialog}
+          handleSave={handleSubmitDialog}
+        />
       </Grid>
-    </Grid>
-  </MainCard>
-);
-
-export default UtilitiesAddOrEditBill;
+    </MainCard>
+  );
+}

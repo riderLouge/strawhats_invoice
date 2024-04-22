@@ -21,13 +21,13 @@ const pages = {
       icon: icons.IconKey,
 
       children: [
-        {
-          id: "login",
-          title: "Login",
-          type: "item",
-          url: "/login",
-          target: true,
-        },
+        // {
+        //   id: "login",
+        //   title: "Login",
+        //   type: "item",
+        //   url: "/",
+        //   target: true,
+        // },
         // {
         //   id: "register3",
         //   title: "Registration",
@@ -39,14 +39,14 @@ const pages = {
           id: "util-create-Bill",
           title: "Delivery Stats",
           type: "item",
-          url: "/utils/DeliveryStats",
+          url: "/DeliveryStats",
           breadcrumbs: false,
         },
         {
           id: "util-Manage-Employes",
           title: "Manage Employees",
           type: "item",
-          url: "/utils/ManageEmployes",
+          url: "/ManageEmployes",
           breadcrumbs: false,
         },
       ],

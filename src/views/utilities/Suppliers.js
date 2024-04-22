@@ -14,7 +14,13 @@ const Suppliers = () => {
       try {
         const response = await axios.get("api/company/fetchCompany");
         console.log(response.data);
-        setCompanyName(response.data);
+        const uniqueCompanies = Array.from(
+          new Set(response.data.map((company) => company.cName))
+        ).map((cName) =>
+          response.data.find((company) => company.cName === cName)
+        );
+
+        setCompanyName(uniqueCompanies);
       } catch (error) {
         console.error("Error fetching company:", error);
       }

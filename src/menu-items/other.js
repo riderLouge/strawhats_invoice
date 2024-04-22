@@ -10,14 +10,14 @@ const other = {
   id: "sample-docs-roadmap",
   type: "group",
   children: [
-    {
-      id: "Notification",
-      title: "Notification",
-      type: "item",
-      url: "",
-      icon: icons.IconBell,
-      breadcrumbs: false,
-    },
+    // {
+    //   id: "Notification",
+    //   title: "Notification",
+    //   type: "item",
+    //   url: "",
+    //   icon: icons.IconBell,
+    //   breadcrumbs: false,
+    // },
     {
       id: "Suppliers",
       title: "Suppliers",
@@ -25,6 +25,28 @@ const other = {
       url: "/suppliers",
       icon: icons.IconClipboardList,
       breadcrumbs: false,
+    },
+    {
+      id: "icons",
+      title: "Supplier Inovice",
+      type: "collapse",
+      icon: icons.IconFileInvoice,
+      children: [
+        {
+          id: "util-create-Bill",
+          title: "Upload Invoice",
+          type: "item",
+          url: "/supplierInvoice",
+          breadcrumbs: false,
+        },
+        {
+          id: "util-view/Edit-Bill",
+          title: "View / Edit Supplier Invoice",
+          type: "item",
+          url: "/AddOrEditBills",
+          breadcrumbs: false,
+        },
+      ],
     },
   ],
 };

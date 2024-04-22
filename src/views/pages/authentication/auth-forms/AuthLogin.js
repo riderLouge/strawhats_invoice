@@ -21,6 +21,8 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material";
+import React, { useEffect } from "react";
+import axios from "axios";
 
 // third party
 import * as Yup from "yup";
@@ -41,12 +43,9 @@ const FirebaseLogin = ({ ...others }) => {
   const scriptedRef = useScriptRef();
   const [checked, setChecked] = useState(true);
   const navigate = useNavigate();
-
-  const googleHandler = async () => {
-    console.error("Login");
-  };
-
+  const [user, setUser] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -54,6 +53,20 @@ const FirebaseLogin = ({ ...others }) => {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("api/user/fetchUsers");
+        setUser(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error fetching company:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <>
@@ -72,10 +85,21 @@ const FirebaseLogin = ({ ...others }) => {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            if (scriptedRef.current) {
-              setStatus({ success: true });
-              setSubmitting(false);
-              navigate("/dashboard");
+            const foundUser = user.find(
+              (u) => u.email === values.email && u.password === values.password
+            );
+
+            if (foundUser) {
+              if (scriptedRef.current) {
+                setStatus({ success: true });
+                setSubmitting(false);
+                localStorage.setItem("authenticated", "true");
+                navigate("/dashboard");
+              }
+            } else {
+              values.email = "";
+              values.password = "";
+              throw new Error("Invalid email or password");
             }
           } catch (err) {
             console.error(err);
@@ -164,6 +188,11 @@ const FirebaseLogin = ({ ...others }) => {
                   {errors.password}
                 </FormHelperText>
               )}
+              {errors.submit && (
+                <Box sx={{ mt: 1 }}>
+                  <FormHelperText error>{errors.submit}</FormHelperText>
+                </Box>
+              )}
             </FormControl>
             <Stack
               direction="row"
@@ -171,7 +200,7 @@ const FirebaseLogin = ({ ...others }) => {
               justifyContent="space-between"
               spacing={1}
             >
-              <FormControlLabel
+              {/* <FormControlLabel
                 control={
                   <Checkbox
                     checked={checked}
@@ -181,22 +210,24 @@ const FirebaseLogin = ({ ...others }) => {
                   />
                 }
                 label="Remember me"
-              />
+              /> */}
               <Typography
                 variant="subtitle1"
                 color="secondary"
-                sx={{ textDecoration: "none", cursor: "pointer" }}
+                sx={{
+                  textDecoration: "none",
+                  cursor: "pointer",
+                  float: "right",
+                }}
               >
-                <Link to="/forgot-password" style={{ textDecoration: "none", color: "inherit" }}>
+                <Link
+                  to="/forgot-password"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
                   Forgot Password?
                 </Link>
               </Typography>
             </Stack>
-            {errors.submit && (
-              <Box sx={{ mt: 3 }}>
-                <FormHelperText error>{errors.submit}</FormHelperText>
-              </Box>
-            )}
 
             <Box sx={{ mt: 2 }}>
               <AnimateButton>

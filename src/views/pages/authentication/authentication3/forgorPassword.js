@@ -30,14 +30,14 @@ export default function ForgorPassword() {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [email, setEmail] = useState("");
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
     if (email !== "") {
-      navigate("/reset-password");
+      navigate("/");
     } else {
-      setErrorMessage('Please enter your mail')
+      setErrorMessage("Please enter your mail");
     }
   };
   return (
@@ -56,7 +56,16 @@ export default function ForgorPassword() {
         >
           <Grid item sx={{ m: { xs: 1, sm: 3 }, mb: 0 }}>
             <AuthCardWrapper>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: 'column', rowGap: 5, width: 'clamp(200px, 25vw, 300px)', textAlign: 'center' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  flexDirection: "column",
+                  rowGap: 5,
+                  width: "clamp(200px, 25vw, 300px)",
+                  textAlign: "center",
+                }}
+              >
                 <Box>
                   <Typography style={softwareNameStyle}>
                     <span className="strawhat">Straw</span>
@@ -77,58 +86,57 @@ export default function ForgorPassword() {
                     Enter your Email to continue
                   </Typography>
                 </Box>
-                  <form onSubmit={handleSubmit}>
-                    <FormControl fullWidth>
-                      <InputLabel htmlFor="outlined-adornment-email-login">
-                        Email Address
-                      </InputLabel>
-                      <OutlinedInput
-                        id="outlined-adornment-email-login"
-                        type="email"
-                        value={email}
-                        name="email"
-                        onChange={(e) => setEmail(e.target.value)}
-                        label="Email Address"
-                        inputProps={{}}
-                      />
-                      <FormHelperText error>{ errorMessage}</FormHelperText>
-                    </FormControl>
-                    <Box
-                      sx={{
-                        mt: 8,
-                        display: "flex",
-                        justifyContent: "end",
-                        alignItems: "center",
-                        gap: 2,
-                      }}
-                    >
-                      <AnimateButton>
-                        <Button
-                          disableElevation
-                          fullWidth
-                          size="large"
-                          variant="outlined"
-                          color="secondary"
-                          onClick={() => navigate("/")}
-                        >
-                          Back
-                        </Button>
-                      </AnimateButton>
-                      <AnimateButton>
-                        <Button
-                          disableElevation
-                          fullWidth
-                          size="large"
-                          type="submit"
-                          variant="contained"
-                          color="secondary"
-                        >
-                          Send OTP
-                        </Button>
-                      </AnimateButton>
-                    </Box>
-                  </form>
-
+                <form onSubmit={handleSubmit}>
+                  <FormControl fullWidth>
+                    <InputLabel htmlFor="outlined-adornment-email-login">
+                      Email Address
+                    </InputLabel>
+                    <OutlinedInput
+                      id="outlined-adornment-email-login"
+                      type="email"
+                      value={email}
+                      name="email"
+                      onChange={(e) => setEmail(e.target.value)}
+                      label="Email Address"
+                      inputProps={{}}
+                    />
+                    <FormHelperText error>{errorMessage}</FormHelperText>
+                  </FormControl>
+                  <Box
+                    sx={{
+                      mt: 8,
+                      display: "flex",
+                      justifyContent: "end",
+                      alignItems: "center",
+                      gap: 2,
+                    }}
+                  >
+                    <AnimateButton>
+                      <Button
+                        disableElevation
+                        fullWidth
+                        size="large"
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => navigate("/")}
+                      >
+                        Back
+                      </Button>
+                    </AnimateButton>
+                    <AnimateButton>
+                      <Button
+                        disableElevation
+                        fullWidth
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        color="secondary"
+                      >
+                        Send Temp Password
+                      </Button>
+                    </AnimateButton>
+                  </Box>
+                </form>
               </Box>
             </AuthCardWrapper>
           </Grid>

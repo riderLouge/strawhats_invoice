@@ -5,73 +5,72 @@ import * as ExcelJS from "exceljs";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogTemplate from "../../ui-component/Dialog";
 import axios from "axios";
+import { TextField, Grid, Autocomplete } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 
 const Items = () => {
-  const groceryProducts = [
-    {
-      id: 1,
-      name: "Apples",
-      category: "Fruits",
-      price: 1.99,
-      quantity: 10,
-    },
-    {
-      id: 2,
-      name: "Bread",
-      category: "Bakery",
-      price: 2.49,
-      quantity: 5,
-    },
-    {
-      id: 3,
-      name: "Milk",
-      category: "Dairy",
-      price: 1.79,
-      quantity: 3,
-    },
-    {
-      id: 4,
-      name: "Apples",
-      category: "Fruits",
-      price: 1.99,
-      quantity: 10,
-    },
-    {
-      id: 5,
-      name: "Bread",
-      category: "Bakery",
-      price: 2.49,
-      quantity: 5,
-    },
-    {
-      id: 6,
-      name: "Milk",
-      category: "Dairy",
-      price: 1.79,
-      quantity: 3,
-    },
-  ];
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+
   const columns = useMemo(
     () => [
       {
-        accessorKey: "name",
+        accessorKey: "ID",
+        header: "Id",
+      },
+      {
+        accessorKey: "NAME",
         header: "Product Name",
       },
       {
-        accessorKey: "category",
-        header: "Category",
+        accessorKey: "HSN",
+        header: "Hsn",
       },
       {
-        accessorKey: "price",
-        header: "Price",
+        accessorKey: "MRP",
+        header: "Mrp",
       },
       {
-        accessorKey: "quantity",
+        accessorKey: "PPRICE",
+        header: "Purchase Price",
+      },
+      {
+        accessorKey: "SPRICE",
+        header: "Selling Price",
+      },
+      {
+        accessorKey: "FREE",
+        header: "Free",
+      },
+      {
+        accessorKey: "FQTY",
         header: "Quantity",
       },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        Cell: ({ row }) => (
+          <EditIcon
+            style={{
+              cursor: "pointer",
+              color: hoveredRow === row.id ? "blue" : "inherit",
+            }}
+            onMouseEnter={() => setHoveredRow(row.id)}
+            onMouseLeave={() => setHoveredRow(null)}
+            onClick={() => handleEdit(row)}
+          />
+        ),
+      },
     ],
-    []
+    [hoveredRow]
   );
+
+  const handleEdit = (row) => {
+    setSelectedItem(row.original);
+    handleOpenDialog("Edit Items");
+  };
+
   const companyNames = [
     "ASIA CANDY",
     "BEIERSDORF INDIA PVT LTD",
@@ -94,15 +93,27 @@ const Items = () => {
     "USHODAYA ENTERPRISES LTD",
     "VIKAAS FOOD PRODUCTS",
   ];
-  const [rowSelection, setRowSelection] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [fileName, setFileName] = useState("");
   const [dialogTitle, setDialogTitle] = useState("");
   const [buttonClicked, setButtonClicked] = useState("");
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    console.info({ rowSelection });
-  }, [rowSelection]);
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get("api/products/fetchItems");
+        const filteredProducts = response.data.filter((product) => product.HSN);
+        console.log(filteredProducts);
+
+        setProducts(filteredProducts);
+      } catch (error) {
+        console.error("Error fetching company:", error);
+      }
+    };
+
+    fetchProduct();
+  }, []);
   const [modifiedData, setModifiedData] = useState([]);
 
   const handleFileUpload = async (event) => {
@@ -124,13 +135,15 @@ const Items = () => {
           let gst = rowData[6] || null;
           let hsn = rowData[7] || null;
           let cessPercent = rowData[8] || null;
-          let cmCode = rowData[9] !== undefined ? rowData[9] : null; // Check for undefined cmCode
+          let cmCode = rowData[9] !== undefined ? rowData[9] : null;
           let fitmentCode = rowData[10];
           let quantity = rowData[11];
           let freeQuantity = rowData[12];
           let discountPercent = rowData[13] || null;
 
-          // Construct object with the desired structure
+          if (companyName == "USHODAYA ENTERPRISES LTD") {
+            console.log(rowData[9], "cmCode =", cmCode);
+          }
           const object = {
             CNAME: companyName,
             NAME: productName,
@@ -146,9 +159,8 @@ const Items = () => {
             FREE: freeQuantity,
             DISCP: discountPercent,
           };
-
-          if (companyName === "USHODAYA ENTERPRISES LTD") {
-            console.log("object =", rowData[9]);
+          if (companyName == "USHODAYA ENTERPRISES LTD") {
+            console.log("cmCode =", object.CMCODE);
           }
           modifiedData.push(object);
         }
@@ -194,16 +206,52 @@ const Items = () => {
     setDialogTitle("");
   };
 
+  const handleExportToExcel = () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Products");
+
+    // Add headers
+    const headers = [
+      "ID",
+      "Product Name",
+      "Hsn",
+      "Mrp",
+      "Purchase Price",
+      "Selling Price",
+    ];
+    worksheet.addRow(headers);
+
+    // Add data
+    products.forEach((product) => {
+      const row = [
+        product.ID,
+        product.NAME,
+        product.HSN,
+        product.MRP,
+        product.PPRICE,
+        product.SPRICE,
+      ];
+      worksheet.addRow(row);
+    });
+
+    // Generate buffer
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "products.xlsx";
+      a.click();
+    });
+  };
+
   return (
     <MainCard title="Items" sx={{ position: "relative" }}>
       <Card sx={{ overflow: "hidden" }}>
         <MaterialReactTable
           columns={columns}
-          data={groceryProducts}
-          enableRowSelection
+          data={products}
           getRowId={(row) => row.id}
-          onRowSelectionChange={setRowSelection}
-          state={{ rowSelection }}
         />
       </Card>
       <Button
@@ -228,9 +276,9 @@ const Items = () => {
           margin: "8px",
           zIndex: 1,
         }}
-        onClick={() => handleOpenDialog("Add/Edit")}
+        onClick={() => handleOpenDialog("Add Items")}
       >
-        Add / Edit Item
+        Add Items
       </Button>
       <Button
         variant="contained"
@@ -246,9 +294,23 @@ const Items = () => {
       >
         Import
       </Button>
+      {/* <Button
+        variant="contained"
+        color="primary"
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={handleExportToExcel}
+      >
+        Export to Excel
+      </Button> */}
       <DialogTemplate
         open={openDialog}
-        title={"Import"}
+        title={buttonClicked}
         body={
           buttonClicked === "Import" ? (
             <label
@@ -273,8 +335,135 @@ const Items = () => {
               </Button>
               <span>Selected file: {fileName}</span>
             </label>
+          ) : buttonClicked === "Add Items" ||
+            buttonClicked === "Edit Items" ? (
+            <div>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    id="productName"
+                    label="Product Name"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.NAME
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="hsn"
+                    label="Hsn"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.HSN
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="mrp"
+                    label="Mrp"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.MRP
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="purchasePrice"
+                    label="Purchase Price"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.PPRICE
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="sellingPrice"
+                    label="Selling Price"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.SPRICE
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    id="quantity"
+                    label="Quantity"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.FQTY
+                        : ""
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </div>
           ) : (
-            <span>{`You clicked on: ${buttonClicked}`}</span>
+            <div style={{ width: "500px" }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Autocomplete
+                    multiple
+                    id="productNames"
+                    options={products.map((product) => product.NAME)}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Product Names"
+                        variant="outlined"
+                        fullWidth
+                      />
+                    )}
+                    onChange={(event, newValue) => {
+                      setSelectedProducts(newValue);
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="damagedQuantity"
+                    label="Damaged Quantity"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="reason"
+                    label="Reason"
+                    variant="outlined"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+            </div>
           )
         }
         handleCloseDialog={handleCloseDialog}

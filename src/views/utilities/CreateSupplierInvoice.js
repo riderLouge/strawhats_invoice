@@ -5,7 +5,7 @@ import MainCard from "../../ui-component/cards/MainCard";
 import { MaterialReactTable } from "material-react-table";
 import axios from "axios";
 
-const UtilitiesCreateBill = () => {
+const UtilitiesCreateSupplierBill = () => {
   const [formData, setFormData] = useState({
     invoiceNumber: "",
     invoiceDate: "",
@@ -26,17 +26,21 @@ const UtilitiesCreateBill = () => {
   });
 
   const [tableData, setTableData] = useState([]);
-  const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const [suppliers, setSuppliers] = useState([]);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await axios.get("api/shops/fetchItems");
-        console.log(response.data);
-        setCustomers(response.data);
+        const response = await axios.get("api/company/fetchCompany");
+        const uniqueCompanies = Array.from(
+          new Set(response.data.map((company) => company.cName))
+        ).map((cName) =>
+          response.data.find((company) => company.cName === cName)
+        );
+        setSuppliers(uniqueCompanies);
       } catch (error) {
         console.error("Error fetching company:", error);
       }
@@ -193,10 +197,29 @@ const UtilitiesCreateBill = () => {
     },
   ];
 
+  const clearSupplierDetails = () => {
+    setSelectedSupplier(null);
+    setFormData({
+      ...formData,
+      supplierName: "",
+      supplierAddress: "",
+    });
+  };
+
+  const handleSupplierSelect = (supplier) => {
+    setSelectedSupplier(supplier);
+
+    setFormData({
+      ...formData,
+      supplierName: supplier.name,
+      supplierAddress: supplier.address,
+    });
+  };
+
   return (
     <MainCard title="Invoice">
       <Grid item xs={12}>
-        <SubCard title="Create bills" sx={{ mb: 2 }}>
+        <SubCard title="Create Supplier bills" sx={{ mb: 2 }}>
           <Grid container spacing={3}>
             <Grid item xs={6}>
               <TextField
@@ -225,80 +248,36 @@ const UtilitiesCreateBill = () => {
             <Grid item xs={6}>
               <Autocomplete
                 fullWidth
-                options={customers}
-                getOptionLabel={(option) => option.CUSNAM}
-                value={selectedCustomer} // Set the value prop to the selectedCustomer state
+                options={suppliers}
+                getOptionLabel={(option) => option.cName}
+                value={selectedSupplier}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Customer Name"
+                    label="Supplier Name"
                     variant="outlined"
                   />
                 )}
-                onChange={(event, value) => handleCustomerSelect(value)}
+                onChange={(event, value) => handleSupplierSelect(value)}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Billing Address"
+                label="Supplier Address"
                 variant="outlined"
-                name="billingAddress"
-                value={formData.billingAddress}
+                name="supplierAddress"
+                value={formData.supplierAddress}
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                variant="outlined"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="GSTIN"
-                variant="outlined"
-                name="gstin"
-                value={formData.gstin}
-                onChange={handleChange}
-              />
-            </Grid>
-            {/* <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="City"
-                variant="outlined"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="State"
-                variant="outlined"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-              />
-            </Grid> */}
           </Grid>
           <Grid container spacing={2} mt={2}>
             <Grid item>
               <Button
                 variant="contained"
                 color="secondary"
-                onClick={() => {
-                  setFormData({});
-                  setSelectedCustomer(null);
-                  clearCustomerDetails();
-                }}
+                onClick={clearSupplierDetails}
               >
                 Clear
               </Button>
@@ -440,4 +419,4 @@ const UtilitiesCreateBill = () => {
   );
 };
 
-export default UtilitiesCreateBill;
+export default UtilitiesCreateSupplierBill;
