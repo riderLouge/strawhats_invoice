@@ -1,8 +1,10 @@
 const express = require("express");
 const prisma = require("./prisma/prismaClient");
 const app = express();
+const cors = require("cors");
 
 app.use(express.json());
+app.use(cors());
 
 app.get("/api/company/fetchCompany", async (req, res) => {
   try {

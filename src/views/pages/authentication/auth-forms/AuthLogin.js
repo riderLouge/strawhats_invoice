@@ -57,7 +57,9 @@ const FirebaseLogin = ({ ...others }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get("api/user/fetchUsers");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/user/fetchUsers"
+        );
         setUser(response.data);
         console.log(response.data);
       } catch (error) {
