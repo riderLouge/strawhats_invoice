@@ -57,7 +57,7 @@ const ProfileSection = () => {
   const anchorRef = useRef(null);
   const handleLogout = async () => {
     localStorage.removeItem("authenticated"); // Remove authentication state
-
+    localStorage.clear();
     navigate("/");
   };
 

@@ -60,6 +60,7 @@ const FirebaseLogin = ({ ...others }) => {
         const response = await axios.get(
           "https://api-skainvoice.top/api/user/fetchUsers"
         );
+        localStorage.setItem('role', 'dld')
         setUser(response.data);
         console.log(response.data);
       } catch (error) {
