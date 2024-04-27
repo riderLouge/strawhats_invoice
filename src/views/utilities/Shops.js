@@ -25,7 +25,9 @@ const Shops = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get("api/shops/fetchItems");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/shops/fetchItems"
+        );
         console.log(response.data);
         setShops(response.data);
       } catch (error) {
@@ -121,7 +123,10 @@ const Shops = () => {
       for (let i = 0; i < modifiedData.length; i += chunkSize) {
         const chunk = modifiedData.slice(i, i + chunkSize);
 
-        const response = await axios.post("api/shops/insert", chunk);
+        const response = await axios.post(
+          "https://api-skainvoice.top/api/shops/insert",
+          chunk
+        );
         console.log("Data inserted successfully:", response.data);
       }
 

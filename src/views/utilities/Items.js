@@ -102,7 +102,9 @@ const Items = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get("api/products/fetchItems");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/products/fetchItems"
+        );
         const filteredProducts = response.data.filter((product) => product.HSN);
         console.log(filteredProducts);
 
@@ -183,27 +185,74 @@ const Items = () => {
   };
 
   const handleSubmitDialog = async () => {
-    console.log(modifiedData);
     try {
-      const chunkSize = 100;
-      for (let i = 0; i < modifiedData.length; i += chunkSize) {
-        const chunk = modifiedData.slice(i, i + chunkSize);
+      if (buttonClicked === "Import") {
+        const chunkSize = 100;
+        for (let i = 0; i < modifiedData.length; i += chunkSize) {
+          const chunk = modifiedData.slice(i, i + chunkSize);
 
-        const response = await axios.post("api/items/insert", chunk);
-        console.log("Data inserted successfully:", response.data);
+          const response = await axios.post(
+            "https://api-skainvoice.top/api/items/insert",
+            chunk
+          );
+          console.log("Data inserted successfully:", response.data);
+        }
+
+        modifiedData.splice(0, modifiedData.length);
+
+        setOpenDialog(false);
+        setFileName("");
+
+        setButtonClicked("");
+        setDialogTitle("");
+      } else if (buttonClicked === "Add Items") {
+        // Gather data from form fields
+        const newData = {
+          CNAME: "Your Company Name", // Provide the company name here
+          NAME: document.getElementById("productName").value,
+          HSN: document.getElementById("hsn").value,
+          MRP: document.getElementById("mrp").value,
+          PPRICE: document.getElementById("purchasePrice").value,
+          SPRICE: document.getElementById("sellingPrice").value,
+          GST: "Your GST Value", // Provide the GST value here
+          CESSP: "Your CESSP Value", // Provide the CESSP value here
+          CMCODE: "Your CMCODE Value", // Provide the CMCODE value here
+          FITEC: "Your FITEC Value", // Provide the FITEC value here
+          FQTY: document.getElementById("quantity").value,
+          FREE: "Your FREE Value", // Provide the FREE value here
+          DISCP: "Your DISCP Value", // Provide the DISCP value here
+        };
+        // Make API call to add the item
+        const response = await axios.post(
+          "https://api-skainvoice.top/api/items/add",
+          newData
+        );
+        console.log("Item added successfully:", response.data);
+      } else if (buttonClicked === "Edit Items") {
+        // Gather edited data from form fields
+        const editedData = {
+          ID: selectedItem.ID, // Assuming ID is required for editing
+          NAME: document.getElementById("productName").value,
+          HSN: document.getElementById("hsn").value,
+          MRP: document.getElementById("mrp").value,
+          PPRICE: document.getElementById("purchasePrice").value,
+          SPRICE: document.getElementById("sellingPrice").value,
+          FQTY: document.getElementById("quantity").value,
+        };
+
+        // Make API call to edit the item
+        const response = await axios.put(
+          "https://api-skainvoice.top/api/items/edit",
+          editedData
+        );
+        console.log("Item edited successfully:", response.data);
       }
 
-      modifiedData.splice(0, modifiedData.length);
+      // Clear form fields and close dialog
+      handleCloseDialog();
     } catch (error) {
-      console.error("Error inserting data:", error);
-      modifiedData.splice(0, modifiedData.length);
+      console.error("Error:", error);
     }
-
-    setOpenDialog(false);
-    setFileName("");
-
-    setButtonClicked("");
-    setDialogTitle("");
   };
 
   const handleExportToExcel = () => {

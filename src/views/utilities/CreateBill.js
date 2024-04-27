@@ -34,7 +34,9 @@ const UtilitiesCreateBill = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await axios.get("api/shops/fetchItems");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/shops/fetchItems"
+        );
         console.log(response.data);
         setCustomers(response.data);
       } catch (error) {
@@ -44,7 +46,9 @@ const UtilitiesCreateBill = () => {
 
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("api/products/fetchItems");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/products/fetchItems"
+        );
         const filteredProducts = response.data.filter((product) => product.HSN);
         console.log(filteredProducts);
 
