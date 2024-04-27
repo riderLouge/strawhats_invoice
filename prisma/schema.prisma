@@ -50,10 +50,10 @@ model Shop {
 model LoginAuth {
   Id                     Int    @id @default(autoincrement())
   name                   String
+  userType               String
   email                  String @unique
   password               String
-}
-
+}  
 
 
 model Product {

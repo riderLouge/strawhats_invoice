@@ -34,7 +34,9 @@ const UtilitiesCreateSupplierBill = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await axios.get("api/company/fetchCompany");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/company/fetchCompany"
+        );
         const uniqueCompanies = Array.from(
           new Set(response.data.map((company) => company.cName))
         ).map((cName) =>
@@ -48,7 +50,9 @@ const UtilitiesCreateSupplierBill = () => {
 
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("api/products/fetchItems");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/products/fetchItems"
+        );
         const filteredProducts = response.data.filter((product) => product.HSN);
         console.log(filteredProducts);
 

@@ -12,7 +12,9 @@ const Suppliers = () => {
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        const response = await axios.get("api/company/fetchCompany");
+        const response = await axios.get(
+          "https://api-skainvoice.top/api/company/fetchCompany"
+        );
         console.log(response.data);
         const uniqueCompanies = Array.from(
           new Set(response.data.map((company) => company.cName))
