@@ -7,10 +7,7 @@ import other from "./other";
 // ==============================|| MENU ITEMS ||============================== //
 
 let menuItems = {
-  items: [dashboard, utilities, other],
+  items: [dashboard, pages, utilities, other],
 };
-if (localStorage.getItem("role") === "admin") {
-  menuItems.items.splice(1, 0, pages);
-}
 
 export default menuItems;

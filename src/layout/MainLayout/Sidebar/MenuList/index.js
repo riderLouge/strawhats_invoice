@@ -8,7 +8,14 @@ import menuItem from "../../../../menu-items";
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-  const navItems = menuItem.items.map((item) => {
+  let menus = menuItem;
+  if (localStorage.getItem('role') !== "admin") {
+   menus = menuItem.items.filter((item) => item.id !== 'pages')
+  }else{
+    menus = menuItem.items;
+  }
+
+  const navItems = menus.map((item) => {
     switch (item.type) {
       case "group":
         return <NavGroup key={item.id} item={item} />;
