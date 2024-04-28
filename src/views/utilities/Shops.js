@@ -22,19 +22,18 @@ const Shops = () => {
   const [modifiedData, setModifiedData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(
-          "https://api-skainvoice.top/api/shops/fetchItems"
-        );
-        console.log(response.data);
-        setShops(response.data);
-      } catch (error) {
-        console.error("Error fetching company:", error);
-      }
-    };
+  const fetchProduct = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/shops/fetchItems"
+      );
+      setShops(response.data);
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchProduct();
   }, []);
 
@@ -119,28 +118,90 @@ const Shops = () => {
 
   const handleSubmitDialog = async () => {
     try {
-      const chunkSize = 100;
-      for (let i = 0; i < modifiedData.length; i += chunkSize) {
-        const chunk = modifiedData.slice(i, i + chunkSize);
+      if (buttonClicked === "Import") {
+        const chunkSize = 100;
+        for (let i = 0; i < modifiedData.length; i += chunkSize) {
+          const chunk = modifiedData.slice(i, i + chunkSize);
 
-        const response = await axios.post(
-          "https://api-skainvoice.top/api/shops/insert",
-          chunk
+          const response = await axios.post(
+            "https://api-skainvoice.top/api/shops/insert",
+            chunk
+          );
+          console.log("Data inserted successfully:", response.data);
+        }
+
+        modifiedData.splice(0, modifiedData.length);
+
+        setOpenDialog(false);
+        setFileName("");
+
+        setButtonClicked("");
+        setDialogTitle("");
+      } else if (buttonClicked === "Add Shops") {
+        const newData = {
+          GRPNAM: document.getElementById("groupName").value,
+          CUSNAM: document.getElementById("customerName").value,
+          ADRONE: document.getElementById("addressOne").value,
+          ADRTWO: document.getElementById("addressTwo").value,
+          ADRTHR: document.getElementById("addressThr").value,
+          ADRFOU: document.getElementById("addressThr").value,
+          PLC: document.getElementById("place").value,
+          PINCOD: document.getElementById("pincode").value,
+          CNTPER: document.getElementById("contactPerson").value,
+          SLNO: document.getElementById("SLNO").value,
+          TNGST: document.getElementById("TNGST").value,
+          TELNUM: document.getElementById("TELNUM").value,
+          ZONNAM: document.getElementById("zoneName").value,
+        };
+        console.log(newData);
+        const response = await axios.post("api/shop/add", newData).then(() => {
+          fetchProduct();
+        });
+        console.log(response, "========");
+      } else if (buttonClicked === "Edit Shops") {
+        // Gather edited data from form fields
+        const editedData = {
+          ID: selectedItem.ID, // Assuming ID is required for editing
+          GRPNAM: document.getElementById("groupName").value,
+          CUSNAM: document.getElementById("customerName").value,
+          ADRONE: document.getElementById("addressOne").value,
+          ADRTWO: document.getElementById("addressTwo").value,
+          ADRTHR: document.getElementById("addressThr").value,
+          ADRFOU: document.getElementById("addressThr").value,
+          PLC: document.getElementById("place").value,
+          PINCOD: document.getElementById("pincode").value,
+          CNTPER: document.getElementById("contactPerson").value,
+          SLNO: document.getElementById("SLNO").value,
+          TNGST: document.getElementById("TNGST").value,
+          TELNUM: document.getElementById("TELNUM").value,
+          ZONNAM: document.getElementById("zoneName").value,
+        };
+
+        // Make API call to edit the item
+        const response = await axios.put(
+          `api/items/edit/${selectedItem.ID}`,
+          editedData
         );
-        console.log("Data inserted successfully:", response.data);
+        console.log("Item edited successfully:", response);
+      } else if (buttonClicked === "Stock Adjustment") {
+        const editedData = {
+          ID: selectedItem.ID,
+          FQTY:
+            document.getElementById("stockQuantity").value -
+            document.getElementById("damagedQuantity").value,
+        };
+        const newData = {
+          ID: selectedItem.ID,
+          DQTY: document.getElementById("damagedQuantity").value,
+        };
+        console.log(newData);
       }
 
-      modifiedData.splice(0, modifiedData.length);
+      // Clear form fields and close dialog
+      handleCloseDialog();
     } catch (error) {
-      console.error("Error inserting data:", error);
-      modifiedData.splice(0, modifiedData.length);
+      console.error("Error:", error);
     }
-
-    setOpenDialog(false);
-    setFileName("");
-
-    setButtonClicked("");
-    setDialogTitle("");
   };
 
   const handleFileUpload = async (event) => {
@@ -250,9 +311,11 @@ const Shops = () => {
           margin: "8px",
           zIndex: 1,
         }}
-        onClick={() => {}}
+        onClick={() => {
+          handleOpenDialog("Add Shops");
+        }}
       >
-        Add / Edit Customer
+        Add Customer
       </Button>
       <DialogTemplate
         open={openDialog}
@@ -281,9 +344,185 @@ const Shops = () => {
               </Button>
               <span>Selected file: {fileName}</span>
             </label>
-          ) : buttonClicked === "Add Items" ||
-            buttonClicked === "Edit Items" ? (
-            ""
+          ) : buttonClicked === "Add Shops" ||
+            buttonClicked === "Edit Shops" ? (
+            <div>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    id="groupName"
+                    label="Group Name"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.GRPNAM
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="customerName"
+                    label="Customer Name"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.CUSNAM
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="addressOne"
+                    label="Address One"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.ADRTWO
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="addressTwo"
+                    label="Address Two"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.MRP
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="addressThr"
+                    label="Address Three"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.ADRTHR
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="addressFour"
+                    label="Address Four"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.ADRFOU
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="place"
+                    label="Place"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.PLC
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="pincode"
+                    label="Pincode"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.PINCOD
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="contactPerson"
+                    label="Contact Person"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.CNTPER
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="SLNO"
+                    label="SL No"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.SLNO
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="TNGST"
+                    label="TNGST"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.TNGST
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="TELNUM"
+                    label="Tel Number"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.TELNUM
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="zoneName"
+                    label="Zone Name"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.ZONNAM
+                        : ""
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </div>
           ) : (
             <span>{`You clicked on: ${buttonClicked}`}</span>
           )

@@ -18,6 +18,47 @@ app.get("/api/company/fetchCompany", async (req, res) => {
   }
 });
 
+app.post("/api/items/add", async (req, res) => {
+  try {
+    const newItem = req.body;
+    const createdItem = await prisma.product.create({
+      data: newItem,
+    });
+    res.json(createdItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while adding the item" });
+  }
+});
+
+app.post("/api/shop/add", async (req, res) => {
+  try {
+    const newItem = req.body;
+    const createdItem = await prisma.shop.create({
+      data: newItem,
+    });
+    res.json(createdItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while adding the shop" });
+  }
+});
+
+app.put("/api/items/edit/:id", async (req, res) => {
+  try {
+    const { id } = req.params.id;
+    const updatedItemData = req.body;
+    const updatedItem = await prisma.product.update({
+      where: { ID: id },
+      data: updatedItemData,
+    });
+    res.json(updatedItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while editing the item" });
+  }
+});
+
 app.get("/api/products/fetchItems", async (req, res) => {
   try {
     const products = await prisma.product.findMany();
@@ -32,8 +73,8 @@ app.get("/api/products/fetchItems", async (req, res) => {
 
 app.get("/api/user/fetchUsers", async (req, res) => {
   try {
-    const products = await prisma.LoginAuth.findMany();
-    res.json(products);
+    const users = await prisma.LoginAuth.findMany();
+    res.json(users);
   } catch (error) {
     console.error(error);
     res

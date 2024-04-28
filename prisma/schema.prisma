@@ -10,14 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admin {
-  userid      Int    @id @default(autoincrement())
-  name    String
-  email   String @unique
-  phoneNumber BigInt
-  address String
-}
-
 
 model Staff {
   userid                 Int    @id @default(autoincrement())
@@ -26,12 +18,14 @@ model Staff {
   phoneNumber            BigInt
   address                String
   designation            String
+  role                   String
   shopId                 Int
+  photo                  String
 }
 
 
 model Shop {
-  shopId                 Int    @id @default(autoincrement())
+  shopId                 Int    @id @default(autoincrement()) @unique
   GRPNAM                 String
   CUSNAM                 String
   ADRONE                 String
@@ -61,19 +55,26 @@ model Product {
   ID                Int      @id @default(autoincrement())
   CNAME             String
   NAME              String
-  MRP               String    // Assuming MRP can have decimal values
-  PPRICE            String    // Assuming product price can have decimal values
-  SPRICE            String    // Assuming selling price can have decimal values
-  GST               String    // Assuming GST can have decimal values
+  MRP               String   
+  PPRICE            String    
+  SPRICE            String    
+  GST               String    
   HSN               String
-  CESSP             String    // Assuming CESSP can have decimal values
+  CESSP             String    
   CMCODE            String
   FITEC             String
   FQTY              String
   FREE              String
-  DISCP             String    // Assuming discount percentage can have decimal values
+  DISCP             String    
 }
 
+model StockAdjust {
+  ID          Int      @id @default(autoincrement())
+  productID   Int    
+  FQTY        String
+  Reason      String
+  DQTY        String
+}
 
 model Company {
   id                    Int     @id @default(autoincrement())
@@ -93,37 +94,38 @@ model Customer {
 }
 
 
-model Supplier {
-  id                     Int      @id @default(autoincrement())
-  supplierName           String
-  shopId                 Int
-  // products
-}
 
 
 model Invoice {
   invoiceNumber         Int       @id
-  productId             Int
-  productQuantity       Int
+  products              Json[]
   currentPrice          Int
   invoiceDate           DateTime
   shopId                Int
-  total                 Int
 }
 
+model CreditDebit {
+  invoiceNumber         Int       @id
+  invoiceDate           DateTime
+  shopId                Int
+  status                String
+  pending               Int
+}
 
-model Bill {
+model SupplierBill {
   billNumber           Int        @id
-  invoiceNumber        Int
-  // Invoice table
+  billTotal            Int
   paymentMode          String
   pendingPayment       Int
   billDate             DateTime
+  billedProducts       Json[]
 }
 
 
 model Delivery {
-  billNumber           Int        @id
+  id                   Int        @id
+  billNumbers          Int[]        
+  date                 DateTime
   staffId              Int
   area                 String
   status               String

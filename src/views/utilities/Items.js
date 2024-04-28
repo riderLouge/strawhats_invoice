@@ -98,22 +98,22 @@ const Items = () => {
   const [dialogTitle, setDialogTitle] = useState("");
   const [buttonClicked, setButtonClicked] = useState("");
   const [products, setProducts] = useState([]);
+  const [stockQuantity, setStockQuantity] = useState(0);
+
+  const fetchProduct = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/products/fetchItems"
+      );
+      const filteredProducts = response.data.filter((product) => product.HSN);
+
+      setProducts(filteredProducts);
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(
-          "https://api-skainvoice.top/api/products/fetchItems"
-        );
-        const filteredProducts = response.data.filter((product) => product.HSN);
-        console.log(filteredProducts);
-
-        setProducts(filteredProducts);
-      } catch (error) {
-        console.error("Error fetching company:", error);
-      }
-    };
-
     fetchProduct();
   }, []);
   const [modifiedData, setModifiedData] = useState([]);
@@ -143,9 +143,6 @@ const Items = () => {
           let freeQuantity = rowData[12];
           let discountPercent = rowData[13] || null;
 
-          if (companyName == "USHODAYA ENTERPRISES LTD") {
-            console.log(rowData[9], "cmCode =", cmCode);
-          }
           const object = {
             CNAME: companyName,
             NAME: productName,
@@ -161,9 +158,7 @@ const Items = () => {
             FREE: freeQuantity,
             DISCP: discountPercent,
           };
-          if (companyName == "USHODAYA ENTERPRISES LTD") {
-            console.log("cmCode =", object.CMCODE);
-          }
+
           modifiedData.push(object);
         }
       });
@@ -178,6 +173,7 @@ const Items = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    formData.quantity = 0;
     setFileName("");
 
     setButtonClicked("");
@@ -208,44 +204,64 @@ const Items = () => {
       } else if (buttonClicked === "Add Items") {
         // Gather data from form fields
         const newData = {
-          CNAME: "Your Company Name", // Provide the company name here
+          CNAME: document.getElementById("companyName").value,
           NAME: document.getElementById("productName").value,
           HSN: document.getElementById("hsn").value,
           MRP: document.getElementById("mrp").value,
           PPRICE: document.getElementById("purchasePrice").value,
           SPRICE: document.getElementById("sellingPrice").value,
-          GST: "Your GST Value", // Provide the GST value here
-          CESSP: "Your CESSP Value", // Provide the CESSP value here
-          CMCODE: "Your CMCODE Value", // Provide the CMCODE value here
-          FITEC: "Your FITEC Value", // Provide the FITEC value here
+          GST: document.getElementById("gst").value,
+          CESSP: document.getElementById("cess").value,
+          CMCODE: document.getElementById("cmCode").value,
+          FITEC: document.getElementById("fitec").value,
           FQTY: document.getElementById("quantity").value,
-          FREE: "Your FREE Value", // Provide the FREE value here
-          DISCP: "Your DISCP Value", // Provide the DISCP value here
+          FREE: document.getElementById("free").value,
+          DISCP: document.getElementById("discription").value,
         };
-        // Make API call to add the item
-        const response = await axios.post(
-          "https://api-skainvoice.top/api/items/add",
-          newData
-        );
-        console.log("Item added successfully:", response.data);
+        console.log(newData);
+        const response = await axios
+          .post("https://api-skainvoice.top/api/products/add", newData)
+          .then(() => {
+            fetchProduct();
+          });
+        console.log(response, "========");
       } else if (buttonClicked === "Edit Items") {
         // Gather edited data from form fields
         const editedData = {
           ID: selectedItem.ID, // Assuming ID is required for editing
+          CNAME: document.getElementById("companyName").value,
           NAME: document.getElementById("productName").value,
           HSN: document.getElementById("hsn").value,
           MRP: document.getElementById("mrp").value,
           PPRICE: document.getElementById("purchasePrice").value,
           SPRICE: document.getElementById("sellingPrice").value,
+          GST: document.getElementById("gst").value,
+          CESSP: document.getElementById("cess").value,
+          CMCODE: document.getElementById("cmCode").value,
+          FITEC: document.getElementById("fitec").value,
           FQTY: document.getElementById("quantity").value,
+          FREE: document.getElementById("free").value,
+          DISCP: document.getElementById("discription").value,
         };
 
         // Make API call to edit the item
         const response = await axios.put(
-          "https://api-skainvoice.top/api/items/edit",
+          `api/items/edit/${selectedItem.ID}`,
           editedData
         );
-        console.log("Item edited successfully:", response.data);
+        console.log("Item edited successfully:", response);
+      } else if (buttonClicked === "Stock Adjustment") {
+        const editedData = {
+          ID: selectedItem.ID,
+          FQTY:
+            document.getElementById("stockQuantity").value -
+            document.getElementById("damagedQuantity").value,
+        };
+        const newData = {
+          ID: selectedItem.ID,
+          DQTY: document.getElementById("damagedQuantity").value,
+        };
+        console.log(newData);
       }
 
       // Clear form fields and close dialog
@@ -294,6 +310,21 @@ const Items = () => {
     });
   };
 
+  const [formData, setFormData] = useState({
+    quantity: "",
+  });
+  const handleProductChange = (event, newValue) => {
+    setSelectedProducts(newValue);
+
+    const selectedProduct = products.find(
+      (product) => product.NAME === newValue
+    );
+    setFormData({
+      ...formData,
+      quantity: selectedProduct.FQTY,
+    });
+    console.log(selectedProduct);
+  };
   return (
     <MainCard title="Items" sx={{ position: "relative" }}>
       <Card sx={{ overflow: "hidden" }}>
@@ -388,7 +419,20 @@ const Items = () => {
             buttonClicked === "Edit Items" ? (
             <div>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid item xs={6}>
+                  <TextField
+                    id="companyName"
+                    label="Company Name"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.CNAME
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
                   <TextField
                     id="productName"
                     label="Product Name"
@@ -457,7 +501,63 @@ const Items = () => {
                     }
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={6}>
+                  <TextField
+                    id="gst"
+                    label="Gst"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.GST
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="cess"
+                    label="Cess"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.CESSP
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="cmCode"
+                    label="CM Code"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.CMCODE
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="fitec"
+                    label="FITEC"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.FITEC
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
                   <TextField
                     id="quantity"
                     label="Quantity"
@@ -471,6 +571,33 @@ const Items = () => {
                     }
                   />
                 </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="free"
+                    label="Free"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.FREE
+                        : ""
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="discription"
+                    label="Discription"
+                    variant="outlined"
+                    fullWidth
+                    defaultValue={
+                      buttonClicked === "Edit Items" && selectedItem
+                        ? selectedItem.DISCP
+                        : ""
+                    }
+                  />
+                </Grid>
               </Grid>
             </div>
           ) : (
@@ -478,7 +605,6 @@ const Items = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Autocomplete
-                    multiple
                     id="productNames"
                     options={products.map((product) => product.NAME)}
                     renderInput={(params) => (
@@ -489,9 +615,17 @@ const Items = () => {
                         fullWidth
                       />
                     )}
-                    onChange={(event, newValue) => {
-                      setSelectedProducts(newValue);
-                    }}
+                    onChange={handleProductChange}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="stockQuantity"
+                    label="Stock Quantity"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    value={formData.quantity}
                   />
                 </Grid>
                 <Grid item xs={6}>
