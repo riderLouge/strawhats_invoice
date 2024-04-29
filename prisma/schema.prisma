@@ -15,11 +15,10 @@ model Staff {
   userid                 Int    @id @default(autoincrement())
   name                   String
   email                  String @unique
-  phoneNumber            BigInt
+  phoneNumber            Int
   address                String
   designation            String
   role                   String
-  shopId                 Int
   photo                  String
 }
 
