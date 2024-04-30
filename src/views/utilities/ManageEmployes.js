@@ -79,7 +79,7 @@ import axios from "axios";
 
 const ManageEmployees = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
-  const [dialogMode, setDialogMode] = useState("edit");
+  const [dialogMode, setDialogMode] = useState("");
   const [toggleActive, setToggleActive] = useState(false); // Toggle state
   const [openDialog, setOpenDialog] = useState(false);
   const [staffsData, setStaffsData] = useState([]);
@@ -146,13 +146,19 @@ const ManageEmployees = () => {
 
   const [rowSelection, setRowSelection] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
   useEffect(() => {
     console.info({ rowSelection });
   }, [rowSelection]);
 
   const handleEdit = (row) => {
+    setSelectedUserDetails(row.original)
     setDialogMode("edit");
+    setOpenDialog(true);
+    if (row.original.photo !== '') {
+      setSelectedFile({ imageUrl: row.original.photo });
+    }
   };
   const handleAddEmployee = () => {
     setDialogMode("add");
@@ -177,14 +183,11 @@ const ManageEmployees = () => {
 
 
   const handleSave = async () => {
-    if (dialogMode === "edit") {
-      console.log("Save edit");
-    } else if (dialogMode === "add") {
-      console.log("Save add");
+    if (dialogMode === "add") {
       const newData = {
         name: document.getElementById('staffName').value,
         email: document.getElementById('staffEmail').value,
-        phoneNumber: Number(document.getElementById('staffPhoneNumber').value),
+        phoneNumber: document.getElementById('staffPhoneNumber').value,
         address: document.getElementById('staffAddress').value,
         designation: document.getElementById('staffDesignation').value,
         role: document.getElementById('staffRole').value,
@@ -192,6 +195,23 @@ const ManageEmployees = () => {
       };
       const response = await axios
         .post("api/staff/add", newData)
+        .then((res) => {
+          console.log(res, "========");
+          fetchStaffDetails();
+        });
+      console.log(response, "========");
+    } else if (dialogMode === "edit") {
+      const updatedData = {
+        name: document.getElementById('staffName').value,
+        email: document.getElementById('staffEmail').value,
+        phoneNumber: document.getElementById('staffPhoneNumber').value,
+        address: document.getElementById('staffAddress').value,
+        designation: document.getElementById('staffDesignation').value,
+        role: document.getElementById('staffRole').value,
+        photo: selectedFile === null ? '' : selectedFile.imageUrl,
+      };
+      const response = await axios
+        .put(`api/staff/edit/${selectedUserDetails.userid}`, updatedData)
         .then((res) => {
           console.log(res, "========");
           fetchStaffDetails();
@@ -304,42 +324,49 @@ const ManageEmployees = () => {
               label="Name"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.name : ''}
             />
             <TextField
               id="staffJoinDate"
               label="Join Date"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.joinDate : ''}
             />
             <TextField
               id="staffRole"
               label="Role"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.role : ''}
             />
             <TextField
               id="staffEmail"
               label="Email"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.email : ''}
             />
             <TextField
               id="staffPhoneNumber"
               label="Phone Number"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.phoneNumber : ''}
             />
             <TextField
               id="staffAddress"
               label="Address"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.address : ''}
             />
             <TextField
               id="staffDesignation"
               label="Designation"
               fullWidth
               margin="normal"
+              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.designation : ''}
             />
             <Box>
               <Typography variant="body2">

@@ -44,6 +44,7 @@ app.post("/api/shop/add", async (req, res) => {
   }
 });
 
+//fetch staff details
 app.get("/api/staff/staffDetails", async (req, res) => {
   try {
     const staffs = await prisma.staff.findMany();
@@ -54,6 +55,7 @@ app.get("/api/staff/staffDetails", async (req, res) => {
   }
 });
 
+// create a new staff
 app.post("/api/staff/add", async (req, res) => {
   try {
     const newItem = req.body;
@@ -82,6 +84,21 @@ app.post("/api/staff/add", async (req, res) => {
   }
 });
 
+// edit the staff details
+app.put("/api/staff/edit/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedItemData = req.body;
+    const updatedItem = await prisma.staff.update({
+      where: { userid: parseInt(id) },
+      data: updatedItemData,
+    });
+    res.status(200).json({ status: 'staff edited successfully', data: updatedItem });
+  } catch (error) {
+    console.error("Error editing item:", error);
+    res.status(500).json("An error occurred while editing the staff details", error );
+  }
+});
 app.put("/api/items/edit/:id", async (req, res) => {
   try {
     const { id } = req.params.id;

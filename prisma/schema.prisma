@@ -15,7 +15,8 @@ model Staff {
   userid                 Int    @id @default(autoincrement())
   name                   String
   email                  String @unique
-  phoneNumber            Int
+  joinDate               DateTime?
+  phoneNumber            String
   address                String
   designation            String
   role                   String
