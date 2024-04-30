@@ -87,7 +87,7 @@ const ManageEmployees = () => {
   // fetching staff details
   const fetchStaffDetails = async () => {
     try {
-      const response = await axios.get("api/staff/staffDetails");
+      const response = await axios.get("https://api-skainvoice.top/api/staff/staffDetails");
       console.log(response);
       setStaffsData(response.data.data);
     } catch (error) {
@@ -176,7 +176,6 @@ const ManageEmployees = () => {
   };
 
   const handleCloseDialog = () => {
-    console.log('close')
     clearUserData();
     setOpenDialog(false);
   };
@@ -194,7 +193,7 @@ const ManageEmployees = () => {
         photo: selectedFile === null ? '' : selectedFile.imageUrl,
       };
       const response = await axios
-        .post("api/staff/add", newData)
+        .post("https://api-skainvoice.top/api/staff/add", newData)
         .then((res) => {
           console.log(res, "========");
           fetchStaffDetails();
@@ -211,7 +210,7 @@ const ManageEmployees = () => {
         photo: selectedFile === null ? '' : selectedFile.imageUrl,
       };
       const response = await axios
-        .put(`api/staff/edit/${selectedUserDetails.userid}`, updatedData)
+        .put(`https://api-skainvoice.top/api/staff/edit/${selectedUserDetails.userid}`, updatedData)
         .then((res) => {
           console.log(res, "========");
           fetchStaffDetails();
