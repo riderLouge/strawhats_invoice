@@ -44,6 +44,61 @@ app.post("/api/shop/add", async (req, res) => {
   }
 });
 
+//fetch staff details
+app.get("/api/staff/staffDetails", async (req, res) => {
+  try {
+    const staffs = await prisma.staff.findMany();
+    res.status(200).json({ success: 'staff data fetched successfully', data: staffs});
+  } catch (error) {
+    console.error("Error fetching staffs:", error);
+    res.status(500).json({ error: "An error occurred while fetching the staffs" });
+  }
+});
+
+// create a new staff
+app.post("/api/staff/add", async (req, res) => {
+  try {
+    const newItem = req.body;
+
+    // Check if email already exists
+    const existingStaff = await prisma.staff.findUnique({
+      where: {
+        email: newItem.email,
+      },
+    });
+
+    if (existingStaff) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    // Create new staff member
+    const createdItem = await prisma.staff.create({
+      data: newItem,
+    });
+
+    // Send success status to the frontend
+    return res.status(201).json({ success: "Staff member added successfully", data: createdItem });
+  } catch (error) {
+    console.error("Error adding staff:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// edit the staff details
+app.put("/api/staff/edit/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedItemData = req.body;
+    const updatedItem = await prisma.staff.update({
+      where: { userid: parseInt(id) },
+      data: updatedItemData,
+    });
+    res.status(200).json({ status: 'staff edited successfully', data: updatedItem });
+  } catch (error) {
+    console.error("Error editing item:", error);
+    res.status(500).json("An error occurred while editing the staff details", error );
+  }
+});
 app.put("/api/items/edit/:id", async (req, res) => {
   try {
     const { id } = req.params.id;
@@ -99,7 +154,7 @@ app.post("/api/items/insert", async (req, res) => {
   try {
     const modifiedData = req.body;
     for (const data of modifiedData) {
-      await prisma.Product.create({
+      await prisma.product.create({
         data: {
           CNAME: data.CNAME ? data.CNAME.toString() : "",
           NAME: data.NAME ? data.NAME.toString() : "",
