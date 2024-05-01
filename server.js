@@ -73,7 +73,7 @@ app.get("/api/products/fetchItems", async (req, res) => {
 
 app.get("/api/user/fetchUsers", async (req, res) => {
   try {
-    const users = await prisma.LoginAuth.findMany();
+    const users = await prisma.loginAuth.findMany();
     res.json(users);
   } catch (error) {
     console.error(error);
