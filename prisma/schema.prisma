@@ -103,6 +103,7 @@ model Invoice {
   currentPrice          Int
   invoiceDate           DateTime
   shopId                Int
+  staffId               String
 }
 
 model CreditDebit {
