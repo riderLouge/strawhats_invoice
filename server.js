@@ -1,10 +1,104 @@
 const express = require("express");
 const prisma = require("./prisma/prismaClient");
+const nodemailer = require('nodemailer');
 const app = express();
 const cors = require("cors");
 
 app.use(express.json());
 app.use(cors());
+
+function generateOtp() {
+  const length = 6; // Length of OTP
+  const digits = '0123456789'; // Possible digits for OTP
+
+  let OTP = '';
+  for (let i = 0; i < length; i++) {
+    OTP += digits[Math.floor(Math.random() * 10)];
+  }
+
+  return OTP;
+}
+
+function sendOtpEmail(email, otp) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    secure: true,
+    auth: {
+      user: 'dhanushprofo@gmail.com',
+      pass: 'shtq wpgf dirf qhjp'
+    }
+  });
+
+  const mailOptions = {
+    from: 'dhanush@gmail.com',
+    to: email,
+    subject: 'Password Reset OTP',
+    text: `Your OTP for password reset is: ${otp}`,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending email:', error);
+    } else {
+      console.log('Email sent:', info.response);
+    }
+  });
+}
+
+app.post("/api/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  console.log('in', req.body)
+  // Check if the email exists in the database
+  const user = await prisma.loginAuth.findUnique({ where: { email } });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // Generate a random OTP
+  const otp = generateOtp(); // Implement this function
+
+  // Store the OTP in the database
+  await prisma.loginAuth.update({
+    where: { Id: user.Id },
+    data: {
+      passwordResetOTP: otp,
+      passwordResetExpiresAt: new Date(Date.now() + 120000), // OTP expires in 2 minutes
+    },
+  });
+
+  // Send the OTP to the user's email
+  sendOtpEmail(email, otp); // Implement this function
+
+  res.status(200).json({ status: 'success', message: 'OTP sent successfully' });
+});
+
+// Route for resetting password
+app.post('/api/reset-password', async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  // Find the user by email
+  const user = await prisma.loginAuth.findUnique({ where: { email } });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // Check if OTP matches and is not expired
+  if (user.passwordResetOTP !== otp || user.passwordResetExpiresAt < new Date()) {
+    return res.status(400).json({ error: 'Invalid or expired OTP' });
+  }
+
+  // Update the user's password
+  await prisma.loginAuth.update({
+    where: { Id: user.Id },
+    data: {
+      password: newPassword,
+      passwordResetOTP: null,
+      passwordResetExpiresAt: null,
+    },
+  });
+
+  res.status(200).json({ status: 'success', message: 'Password reset successful' });
+});
 
 app.get("/api/company/fetchCompany", async (req, res) => {
   try {
@@ -17,6 +111,7 @@ app.get("/api/company/fetchCompany", async (req, res) => {
       .json({ error: "An error occurred while fetching the companies" });
   }
 });
+
 
 app.post("/api/items/add", async (req, res) => {
   try {
@@ -48,7 +143,7 @@ app.post("/api/shop/add", async (req, res) => {
 app.get("/api/staff/staffDetails", async (req, res) => {
   try {
     const staffs = await prisma.staff.findMany();
-    res.status(200).json({ success: 'staff data fetched successfully', data: staffs});
+    res.status(200).json({ success: 'staff data fetched successfully', data: staffs });
   } catch (error) {
     console.error("Error fetching staffs:", error);
     res.status(500).json({ error: "An error occurred while fetching the staffs" });
@@ -96,7 +191,7 @@ app.put("/api/staff/edit/:id", async (req, res) => {
     res.status(200).json({ status: 'staff edited successfully', data: updatedItem });
   } catch (error) {
     console.error("Error editing item:", error);
-    res.status(500).json("An error occurred while editing the staff details", error );
+    res.status(500).json("An error occurred while editing the staff details", error);
   }
 });
 app.put("/api/items/edit/:id", async (req, res) => {
@@ -122,19 +217,19 @@ app.get("/api/products/fetchItems", async (req, res) => {
     console.error(error);
     res
       .status(500)
-      .json({ error: "An error occurred while fetching the companies" });
+      .json({ error: "An error occurred while fetching the products" });
   }
 });
 
 app.get("/api/user/fetchUsers", async (req, res) => {
   try {
-    const users = await prisma.LoginAuth.findMany();
+    const users = await prisma.loginAuth.findMany();
     res.json(users);
   } catch (error) {
     console.error(error);
     res
       .status(500)
-      .json({ error: "An error occurred while fetching the companies" });
+      .json({ error: "An error occurred while fetching the users" });
   }
 });
 

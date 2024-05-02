@@ -19,6 +19,7 @@ import { useState } from "react";
 import AnimateButton from "../../../../ui-component/extended/AnimateButton";
 import { Box } from "@mui/system";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const softwareNameStyle = {
   fontSize: "26px",
@@ -32,10 +33,22 @@ export default function ForgorPassword() {
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+
+  const sendEmailOtp = async () => {
+    try {
+      const response = await axios.post('api/forgot-password', { email })
+      if (response.data.status === 'success') {
+        navigate('/reset-password')
+      }
+      console.log(response);
+    } catch (error) {
+      console.error('Error sending email OTP:', error);
+    }
+  }
   const handleSubmit = (event) => {
     event.preventDefault();
     if (email !== "") {
-      navigate("/");
+      sendEmailOtp();
     } else {
       setErrorMessage("Please enter your mail");
     }
@@ -132,7 +145,7 @@ export default function ForgorPassword() {
                         variant="contained"
                         color="secondary"
                       >
-                        Send Temp Password
+                        Send otp
                       </Button>
                     </AnimateButton>
                   </Box>

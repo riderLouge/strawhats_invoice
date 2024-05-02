@@ -20,6 +20,7 @@ import { useState } from "react";
 import AnimateButton from "../../../../ui-component/extended/AnimateButton";
 import { Box } from "@mui/system";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const softwareNameStyle = {
   fontSize: "26px",
@@ -31,16 +32,24 @@ export default function ResetPassword() {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [userOtp, setUserOtp] = useState("");
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
+
+  const verifyPassword = async () => {
+    try {
+      const response = await axios.post('api/reset-password', { email: 'd.b.dhanush007@gmail.com', otp: userOtp, newPassword })
+      if (response.data.status === 'success') {
+        navigate('/')
+      }
+      console.log(response);
+    } catch (error) {
+      console.error('Error sending email OTP:', error);
+    }
+  }
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (newPassword === confirmPassword) {
-      navigate("/");
-    } else {
-      setErrorMessage('Password is not matching!')
-    }
+    verifyPassword();
   };
   return (
     <Grid
@@ -105,6 +114,20 @@ export default function ResetPassword() {
                   <form onSubmit={handleSubmit}>
                     <FormControl fullWidth>
                       <InputLabel htmlFor="outlined-adornment-email-login">
+                        Enter otp
+                      </InputLabel>
+                      <OutlinedInput
+                        id="outlined-adornment-email-login"
+                        type="text"
+                        value={userOtp}
+                        name="email"
+                        onChange={(e) => setUserOtp(e.target.value)}
+                        label="Enter otp"
+                        inputProps={{}}
+                      />
+                    </FormControl>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                      <InputLabel htmlFor="outlined-adornment-email-login">
                         New Password
                       </InputLabel>
                       <OutlinedInput
@@ -114,20 +137,6 @@ export default function ResetPassword() {
                         name="email"
                         onChange={(e) => setNewPassword(e.target.value)}
                         label="New Password"
-                        inputProps={{}}
-                      />
-                    </FormControl>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                      <InputLabel htmlFor="outlined-adornment-email-login">
-                        Confirm Password
-                      </InputLabel>
-                      <OutlinedInput
-                        id="outlined-adornment-email-login"
-                        type="text"
-                        value={confirmPassword}
-                        name="email"
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        label="Confirm Password"
                         inputProps={{}}
                       />
                       <FormHelperText error>{ errorMessage}</FormHelperText>

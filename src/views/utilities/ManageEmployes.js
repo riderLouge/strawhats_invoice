@@ -87,7 +87,7 @@ const ManageEmployees = () => {
   // fetching staff details
   const fetchStaffDetails = async () => {
     try {
-      const response = await axios.get("https://api-skainvoice.top/api/staff/staffDetails");
+      const response = await axios.get("api/staff/staffDetails");
       console.log(response);
       setStaffsData(response.data.data);
     } catch (error) {
@@ -191,9 +191,10 @@ const ManageEmployees = () => {
         designation: document.getElementById('staffDesignation').value,
         role: document.getElementById('staffRole').value,
         photo: selectedFile === null ? '' : selectedFile.imageUrl,
+        joinDate: new Date(document.getElementById('staffJoinDate').value),
       };
       const response = await axios
-        .post("https://api-skainvoice.top/api/staff/add", newData)
+        .post("api/staff/add", newData)
         .then((res) => {
           console.log(res, "========");
           fetchStaffDetails();
@@ -208,9 +209,10 @@ const ManageEmployees = () => {
         designation: document.getElementById('staffDesignation').value,
         role: document.getElementById('staffRole').value,
         photo: selectedFile === null ? '' : selectedFile.imageUrl,
+        joinDate: new Date(document.getElementById('staffJoinDate').value),
       };
       const response = await axios
-        .put(`https://api-skainvoice.top/api/staff/edit/${selectedUserDetails.userid}`, updatedData)
+        .put(`api/staff/edit/${selectedUserDetails.userid}`, updatedData)
         .then((res) => {
           console.log(res, "========");
           fetchStaffDetails();
@@ -329,6 +331,8 @@ const ManageEmployees = () => {
               id="staffJoinDate"
               label="Join Date"
               fullWidth
+              focused
+              type="date"
               margin="normal"
               defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.joinDate : ''}
             />
