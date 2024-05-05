@@ -149,7 +149,21 @@ const UtilitiesCreateBill = () => {
     });
   };
 
-  const saveAndGenerateInvoice = async () => {};
+  const saveAndGenerateInvoice = async () => {
+    const invoiceData = {
+      formData,
+      tableData,
+    };
+
+    console.log(invoiceData);
+
+    try {
+      const response = await axios.post("your-server-endpoint", invoiceData);
+      console.log("Invoice saved successfully:", response.data);
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+    }
+  };
   const columns = [
     {
       accessorKey: "productName",
