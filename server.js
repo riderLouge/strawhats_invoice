@@ -305,6 +305,56 @@ app.post("/api/shops/insert", async (req, res) => {
   }
 });
 
+app.post("/api/invoice/create", async (req, res) => {
+  try {
+    // Validate request body
+    if (!req.body.invoiceNumber || !req.body.invoiceDate || !req.body.shopId || !req.body.userId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const { invoiceNumber, products, invoiceDate, shopId, userId } = req.body;
+
+    const shop = await prisma.shop.findUnique({ where: { shopId: shopId } });
+    const user = await prisma.loginAuth.findUnique({ where: { Id: userId } });
+
+    if (!shop)  {
+      return res.status(404).json({ error: "Shop not found" });
+    }else if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Create the invoice
+    await prisma.invoice.create({
+      data: {
+        invoiceNumber,
+        products,
+        invoiceDate,
+        shopId: shopId,
+        userId: userId,
+      },
+    });
+
+    res.status(201).json({ message: "Invoice created successfully" });
+  } catch (error) {
+    console.error("Error while creating the invoice:", error);
+    res.status(500).json({ error: "An error occurred while creating invoice" });
+  }
+});
+app.get("/api/invoices", async (req, res) => {
+  try {
+    const invoices = await prisma.invoice.findMany({
+      include: {
+        shop: true,
+        user: true,
+      }
+    });
+    res.json({ data: invoices, status: 'success' });
+  } catch (error) {
+    console.error("Error while fetching invoices:", error);
+    res.status(500).json({ status: 'failure', error: "An error occurred while fetching invoices" });
+  }
+});
+
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

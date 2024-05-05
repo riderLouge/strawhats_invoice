@@ -39,6 +39,7 @@ model Shop {
   TNGST                  String
   TELNUM                 String
   ZONNAM                 String
+  invoice                Invoice[]
 }
 
 model LoginAuth {
@@ -49,6 +50,7 @@ model LoginAuth {
   password               String
   passwordResetOTP       String?
   passwordResetExpiresAt DateTime?
+  invoice                Invoice[]
 }
 
 
@@ -98,12 +100,17 @@ model Customer {
 
 
 model Invoice {
-  invoiceNumber         Int       @id
-  products              Json[]
-  currentPrice          Int
-  invoiceDate           DateTime
-  shopId                Int
-  staffId               String
+  id              String @default(uuid()) @map("invoice_id")
+  invoiceNumber   Int       @id
+  products        Json[]
+  invoiceDate     DateTime
+  shopId          Int
+  shop            Shop      @relation(fields: [shopId], references: [shopId])
+  userId          Int  
+  user            LoginAuth  @relation(fields: [userId], references: [Id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isDeleted       Boolean @default(false)
 }
 
 model CreditDebit {

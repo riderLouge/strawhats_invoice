@@ -11,6 +11,7 @@ import MainCard from "../../ui-component/cards/MainCard";
 import SecondaryAction from "../../ui-component/cards/CardSecondaryAction";
 import { gridSpacing } from "../../store/constant";
 import InvoiceTemplate from "./ViewInvoice";
+import axios from "axios";
 
 const ShadowBox = ({ shadow }) => (
   <Card sx={{ mb: 3, boxShadow: shadow }}>
@@ -41,7 +42,18 @@ export default function Invoice() {
   };
 
   const handleSubmitDialog = async () => {};
-
+  const fetchInvoices = async () => {
+    try {
+      const response = await axios.get('/api/invoices');
+      return response.data.invoices;
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      throw error;
+    }
+  };
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
   return (
     <MainCard title="Invoice">
       <Grid container spacing={gridSpacing}>

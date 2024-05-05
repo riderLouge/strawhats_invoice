@@ -30,7 +30,7 @@ const UtilitiesCreateBill = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  console.log(selectedCustomer, tableData);
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -82,6 +82,8 @@ const UtilitiesCreateBill = () => {
       hsnNumber: product.HSN,
       discount: product.DISCOUNT,
       gst: product.GST,
+      productId: product.ID,
+      productCurrentPrice: product.MRP,
     });
   };
 
@@ -89,9 +91,8 @@ const UtilitiesCreateBill = () => {
     setSelectedCustomer(customer);
 
     // Concatenate address fields for billing address
-    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${
-      customer.ADRTHR || ""
-    }`;
+    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${customer.ADRTHR || ""
+      }`;
 
     setFormData({
       ...formData,
@@ -148,18 +149,30 @@ const UtilitiesCreateBill = () => {
       state: "",
     });
   };
-
+  const productData = (data) => {
+    console.log(data);
+    const filteredProductData = data.map((v) => {
+      return { productId: v.productId, currentPrice: v.productCurrentPrice }
+    })
+    return filteredProductData;
+  }
   const saveAndGenerateInvoice = async () => {
+
     const invoiceData = {
-      formData,
-      tableData,
+      invoiceNumber: formData.invoiceNumber !== '' ? Number(formData.invoiceNumber) : '',
+      products: productData(tableData),
+      invoiceDate: new Date(formData.invoiceDate).toISOString(),
+      shopId: selectedCustomer.shopId,
+      userId: JSON.parse(localStorage.getItem("userId")),
     };
 
     console.log(invoiceData);
 
     try {
-      const response = await axios.post("your-server-endpoint", invoiceData);
+      const response = await axios.post("/api/invoice/create", invoiceData);
       console.log("Invoice saved successfully:", response.data);
+      setFormData({});
+      setTableData([]);
     } catch (error) {
       console.error("Error saving invoice:", error);
     }
