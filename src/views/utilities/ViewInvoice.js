@@ -10,10 +10,12 @@ import {
   TableCell,
   TableFooter,
   Divider,
+  Card,
+  CardContent,
 } from "@mui/material";
 
-export default function InvoiceTemplate() {
-
+export default function InvoiceTemplate({ data }) {
+  console.log(data, "in invoice pdf");
   return (
     <Container maxWidth="md">
       <Paper
@@ -38,9 +40,9 @@ export default function InvoiceTemplate() {
               INVOICE
             </Typography>
             <Typography variant="body1">
-              Invoice Number: INV12345
+              Invoice Number: {data.original?.invoiceNumber}
               <br />
-              Date: 15/04/2024
+              Date: {data.original?.invoiceDate}
             </Typography>
           </div>
           <Typography
@@ -51,25 +53,36 @@ export default function InvoiceTemplate() {
           </Typography>
         </div>
 
-        <div
+        <Card
+          variant="outlined"
           style={{
-            backgroundColor: "#f5f5f5",
-            padding: "16px",
             borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <Typography variant="h5" gutterBottom style={{ fontWeight: "bold" }}>
-            Customer Info
-          </Typography>
-          <Typography variant="body1">
-            Customer Name: John Doe
-            <br />
-            Address: 123 Main Street, City
-            <br />
-            Phone Number: 123-456-7890
+          <CardContent>
+            <Typography
+              variant="h5"
+              gutterBottom
+              style={{ fontWeight: "bold", marginBottom: "16px" }}
+            >
+              Customer Information
+            </Typography>
+            <Typography variant="body1" style={{ marginBottom: "8px" }}>
+              <strong>Shop Name:</strong> {data?.original?.shop?.CUSNAM}
+            </Typography>
+            <Typography variant="body1" style={{ marginBottom: "8px" }}>
+              <strong>Address:</strong>{" "}
+              {`${data?.original?.shop?.ADRONE || ""} ${
+                data?.original?.shop?.ADRTWO || ""
+              } ${data?.original?.shop?.ADRTHR || ""}`}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Phone Number:</strong> {data?.original?.shop?.TELNUM}
+            </Typography>
             {/* Add more customer details as needed */}
-          </Typography>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Add more gap */}
         <div style={{ marginBottom: "24px" }}></div>

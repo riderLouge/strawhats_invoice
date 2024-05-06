@@ -91,8 +91,9 @@ const UtilitiesCreateBill = () => {
     setSelectedCustomer(customer);
 
     // Concatenate address fields for billing address
-    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${customer.ADRTHR || ""
-      }`;
+    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${
+      customer.ADRTHR || ""
+    }`;
 
     setFormData({
       ...formData,
@@ -152,14 +153,14 @@ const UtilitiesCreateBill = () => {
   const productData = (data) => {
     console.log(data);
     const filteredProductData = data.map((v) => {
-      return { productId: v.productId, currentPrice: v.productCurrentPrice }
-    })
+      return { productId: v.productId, currentPrice: v.productCurrentPrice };
+    });
     return filteredProductData;
-  }
+  };
   const saveAndGenerateInvoice = async () => {
-
     const invoiceData = {
-      invoiceNumber: formData.invoiceNumber !== '' ? Number(formData.invoiceNumber) : '',
+      invoiceNumber:
+        formData.invoiceNumber !== "" ? Number(formData.invoiceNumber) : "",
       products: productData(tableData),
       invoiceDate: new Date(formData.invoiceDate).toISOString(),
       shopId: selectedCustomer.shopId,
