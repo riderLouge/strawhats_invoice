@@ -16,7 +16,7 @@ const DialogTemplate = ({
 }) => {
   return (
     <div>
-      <Dialog open={open}>
+      <Dialog fullWidth maxWidth="md" open={open}>
         <DialogTitle
           style={{
             display: "flex",

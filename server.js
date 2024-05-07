@@ -317,9 +317,9 @@ app.post("/api/invoice/create", async (req, res) => {
     const shop = await prisma.shop.findUnique({ where: { shopId: shopId } });
     const user = await prisma.loginAuth.findUnique({ where: { Id: userId } });
 
-    if (!shop)  {
+    if (!shop) {
       return res.status(404).json({ error: "Shop not found" });
-    }else if (!user) {
+    } else if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -355,6 +355,34 @@ app.get("/api/invoices", async (req, res) => {
   }
 });
 
+app.post("/api/invoice/products", async (req, res) => {
+  try {
+    const { products } = req.body;
+    if (!products || !Array.isArray(products)) {
+      return res.status(400).json({ status: 'failure', error: "Invalid products" });
+    }
+
+    const productIds = products.map((d) => parseInt(d.productId))
+
+    const fetchedProducts = await prisma.product.findMany({
+      where: {
+        ID: { in: productIds }
+      }
+    });
+
+    const productsWithQuantity = fetchedProducts.map((product) => {
+      const matchingProduct = products.find(({ productId }) => parseInt(productId) === parseInt(product.ID));
+      return {
+        ...product,
+        quantity: matchingProduct ? parseInt(matchingProduct.quantity) || 1 : 0,
+      }
+    })
+    res.json({ data: productsWithQuantity, status: 'success' });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ status: 'failure', error: "An error occurred while fetching products" });
+  }
+});
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

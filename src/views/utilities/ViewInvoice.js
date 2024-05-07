@@ -13,9 +13,33 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function InvoiceTemplate({ data }) {
-  console.log(data, "in invoice pdf");
+  const [invoiceProducts, setInvoiceProducts] = useState([]);
+  const fetchInvoiceProducts = async (products) => {
+    try {
+      const response = await axios.post('/api/invoice/products', { products });
+      console.log(response);
+      setInvoiceProducts(response.data.data)
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      throw error;
+    }
+  }
+
+  const totalProductAmount = (data) => {
+    const total = data.reduce((acc, cur) => {
+      return acc + (Number(cur.SPRICE) * Number(cur.quantity));
+    }, 0)
+    return total;
+  }
+
+  useEffect(() => {
+    fetchInvoiceProducts(data.original.products);
+  }, [])
+  console.log(invoiceProducts);
   return (
     <Container maxWidth="md">
       <Paper
@@ -73,9 +97,8 @@ export default function InvoiceTemplate({ data }) {
             </Typography>
             <Typography variant="body1" style={{ marginBottom: "8px" }}>
               <strong>Address:</strong>{" "}
-              {`${data?.original?.shop?.ADRONE || ""} ${
-                data?.original?.shop?.ADRTWO || ""
-              } ${data?.original?.shop?.ADRTHR || ""}`}
+              {`${data?.original?.shop?.ADRONE || ""} ${data?.original?.shop?.ADRTWO || ""
+                } ${data?.original?.shop?.ADRTHR || ""}`}
             </Typography>
             <Typography variant="body1">
               <strong>Phone Number:</strong> {data?.original?.shop?.TELNUM}
@@ -91,56 +114,34 @@ export default function InvoiceTemplate({ data }) {
           <Table size="small" aria-label="invoice table">
             <TableHead>
               <TableRow>
-                <TableCell>Items</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell align="right">Quantity</TableCell>
+                <TableCell>S.No</TableCell>
+                <TableCell>Product</TableCell>
+                <TableCell align="center">Quantity</TableCell>
                 <TableCell align="right">Price</TableCell>
-                <TableCell align="right">Tax</TableCell>
-                <TableCell align="right">Amount</TableCell>
+                <TableCell align="right">Total</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* Sample data rows */}
-              <TableRow>
-                <TableCell>Item 1</TableCell>
-                <TableCell>Description 1</TableCell>
-                <TableCell align="right">2</TableCell>
-                <TableCell align="right">$10</TableCell>
-                <TableCell align="right">$2</TableCell>
-                <TableCell align="right">$24</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Item 2</TableCell>
-                <TableCell>Description 2</TableCell>
-                <TableCell align="right">1</TableCell>
-                <TableCell align="right">$20</TableCell>
-                <TableCell align="right">$4</TableCell>
-                <TableCell align="right">$24</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Item 3</TableCell>
-                <TableCell>Description 3</TableCell>
-                <TableCell align="right">2</TableCell>
-                <TableCell align="right">$10</TableCell>
-                <TableCell align="right">$2</TableCell>
-                <TableCell align="right">$24</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Item 4</TableCell>
-                <TableCell>Description 4</TableCell>
-                <TableCell align="right">1</TableCell>
-                <TableCell align="right">$20</TableCell>
-                <TableCell align="right">$4</TableCell>
-                <TableCell align="right">$24</TableCell>
-              </TableRow>
+              {invoiceProducts.map((data, index) => {
+                const sNo = index + 1;
+                return (
+                  <TableRow key={data.ID}>
+                    <TableCell>{sNo}</TableCell>
+                    <TableCell>{data.NAME}</TableCell>
+                    <TableCell align="center">{data.quantity}</TableCell>
+                    <TableCell align="right">{data.SPRICE}</TableCell>
+                    <TableCell align="right">{parseFloat(Number(data.SPRICE) * Number(data.quantity)).toFixed(2)}</TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={5} style={{ fontWeight: "bold" }}>
+                <TableCell colSpan={4} style={{ fontWeight: "bold" }}>
                   Total
                 </TableCell>
                 <TableCell align="right" style={{ fontWeight: "bold" }}>
-                  $96
+                  {parseFloat(totalProductAmount(invoiceProducts)).toFixed(2)}
                 </TableCell>
               </TableRow>
             </TableFooter>

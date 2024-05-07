@@ -31,33 +31,31 @@ const UtilitiesCreateBill = () => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   console.log(selectedCustomer, tableData);
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/shops/fetchItems"
+      );
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/products/fetchItems"
+      );
+      const filteredProducts = response.data.filter((product) => product.HSN);
+
+      setProducts(filteredProducts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await axios.get(
-          "https://api-skainvoice.top/api/shops/fetchItems"
-        );
-        console.log(response.data);
-        setCustomers(response.data);
-      } catch (error) {
-        console.error("Error fetching company:", error);
-      }
-    };
-
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(
-          "https://api-skainvoice.top/api/products/fetchItems"
-        );
-        const filteredProducts = response.data.filter((product) => product.HSN);
-        console.log(filteredProducts);
-
-        setProducts(filteredProducts);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-
     fetchCustomers();
     fetchProducts();
   }, []);
@@ -84,6 +82,7 @@ const UtilitiesCreateBill = () => {
       gst: product.GST,
       productId: product.ID,
       productCurrentPrice: product.MRP,
+      quantity: 1,
     });
   };
 
@@ -91,9 +90,8 @@ const UtilitiesCreateBill = () => {
     setSelectedCustomer(customer);
 
     // Concatenate address fields for billing address
-    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${
-      customer.ADRTHR || ""
-    }`;
+    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${customer.ADRTHR || ""
+      }`;
 
     setFormData({
       ...formData,
@@ -153,7 +151,7 @@ const UtilitiesCreateBill = () => {
   const productData = (data) => {
     console.log(data);
     const filteredProductData = data.map((v) => {
-      return { productId: v.productId, currentPrice: v.productCurrentPrice };
+      return { productId: v.productId, currentPrice: v.productCurrentPrice, quantity: v.quantity };
     });
     return filteredProductData;
   };
