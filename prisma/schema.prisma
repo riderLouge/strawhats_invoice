@@ -10,132 +10,125 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Staff {
-  userid                 Int    @id @default(autoincrement())
-  name                   String
-  email                  String @unique
-  joinDate               DateTime?
-  phoneNumber            String
-  address                String
-  designation            String
-  role                   String
-  photo                  String
+  userid      Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  joinDate    DateTime?
+  phoneNumber String
+  address     String
+  designation String
+  role        String
+  photo       String
 }
 
-
 model Shop {
-  shopId                 Int    @id @default(autoincrement()) @unique
-  GRPNAM                 String
-  CUSNAM                 String
-  ADRONE                 String
-  ADRTWO                 String
-  ADRTHR                 String
-  ADRFOU                 String
-  PLC                    String
-  PINCOD                 String
-  CNTPER                 String
-  SLNO                   String
-  TNGST                  String
-  TELNUM                 String
-  ZONNAM                 String
-  invoice                Invoice[]
+  shopId  Int       @id @unique @default(autoincrement())
+  GRPNAM  String
+  CUSNAM  String
+  ADRONE  String
+  ADRTWO  String
+  ADRTHR  String
+  ADRFOU  String
+  PLC     String
+  PINCOD  String
+  CNTPER  String
+  SLNO    String
+  TNGST   String
+  TELNUM  String
+  ZONNAM  String
+  invoice Invoice[]
 }
 
 model LoginAuth {
-  Id                     Int      @id @default(autoincrement())
+  Id                     Int       @id @default(autoincrement())
   name                   String
   role                   String
-  email                  String   @unique
+  email                  String    @unique
   password               String
   passwordResetOTP       String?
   passwordResetExpiresAt DateTime?
   invoice                Invoice[]
 }
 
-
 model Product {
-  ID                Int      @id @default(autoincrement())
-  CNAME             String
-  NAME              String
-  MRP               String   
-  PPRICE            String    
-  SPRICE            String    
-  GST               String    
-  HSN               String
-  CESSP             String    
-  CMCODE            String
-  FITEC             String
-  FQTY              String
-  FREE              String
-  DISCP             String    
+  ID     Int    @id @default(autoincrement())
+  CNAME  String
+  NAME   String
+  MRP    String
+  PPRICE String
+  SPRICE String
+  GST    String
+  HSN    String
+  CESSP  String
+  CMCODE String
+  FITEC  String
+  FQTY   String
+  FREE   String
+  DISCP  String
 }
 
 model StockAdjust {
-  ID          Int      @id @default(autoincrement())
-  productID   Int    
-  FQTY        String
-  Reason      String
-  DQTY        String
+  ID        Int    @id @default(autoincrement())
+  productID Int
+  FQTY      String
+  Reason    String
+  DQTY      String
 }
 
 model Company {
-  id                    Int     @id @default(autoincrement())
-  cName                 String
-  cShort                String
+  id     Int    @id @default(autoincrement())
+  cName  String
+  cShort String
 }
 
 model Customer {
-  customerId             Int    @id @default(autoincrement())
-  customerName           String
-  customerType           String
-  customerAddress        String
-  customerPhoneNumber    BigInt
-  shopId                 Int
-  ladtOrder              DateTime
-  pendingBalance         Int
+  customerId          Int      @id @default(autoincrement())
+  customerName        String
+  customerType        String
+  customerAddress     String
+  customerPhoneNumber BigInt
+  shopId              Int
+  ladtOrder           DateTime
+  pendingBalance      Int
 }
 
-
-
-
 model Invoice {
-  id              String @default(uuid()) @map("invoice_id")
-  invoiceNumber   Int       @id
-  products        Json[]
-  invoiceDate     DateTime
-  shopId          Int
-  shop            Shop      @relation(fields: [shopId], references: [shopId])
-  userId          Int  
-  user            LoginAuth  @relation(fields: [userId], references: [Id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  isDeleted       Boolean @default(false)
+  id            String    @default(uuid()) @map("invoice_id")
+  invoiceNumber Int       @id
+  products      Json[]
+  invoiceDate   DateTime
+  shopId        Int
+  shop          Shop      @relation(fields: [shopId], references: [shopId])
+  userId        Int
+  user          LoginAuth @relation(fields: [userId], references: [Id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isDeleted     Boolean   @default(false)
 }
 
 model CreditDebit {
-  invoiceNumber         Int       @id
-  invoiceDate           DateTime
-  shopId                Int
-  status                String
-  pending               Int
+  invoiceNumber Int      @id
+  invoiceDate   DateTime
+  shopId        Int
+  status        String
+  pending       Int
 }
 
 model SupplierBill {
-  billNumber           Int        @id
-  billTotal            Int
-  paymentMode          String
-  pendingPayment       Int
-  billDate             DateTime
-  billedProducts       Json[]
+  billNumber     Int      @id
+  billTotal      Int
+  paymentMode    String
+  pendingPayment Int
+  billDate       DateTime
+  billedProducts Json[]
 }
 
-
 model Delivery {
-  id                   Int        @id
-  billNumbers          Int[]        
-  date                 DateTime
-  staffId              Int
-  area                 String
-  status               String
+  id          Int      @id
+  billNumbers Int[]
+  date        DateTime
+  staffId     Int
+  area        String
+  status      String
 }
