@@ -185,9 +185,6 @@ import {
                   <strong>Address:</strong>{" "}
                   {data?.original?.address || ""}
                 </Typography>
-                // <Typography variant="body1">
-                //   <strong>Phone Number:</strong> {data?.original?.shop?.TELNUM}
-                // </Typography>
                 {/* Add more customer details as needed */}
               </CardContent>
             </Card>
