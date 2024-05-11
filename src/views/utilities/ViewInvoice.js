@@ -181,7 +181,7 @@ export default function InvoiceTemplate({ data }) {
                 Customer Information
               </Typography>
               <Typography variant="body1" style={{ marginBottom: "8px" }}>
-                <strong>Shop Name:</strong> {data?.original?.shop?.CUSNAM}
+                <strong>Customer Name:</strong> {data?.original?.shop?.CUSNAM}
               </Typography>
               <Typography variant="body1" style={{ marginBottom: "8px" }}>
                 <strong>Address:</strong>{" "}
@@ -199,7 +199,7 @@ export default function InvoiceTemplate({ data }) {
         {/* Add more gap */}
         <div style={{ marginBottom: "24px" }}></div>
 
-        <TableContainer className="product-list">
+        <TableContainer>
           <Table size="small" aria-label="invoice table">
             <TableHead>
               <TableRow>
@@ -239,7 +239,7 @@ export default function InvoiceTemplate({ data }) {
 
         {/* Payment details */}
 
-        <div className="summary" style={{ marginTop: "24px" }}>
+        <div style={{ marginTop: "24px" }}>
           <Typography variant="h5" gutterBottom style={{ fontWeight: "bold" }}>
             Payment Notes
           </Typography>

@@ -11,10 +11,9 @@ import FileCopyIcon from "@mui/icons-material/FileCopy";
 // project imports
 import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
-import SecondaryAction from "../../ui-component/cards/CardSecondaryAction";
 import { gridSpacing } from "../../store/constant";
-import InvoiceTemplate from "./ViewInvoice";
 import axios from "axios";
+import SupplierViewInvoice from "./supplierViewInvoice";
 
 const ShadowBox = ({ shadow }) => (
   <Card sx={{ mb: 3, boxShadow: shadow }}>
@@ -43,15 +42,15 @@ export default function Invoice() {
   const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [invoiceData, setInvoiceDate] = useState(null);
-
+  console.log(data);
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
-  const handleSubmitDialog = async () => {};
+  const handleSubmitDialog = async () => { };
   const fetchInvoices = async () => {
     try {
-      const response = await axios.get("/api/invoices");
+      const response = await axios.get("/api/supplier-bills");
       setData(response.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -70,16 +69,16 @@ export default function Invoice() {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "invoiceNumber",
-        header: "Invoice Number",
+        accessorKey: "billNumber",
+        header: "Bill Number",
       },
       {
-        accessorKey: "shop.CUSNAM",
-        header: "Shop Name",
+        accessorKey: "supplier.cName",
+        header: "Supplier Name",
       },
       {
-        accessorKey: "invoiceDate",
-        header: "Invoice Date",
+        accessorKey: "billDate",
+        header: "Bill Date",
       },
       {
         accessorKey: "user.name",
@@ -148,7 +147,7 @@ export default function Invoice() {
         <DialogTemplate
           open={openDialog}
           title={"Invoice"}
-          body={<InvoiceTemplate data={invoiceData} />}
+          body={<SupplierViewInvoice data={invoiceData} />}
           handleCloseDialog={handleCloseDialog}
           handleSave={handleSubmitDialog}
         />

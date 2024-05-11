@@ -41,14 +41,15 @@ model Shop {
 }
 
 model LoginAuth {
-  Id                     Int       @id @default(autoincrement())
+  Id                     Int            @id @default(autoincrement())
   name                   String
   role                   String
-  email                  String    @unique
+  email                  String         @unique
   password               String
   passwordResetOTP       String?
   passwordResetExpiresAt DateTime?
   invoice                Invoice[]
+  SupplierBill           SupplierBill[]
 }
 
 model Product {
@@ -77,9 +78,10 @@ model StockAdjust {
 }
 
 model Company {
-  id     Int    @id @default(autoincrement())
-  cName  String
-  cShort String
+  id           Int            @id @default(autoincrement())
+  cName        String
+  cShort       String
+  SupplierBill SupplierBill[]
 }
 
 model Customer {
@@ -116,12 +118,20 @@ model CreditDebit {
 }
 
 model SupplierBill {
-  billNumber     Int      @id
+  id             String    @default(uuid())
+  billNumber     Int       @id @unique
   billTotal      Int
   paymentMode    String
   pendingPayment Int
   billDate       DateTime
-  billedProducts Json[]
+  supplierId     Int
+  supplier       Company   @relation(fields: [supplierId], references: [id])
+  userId         Int
+  user           LoginAuth @relation(fields: [userId], references: [Id])
+  products       Json[]
+  address        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model Delivery {

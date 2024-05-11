@@ -52,7 +52,6 @@ const ProfileSection = () => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   const userDetails = JSON.parse(localStorage.getItem("user"));
-  console.log(userDetails);
   /**
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error
    * */
@@ -179,7 +178,7 @@ const ProfileSection = () => {
                           variant="h4"
                           sx={{ fontWeight: 400 }}
                         >
-                          {userDetails.name}
+                          {userDetails?.name}
                         </Typography>
                       </Stack>
                       <Typography variant="subtitle2">Project Admin</Typography>

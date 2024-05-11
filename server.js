@@ -386,6 +386,59 @@ app.post("/api/invoice/products", async (req, res) => {
     res.status(500).json({ status: 'failure', error: "An error occurred while fetching products" });
   }
 });
+
+app.post("/api/supplier-bill/create", async (req, res) => {
+  try {
+    // validate request body
+    if (!req.body.billNumber || !req.body.billTotal || !req.body.paymentMode || !req.body.pendingPayment || !req.body.billDate) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    const { billNumber, products, billTotal, paymentMode, pendingPayment, billDate, address, userId, supplierId } = req.body;
+
+    const supplier = await prisma.company.findUnique({ where: { id: supplierId } });
+    const user = await prisma.loginAuth.findUnique({ where: { Id: userId } });
+
+    if (!supplier) {
+      return res.status(404).json({ error: "supplier not found" });
+    } else if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Create the invoice
+    await prisma.supplierBill.create({
+      data: {
+        billNumber,
+        billTotal,
+        paymentMode,
+        pendingPayment,
+        billDate,
+        supplierId,
+        userId,
+        products,
+        address,
+      }
+    });
+    res.status(201).json({ message: "Invoice created successfully" });
+  } catch (error) {
+    console.error("Error while creating the supplier invoice:", error);
+    res.status(500).json({ error: "An error occurred while creating supplier invoice" });
+  }
+})
+
+app.get("/api/supplier-bills", async (req, res) => {
+  try {
+    const supplierBills = await prisma.supplierBill.findMany({
+      include: {
+        supplier: true,
+        user: true,
+      }
+    });
+    res.json({ data: supplierBills, status: 'success' });
+  } catch (error) {
+    console.error("Error while fetching invoices:", error);
+    res.status(500).json({ status: 'failure', error: "An error occurred while fetching invoices" });
+  }
+});
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

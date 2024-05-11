@@ -70,7 +70,6 @@ const UtilitiesCreateBill = () => {
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
-
     setFormData({
       ...formData,
       productName: product.NAME,
