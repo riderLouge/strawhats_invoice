@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
 import AddIcon from '@mui/icons-material/Add';
+import Person2RoundedIcon from '@mui/icons-material/Person2Rounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import {
   Card,
@@ -14,10 +15,13 @@ import {
   Typography,
   Box,
   IconButton,
+  Tooltip,
+  Backdrop,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
+import emptyProfile from '../../assets/images/profileImage.jpg';
 
 // const employeeData = [
 //   {
@@ -83,6 +87,10 @@ const ManageEmployees = () => {
   const [toggleActive, setToggleActive] = useState(false); // Toggle state
   const [openDialog, setOpenDialog] = useState(false);
   const [staffsData, setStaffsData] = useState([]);
+  const [viewProfile, setViewProfile] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
   // fetching staff details
   const fetchStaffDetails = async () => {
@@ -129,24 +137,37 @@ const ManageEmployees = () => {
         accessorKey: "actions",
         header: "Actions",
         Cell: ({ row }) => (
-          <EditIcon
-            style={{
-              cursor: "pointer",
-              color: hoveredRow === row.id ? "blue" : "inherit",
-            }}
-            onMouseEnter={() => setHoveredRow(row.id)}
-            onMouseLeave={() => setHoveredRow(null)}
-            onClick={() => handleEdit(row)}
-          />
+          <Box>
+            <Tooltip placement="top" title="Edit">
+              <EditIcon
+                sx={{
+                  cursor: "pointer",
+                  color: hoveredRow === 1 ? "blue" : "inherit",
+                  mr: 1,
+                }}
+                onMouseEnter={() => setHoveredRow(1)}
+                onMouseLeave={() => setHoveredRow(null)}
+                onClick={() => handleEdit(row)}
+              />
+            </Tooltip>
+            <Tooltip placement="top" title="View Profile">
+              <Person2RoundedIcon
+                style={{
+                  cursor: "pointer",
+                  color: hoveredRow === 2 ? "blue" : "inherit",
+                }}
+                onMouseEnter={() => setHoveredRow(2)}
+                onMouseLeave={() => setHoveredRow(null)}
+                onClick={() => { setViewProfile(true); setSelectedFile({ imageUrl: row.original.photo }); }}
+              />
+            </Tooltip>
+          </Box>
         ),
       },
     ],
     [hoveredRow]
   );
 
-  const [rowSelection, setRowSelection] = useState({});
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
   useEffect(() => {
     console.info({ rowSelection });
@@ -158,6 +179,8 @@ const ManageEmployees = () => {
     setOpenDialog(true);
     if (row.original.photo !== '') {
       setSelectedFile({ imageUrl: row.original.photo });
+    } else {
+      setSelectedFile(null);
     }
   };
   const handleAddEmployee = () => {
@@ -251,7 +274,7 @@ const ManageEmployees = () => {
         console.error("Error occurred while converting file to base64:", error);
       });
   };
-  console.log(staffsData);
+  console.log(selectedFile);
   return (
     <MainCard title="Employees" sx={{ position: "relative" }}>
       <Card sx={{ overflow: "hidden" }}>
@@ -394,10 +417,8 @@ const ManageEmployees = () => {
                   </div>
                 ) : (
                   <label htmlFor="image-input">
-                    <Box component="span" sx={{ border: '1px dotted black', display: 'grid', placeItems: 'center', cursor: 'pointer', borderRadius: '8px', mt: 1 }}>
-                      <IconButton>
+                    <Box component="span" sx={{ py: 2, border: '1px dotted black', display: 'grid', placeItems: 'center', cursor: 'pointer', borderRadius: '8px', mt: 1 }}>
                         <AddIcon />
-                      </IconButton>
                     </Box>
                   </label>
                 )}
@@ -414,6 +435,12 @@ const ManageEmployees = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop open={viewProfile} sx={{ zIndex: 5000, display: 'grid', placeItems: 'center' }} onClick={() => setViewProfile(false)}>
+        <img
+          alt="profile"
+          src={selectedFile?.imageUrl || emptyProfile}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: '100%', maxHeight: '300px' }} />
+      </Backdrop>
     </MainCard>
   );
 };

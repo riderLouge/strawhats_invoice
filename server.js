@@ -6,10 +6,13 @@ const cors = require("cors");
 
 app.use(express.json());
 app.use(cors());
+// Increase payload limit (e.g., 10MB)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 function generateOtp() {
-  const length = 6; // Length of OTP
-  const digits = '0123456789'; // Possible digits for OTP
+  const length = 6;
+  const digits = '0123456789';
 
   let OTP = '';
   for (let i = 0; i < length; i++) {
