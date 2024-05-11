@@ -98,6 +98,8 @@ const FirebaseLogin = ({ ...others }) => {
                 localStorage.setItem("authenticated", "true");
                 localStorage.setItem("role", foundUser.role);
                 localStorage.setItem("userId", foundUser.Id);
+                console.log(foundUser);
+                localStorage.setItem("user", JSON.stringify(foundUser));
                 navigate("/dashboard");
               }
             } else {

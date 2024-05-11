@@ -228,9 +228,9 @@ const UtilitiesCreateSupplierBill = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Invoice Number"
+                label="Bill Number"
                 variant="outlined"
-                name="invoiceNumber"
+                name="billNumber"
                 value={formData.invoiceNumber}
                 onChange={handleChange}
               />
@@ -240,7 +240,7 @@ const UtilitiesCreateSupplierBill = () => {
                 fullWidth
                 type="date"
                 variant="outlined"
-                name="invoiceDate"
+                name="billDate"
                 value={formData.invoiceDate}
                 onChange={handleChange}
               />

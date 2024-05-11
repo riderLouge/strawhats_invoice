@@ -40,10 +40,10 @@ const other = {
           breadcrumbs: false,
         },
         {
-          id: "util-view/Edit-Bill",
+          id: "util-view/Edit-Supplier-Bill",
           title: "View / Edit Supplier Invoice",
           type: "item",
-          url: "/AddOrEditBills",
+          url: "/AddOrEditSupplierBills",
           breadcrumbs: false,
         },
       ],

@@ -25,6 +25,9 @@ const UtilsAddOrEditBills = Loadable(
   lazy(() => import("../views/utilities/AddOrEditBill"))
 );
 
+const UtilsAddOrEditSupplierBills = Loadable(
+  lazy(() => import("../views/utilities/AddOrEditSupplierBill "))
+);
 const UtilsDelivery = Loadable(
   lazy(() => import("../views/utilities/Delivery"))
 );
@@ -108,6 +111,15 @@ const MainRoutes = {
         {
           path: "AddOrEditBills",
           element: <UtilsAddOrEditBills />,
+        },
+      ],
+    },
+    {
+      path: "/",
+      children: [
+        {
+          path: "AddOrEditSupplierBills",
+          element: <UtilsAddOrEditSupplierBills />,
         },
       ],
     },
