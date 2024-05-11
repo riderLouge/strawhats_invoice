@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import AddIcon from '@mui/icons-material/Add';
-import Person2RoundedIcon from '@mui/icons-material/Person2Rounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import AddIcon from "@mui/icons-material/Add";
+import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import {
   Card,
   Button,
@@ -21,65 +21,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
-import emptyProfile from '../../assets/images/profileImage.jpg';
-
-// const employeeData = [
-//   {
-//     id: 1,
-//     name: "John Doe",
-//     joinDate: "2023-01-01",
-//     role: "Manager",
-//     email: "john@example.com",
-//     phoneNumber: "1234567890",
-//     address: "123 Main St, City, Country",
-//   },
-//   {
-//     id: 2,
-//     name: "Jane Smith",
-//     joinDate: "2022-05-15",
-//     role: "Assistant",
-//     email: "jane@example.com",
-//     phoneNumber: "0987654321",
-//     address: "456 Elm St, Town, Country",
-//   },
-//   {
-//     id: 3,
-//     name: "Michael Johnson",
-//     joinDate: "2023-02-28",
-//     role: "Supervisor",
-//     email: "michael@example.com",
-//     phoneNumber: "9876543210",
-//     address: "789 Oak St, Village, Country",
-//   },
-//   {
-//     id: 4,
-//     name: "Emily Brown",
-//     joinDate: "2022-09-10",
-//     role: "Assistant",
-//     email: "emily@example.com",
-//     phoneNumber: "0123456789",
-//     address: "101 Pine St, Hamlet, Country",
-//   },
-//   {
-//     id: 5,
-//     name: "Daniel Wilson",
-//     joinDate: "2023-03-20",
-//     role: "Clerk",
-//     email: "daniel@example.com",
-//     phoneNumber: "8765432109",
-//     address: "222 Cedar St, Town, Country",
-//   },
-//   {
-//     id: 6,
-//     name: "Sarah Martinez",
-//     joinDate: "2022-11-05",
-//     role: "Manager",
-//     email: "sarah@example.com",
-//     phoneNumber: "5432109876",
-//     address: "333 Maple St, City, Country",
-//   },
-//   // Add more entries as needed
-// ];
+import emptyProfile from "../../assets/images/profileImage.jpg";
 
 const ManageEmployees = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -101,7 +43,7 @@ const ManageEmployees = () => {
     } catch (error) {
       console.error("Error fetching staffs:", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetchStaffDetails();
@@ -158,7 +100,10 @@ const ManageEmployees = () => {
                 }}
                 onMouseEnter={() => setHoveredRow(2)}
                 onMouseLeave={() => setHoveredRow(null)}
-                onClick={() => { setViewProfile(true); setSelectedFile({ imageUrl: row.original.photo }); }}
+                onClick={() => {
+                  setViewProfile(true);
+                  setSelectedFile({ imageUrl: row.original.photo });
+                }}
               />
             </Tooltip>
           </Box>
@@ -168,16 +113,15 @@ const ManageEmployees = () => {
     [hoveredRow]
   );
 
-
   useEffect(() => {
     console.info({ rowSelection });
   }, [rowSelection]);
 
   const handleEdit = (row) => {
-    setSelectedUserDetails(row.original)
+    setSelectedUserDetails(row.original);
     setDialogMode("edit");
     setOpenDialog(true);
-    if (row.original.photo !== '') {
+    if (row.original.photo !== "") {
       setSelectedFile({ imageUrl: row.original.photo });
     } else {
       setSelectedFile(null);
@@ -189,12 +133,12 @@ const ManageEmployees = () => {
   };
 
   const clearUserData = () => {
-    document.getElementById('staffName').value = '';
-    document.getElementById('staffEmail').value = '';
-    document.getElementById('staffPhoneNumber').value = '';
-    document.getElementById('staffAddress').value = '';
-    document.getElementById('staffDesignation').value = '';
-    document.getElementById('staffRole').value = '';
+    document.getElementById("staffName").value = "";
+    document.getElementById("staffEmail").value = "";
+    document.getElementById("staffPhoneNumber").value = "";
+    document.getElementById("staffAddress").value = "";
+    document.getElementById("staffDesignation").value = "";
+    document.getElementById("staffRole").value = "";
     setSelectedFile(null);
   };
 
@@ -203,18 +147,17 @@ const ManageEmployees = () => {
     setOpenDialog(false);
   };
 
-
   const handleSave = async () => {
     if (dialogMode === "add") {
       const newData = {
-        name: document.getElementById('staffName').value,
-        email: document.getElementById('staffEmail').value,
-        phoneNumber: document.getElementById('staffPhoneNumber').value,
-        address: document.getElementById('staffAddress').value,
-        designation: document.getElementById('staffDesignation').value,
-        role: document.getElementById('staffRole').value,
-        photo: selectedFile === null ? '' : selectedFile.imageUrl,
-        joinDate: new Date(document.getElementById('staffJoinDate').value),
+        name: document.getElementById("staffName").value,
+        email: document.getElementById("staffEmail").value,
+        phoneNumber: document.getElementById("staffPhoneNumber").value,
+        address: document.getElementById("staffAddress").value,
+        designation: document.getElementById("staffDesignation").value,
+        role: document.getElementById("staffRole").value,
+        photo: selectedFile === null ? "" : selectedFile.imageUrl,
+        joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
       const response = await axios
         .post("api/staff/add", newData)
@@ -225,14 +168,14 @@ const ManageEmployees = () => {
       console.log(response, "========");
     } else if (dialogMode === "edit") {
       const updatedData = {
-        name: document.getElementById('staffName').value,
-        email: document.getElementById('staffEmail').value,
-        phoneNumber: document.getElementById('staffPhoneNumber').value,
-        address: document.getElementById('staffAddress').value,
-        designation: document.getElementById('staffDesignation').value,
-        role: document.getElementById('staffRole').value,
-        photo: selectedFile === null ? '' : selectedFile.imageUrl,
-        joinDate: new Date(document.getElementById('staffJoinDate').value),
+        name: document.getElementById("staffName").value,
+        email: document.getElementById("staffEmail").value,
+        phoneNumber: document.getElementById("staffPhoneNumber").value,
+        address: document.getElementById("staffAddress").value,
+        designation: document.getElementById("staffDesignation").value,
+        role: document.getElementById("staffRole").value,
+        photo: selectedFile === null ? "" : selectedFile.imageUrl,
+        joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
       const response = await axios
         .put(`api/staff/edit/${selectedUserDetails.userid}`, updatedData)
@@ -348,7 +291,11 @@ const ManageEmployees = () => {
               label="Name"
               fullWidth
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.name : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.name
+                  : ""
+              }
             />
             <TextField
               id="staffJoinDate"
@@ -357,68 +304,115 @@ const ManageEmployees = () => {
               focused
               type="date"
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.joinDate : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.joinDate
+                  : ""
+              }
             />
             <TextField
               id="staffRole"
               label="Role"
               fullWidth
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.role : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.role
+                  : ""
+              }
             />
             <TextField
               id="staffEmail"
               label="Email"
               fullWidth
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.email : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.email
+                  : ""
+              }
             />
             <TextField
               id="staffPhoneNumber"
               label="Phone Number"
               fullWidth
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.phoneNumber : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.phoneNumber
+                  : ""
+              }
             />
             <TextField
               id="staffAddress"
               label="Address"
               fullWidth
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.address : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.address
+                  : ""
+              }
             />
             <TextField
               id="staffDesignation"
               label="Designation"
               fullWidth
               margin="normal"
-              defaultValue={(dialogMode === 'edit' && selectedUserDetails) ? selectedUserDetails.designation : ''}
+              defaultValue={
+                dialogMode === "edit" && selectedUserDetails
+                  ? selectedUserDetails.designation
+                  : ""
+              }
             />
             <Box>
-              <Typography variant="body2">
-                Add Profile Photo
-              </Typography>
+              <Typography variant="body2">Add Profile Photo</Typography>
               <input
                 id="image-input"
                 type="file"
                 accept="image/*"
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
                 onChange={handleSelectImage}
               />
-              <Box sx={{ position: 'relative' }}>
+              <Box sx={{ position: "relative" }}>
                 {selectedFile ? (
                   <div>
                     <img
                       alt="profile"
                       src={selectedFile.imageUrl}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: '100%', maxHeight: '200px' }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        maxWidth: "100%",
+                        maxHeight: "200px",
+                      }}
                     />
-                    <CloseRoundedIcon sx={{ position: 'absolute', top: '0px', right: '0px', cursor: 'pointer' }} onClick={() => setSelectedFile(null)} />
+                    <CloseRoundedIcon
+                      sx={{
+                        position: "absolute",
+                        top: "0px",
+                        right: "0px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setSelectedFile(null)}
+                    />
                   </div>
                 ) : (
                   <label htmlFor="image-input">
-                    <Box component="span" sx={{ py: 2, border: '1px dotted black', display: 'grid', placeItems: 'center', cursor: 'pointer', borderRadius: '8px', mt: 1 }}>
-                        <AddIcon />
+                    <Box
+                      component="span"
+                      sx={{
+                        py: 2,
+                        border: "1px dotted black",
+                        display: "grid",
+                        placeItems: "center",
+                        cursor: "pointer",
+                        borderRadius: "8px",
+                        mt: 1,
+                      }}
+                    >
+                      <AddIcon />
                     </Box>
                   </label>
                 )}
@@ -435,11 +429,22 @@ const ManageEmployees = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Backdrop open={viewProfile} sx={{ zIndex: 5000, display: 'grid', placeItems: 'center' }} onClick={() => setViewProfile(false)}>
+      <Backdrop
+        open={viewProfile}
+        sx={{ zIndex: 5000, display: "grid", placeItems: "center" }}
+        onClick={() => setViewProfile(false)}
+      >
         <img
           alt="profile"
           src={selectedFile?.imageUrl || emptyProfile}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: '100%', maxHeight: '300px' }} />
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            maxWidth: "100%",
+            maxHeight: "300px",
+          }}
+        />
       </Backdrop>
     </MainCard>
   );

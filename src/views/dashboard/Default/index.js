@@ -11,15 +11,32 @@ import TotalIncomeDarkCard from "./TotalIncomeDarkCard";
 import TotalIncomeLightCard from "./TotalIncomeLightCard";
 import TotalGrowthBarChart from "./TotalGrowthBarChart";
 import { gridSpacing } from "../../../store/constant";
+import DialogTemplate from "../../../ui-component/Dialog";
+import { TextField } from "@mui/material";
 
 // ==============================|| DEFAULT DASHBOARD ||============================== //
 
 const Dashboard = () => {
+  const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setLoading] = useState(true);
   useEffect(() => {
     setLoading(false);
   }, []);
 
+  const handleWarehousePdf = () => {
+    setOpenDialog(true);
+    console.log("Grid item clicked!");
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+  const handleSubmitDialog = () => {
+    console.log(document.getElementById("invoiceDate").value);
+    setOpenDialog(false);
+  };
+
+  const handleChange = (event) => {};
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -32,7 +49,15 @@ const Dashboard = () => {
           </Grid>
           <Grid item lg={4} md={12} sm={12} xs={12}>
             <Grid container spacing={gridSpacing}>
-              <Grid item sm={6} xs={12} md={6} lg={12}>
+              <Grid
+                item
+                sm={6}
+                xs={12}
+                md={6}
+                lg={12}
+                onClick={handleWarehousePdf}
+                style={{ cursor: "pointer" }}
+              >
                 <TotalIncomeDarkCard isLoading={isLoading} />
               </Grid>
               <Grid item sm={6} xs={12} md={6} lg={12}>
@@ -42,6 +67,23 @@ const Dashboard = () => {
           </Grid>
         </Grid>
       </Grid>
+      <DialogTemplate
+        open={openDialog}
+        title={"Day Sales List"}
+        type={"Bill"}
+        body={
+          <TextField
+            fullWidth
+            type="date"
+            variant="outlined"
+            id="invoiceDate"
+            name="invoiceDate"
+            onChange={handleChange}
+          />
+        }
+        handleCloseDialog={handleCloseDialog}
+        handleSave={handleSubmitDialog}
+      />
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
           <Grid item xs={12} md={8}>

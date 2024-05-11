@@ -13,6 +13,7 @@ const DialogTemplate = ({
   body,
   handleCloseDialog,
   handleSave,
+  type,
 }) => {
   return (
     <div>
@@ -34,9 +35,11 @@ const DialogTemplate = ({
           <Button onClick={handleCloseDialog} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleSave} color="primary">
-            Save
-          </Button>
+          {type === "Invoice" ? null : (
+            <Button onClick={handleSave} color="primary">
+              {type === "Bill" ? "Download" : "Save"}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </div>

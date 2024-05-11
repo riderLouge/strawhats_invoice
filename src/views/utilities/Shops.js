@@ -261,20 +261,6 @@ const Shops = () => {
       <Card sx={{ overflow: "hidden" }}>
         <MaterialReactTable columns={columns} data={shops} />
       </Card>
-      {/* <Button
-        variant="contained"
-        color="primary"
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          margin: "8px",
-          zIndex: 1,
-        }}
-        onClick={() => {}}
-      >
-        Update Debit / Credit
-      </Button> */}
       <Button
         variant="contained"
         color="primary"
