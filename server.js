@@ -1,20 +1,20 @@
 const express = require("express");
 const prisma = require("./prisma/prismaClient");
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 const app = express();
 const cors = require("cors");
 
 app.use(express.json());
 app.use(cors());
 // Increase payload limit (e.g., 10MB)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 function generateOtp() {
   const length = 6;
-  const digits = '0123456789';
+  const digits = "0123456789";
 
-  let OTP = '';
+  let OTP = "";
   for (let i = 0; i < length; i++) {
     OTP += digits[Math.floor(Math.random() * 10)];
   }
@@ -24,37 +24,37 @@ function generateOtp() {
 
 function sendOtpEmail(email, otp) {
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     secure: true,
     auth: {
-      user: 'dhanushprofo@gmail.com',
-      pass: 'shtq wpgf dirf qhjp'
-    }
+      user: "dhanushprofo@gmail.com",
+      pass: "shtq wpgf dirf qhjp",
+    },
   });
 
   const mailOptions = {
-    from: 'dhanush@gmail.com',
+    from: "dhanush@gmail.com",
     to: email,
-    subject: 'Password Reset OTP',
+    subject: "Password Reset OTP",
     text: `Your OTP for password reset is: ${otp}`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
     } else {
-      console.log('Email sent:', info.response);
+      console.log("Email sent:", info.response);
     }
   });
 }
 
 app.post("/api/forgot-password", async (req, res) => {
   const { email } = req.body;
-  console.log('in', req.body)
+  console.log("in", req.body);
   // Check if the email exists in the database
   const user = await prisma.loginAuth.findUnique({ where: { email } });
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: "User not found" });
   }
 
   // Generate a random OTP
@@ -72,22 +72,25 @@ app.post("/api/forgot-password", async (req, res) => {
   // Send the OTP to the user's email
   sendOtpEmail(email, otp); // Implement this function
 
-  res.status(200).json({ status: 'success', message: 'OTP sent successfully' });
+  res.status(200).json({ status: "success", message: "OTP sent successfully" });
 });
 
 // Route for resetting password
-app.post('/api/reset-password', async (req, res) => {
+app.post("/api/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   // Find the user by email
   const user = await prisma.loginAuth.findUnique({ where: { email } });
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: "User not found" });
   }
 
   // Check if OTP matches and is not expired
-  if (user.passwordResetOTP !== otp || user.passwordResetExpiresAt < new Date()) {
-    return res.status(400).json({ error: 'Invalid or expired OTP' });
+  if (
+    user.passwordResetOTP !== otp ||
+    user.passwordResetExpiresAt < new Date()
+  ) {
+    return res.status(400).json({ error: "Invalid or expired OTP" });
   }
 
   // Update the user's password
@@ -100,7 +103,9 @@ app.post('/api/reset-password', async (req, res) => {
     },
   });
 
-  res.status(200).json({ status: 'success', message: 'Password reset successful' });
+  res
+    .status(200)
+    .json({ status: "success", message: "Password reset successful" });
 });
 
 app.get("/api/company/fetchCompany", async (req, res) => {
@@ -114,7 +119,6 @@ app.get("/api/company/fetchCompany", async (req, res) => {
       .json({ error: "An error occurred while fetching the companies" });
   }
 });
-
 
 app.post("/api/items/add", async (req, res) => {
   try {
@@ -146,10 +150,14 @@ app.post("/api/shop/add", async (req, res) => {
 app.get("/api/staff/staffDetails", async (req, res) => {
   try {
     const staffs = await prisma.staff.findMany();
-    res.status(200).json({ success: 'staff data fetched successfully', data: staffs });
+    res
+      .status(200)
+      .json({ success: "staff data fetched successfully", data: staffs });
   } catch (error) {
     console.error("Error fetching staffs:", error);
-    res.status(500).json({ error: "An error occurred while fetching the staffs" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the staffs" });
   }
 });
 
@@ -175,7 +183,9 @@ app.post("/api/staff/add", async (req, res) => {
     });
 
     // Send success status to the frontend
-    return res.status(201).json({ success: "Staff member added successfully", data: createdItem });
+    return res
+      .status(201)
+      .json({ success: "Staff member added successfully", data: createdItem });
   } catch (error) {
     console.error("Error adding staff:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -191,10 +201,14 @@ app.put("/api/staff/edit/:id", async (req, res) => {
       where: { userid: parseInt(id) },
       data: updatedItemData,
     });
-    res.status(200).json({ status: 'staff edited successfully', data: updatedItem });
+    res
+      .status(200)
+      .json({ status: "staff edited successfully", data: updatedItem });
   } catch (error) {
     console.error("Error editing item:", error);
-    res.status(500).json("An error occurred while editing the staff details", error);
+    res
+      .status(500)
+      .json("An error occurred while editing the staff details", error);
   }
 });
 app.put("/api/items/edit/:id", async (req, res) => {
@@ -311,7 +325,12 @@ app.post("/api/shops/insert", async (req, res) => {
 app.post("/api/invoice/create", async (req, res) => {
   try {
     // Validate request body
-    if (!req.body.invoiceNumber || !req.body.invoiceDate || !req.body.shopId || !req.body.userId) {
+    if (
+      !req.body.invoiceNumber ||
+      !req.body.invoiceDate ||
+      !req.body.shopId ||
+      !req.body.userId
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -349,12 +368,15 @@ app.get("/api/invoices", async (req, res) => {
       include: {
         shop: true,
         user: true,
-      }
+      },
     });
-    res.json({ data: invoices, status: 'success' });
+    res.json({ data: invoices, status: "success" });
   } catch (error) {
     console.error("Error while fetching invoices:", error);
-    res.status(500).json({ status: 'failure', error: "An error occurred while fetching invoices" });
+    res.status(500).json({
+      status: "failure",
+      error: "An error occurred while fetching invoices",
+    });
   }
 });
 
@@ -362,40 +384,76 @@ app.post("/api/invoice/products", async (req, res) => {
   try {
     const { products } = req.body;
     if (!products || !Array.isArray(products)) {
-      return res.status(400).json({ status: 'failure', error: "Invalid products" });
+      return res
+        .status(400)
+        .json({ status: "failure", error: "Invalid products" });
     }
 
-    const productIds = products.map((d) => parseInt(d.productId))
+    const productIds = products.map((d) => parseInt(d.productId));
 
     const fetchedProducts = await prisma.product.findMany({
       where: {
-        ID: { in: productIds }
-      }
+        ID: { in: productIds },
+      },
     });
 
     const productsWithQuantity = fetchedProducts.map((product) => {
-      const matchingProduct = products.find(({ productId }) => parseInt(productId) === parseInt(product.ID));
+      const matchingProduct = products.find(
+        ({ productId }) => parseInt(productId) === parseInt(product.ID)
+      );
       return {
         ...product,
         quantity: matchingProduct ? parseInt(matchingProduct.quantity) || 1 : 0,
-      }
-    })
-    res.json({ data: productsWithQuantity, status: 'success' });
+      };
+    });
+    res.json({ data: productsWithQuantity, status: "success" });
   } catch (error) {
     console.error("Error fetching products:", error);
-    res.status(500).json({ status: 'failure', error: "An error occurred while fetching products" });
+    res.status(500).json({
+      status: "failure",
+      error: "An error occurred while fetching products",
+    });
   }
 });
 
 app.post("/api/supplier-bill/create", async (req, res) => {
   try {
     // validate request body
-    if (!req.body.billNumber || !req.body.billTotal || !req.body.paymentMode || !req.body.pendingPayment || !req.body.billDate) {
+    console.log(
+      req.body.billNumber,
+      "-",
+      req.body.billTotal,
+      "-",
+      req.body.paymentMode,
+      "-",
+      req.body.billDate,
+      "-",
+      req.body.pendingPayment
+    );
+
+    if (
+      !req.body.billNumber ||
+      !req.body.billTotal ||
+      !req.body.paymentMode ||
+      !req.body.pendingPayment
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-    const { billNumber, products, billTotal, paymentMode, pendingPayment, billDate, address, userId, supplierId } = req.body;
+    const {
+      billNumber,
+      products,
+      billTotal,
+      paymentMode,
+      pendingPayment,
+      billDate,
+      address,
+      userId,
+      supplierId,
+    } = req.body;
 
-    const supplier = await prisma.company.findUnique({ where: { id: supplierId } });
+    const supplier = await prisma.company.findUnique({
+      where: { id: supplierId },
+    });
     const user = await prisma.loginAuth.findUnique({ where: { Id: userId } });
 
     if (!supplier) {
@@ -416,14 +474,16 @@ app.post("/api/supplier-bill/create", async (req, res) => {
         userId,
         products,
         address,
-      }
+      },
     });
     res.status(201).json({ message: "Invoice created successfully" });
   } catch (error) {
     console.error("Error while creating the supplier invoice:", error);
-    res.status(500).json({ error: "An error occurred while creating supplier invoice" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating supplier invoice" });
   }
-})
+});
 
 app.get("/api/supplier-bills", async (req, res) => {
   try {
@@ -431,12 +491,15 @@ app.get("/api/supplier-bills", async (req, res) => {
       include: {
         supplier: true,
         user: true,
-      }
+      },
     });
-    res.json({ data: supplierBills, status: 'success' });
+    res.json({ data: supplierBills, status: "success" });
   } catch (error) {
     console.error("Error while fetching invoices:", error);
-    res.status(500).json({ status: 'failure', error: "An error occurred while fetching invoices" });
+    res.status(500).json({
+      status: "failure",
+      error: "An error occurred while fetching invoices",
+    });
   }
 });
 const PORT = process.env.PORT || 9000;

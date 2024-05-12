@@ -17,46 +17,49 @@ import {
 } from "@mui/material";
 import { Box } from "@mui/system";
 import axios from "axios";
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
-import 'jspdf-autotable';
+import "jspdf-autotable";
 import moment from "moment";
 
-export default function InvoiceTemplate({ data }) {
+export default function InvoiceTemplate({ data, type }) {
   const [invoiceProducts, setInvoiceProducts] = useState([]);
   const invoiceRef = useRef(null);
   const invoiceHeaderRef = useRef(null);
   const fetchInvoiceProducts = async (products) => {
     try {
-      const response = await axios.post('/api/invoice/products', { products });
+      const response = await axios.post("/api/invoice/products", { products });
       console.log(response);
-      setInvoiceProducts(response.data.data)
+      setInvoiceProducts(response.data.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       throw error;
     }
-  }
+  };
 
   const totalProductAmount = (data) => {
     const total = data.reduce((acc, cur) => {
-      return acc + (Number(cur.SPRICE) * Number(cur.quantity));
-    }, 0)
+      return acc + Number(cur.SPRICE) * Number(cur.quantity);
+    }, 0);
     return total;
-  }
+  };
 
   const downloadInvoice = async () => {
     const doc = new jsPDF();
     const invoiceElement = invoiceRef.current;
     const invoiceHeaderElement = invoiceHeaderRef.current;
     // Product table
-    const table = invoiceElement.querySelector('table');
+    const table = invoiceElement.querySelector("table");
     // Define content
     const invoiceNumber = data.original?.invoiceNumber;
-    const date = moment(data?.original?.invoiceDate).format('DD/MM/YYYY');
+    const date = moment(data?.original?.invoiceDate).format("DD/MM/YYYY");
     const companyName = "Sri Krishna Agencies";
     const customerName = data?.original?.shop?.CUSNAM;
-    const address = (data?.original?.shop?.ADRONE || "") + (data?.original?.shop?.ADRTWO || "") + (data?.original?.shop?.ADRTHR || "");
+    const address =
+      (data?.original?.shop?.ADRONE || "") +
+      (data?.original?.shop?.ADRTWO || "") +
+      (data?.original?.shop?.ADRTHR || "");
     const phoneNumber = data?.original?.shop?.TELNUM;
 
     // Define positions
@@ -76,7 +79,11 @@ export default function InvoiceTemplate({ data }) {
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(`Invoice Number: ${invoiceNumber}`, invoiceNumberX, invoiceNumberY);
+    doc.text(
+      `Invoice Number: ${invoiceNumber}`,
+      invoiceNumberX,
+      invoiceNumberY
+    );
     doc.text(`Date: ${date}`, invoiceNumberX, dateY);
     doc.setFont("helvetica", "bold");
     doc.text(companyName, companyNameX, companyNameY);
@@ -86,46 +93,93 @@ export default function InvoiceTemplate({ data }) {
 
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("Customer Info", customerInfoX + customerInfoPaddingX, customerInfoY + 5);
+    doc.text(
+      "Customer Info",
+      customerInfoX + customerInfoPaddingX,
+      customerInfoY + 5
+    );
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(`Customer Name: ${customerName}`, customerInfoX + customerInfoPaddingX, customerInfoY + 15);
-    doc.text(`Address: ${address}`, customerInfoX + customerInfoPaddingX, customerInfoY + 20);
-    doc.text(`Phone Number: ${phoneNumber}`, customerInfoX + customerInfoPaddingX, customerInfoY + 25);
+    doc.text(
+      `Customer Name: ${customerName}`,
+      customerInfoX + customerInfoPaddingX,
+      customerInfoY + 15
+    );
+    doc.text(
+      `Address: ${address}`,
+      customerInfoX + customerInfoPaddingX,
+      customerInfoY + 20
+    );
+    doc.text(
+      `Phone Number: ${phoneNumber}`,
+      customerInfoX + customerInfoPaddingX,
+      customerInfoY + 25
+    );
 
     // Product table with custom options to control the footer
-    doc.autoTable({ html: table, startY: invoiceHeaderElement.offsetHeight - 130, columnStyles: { 2: { halign: 'center' } } });
+    doc.autoTable({
+      html: table,
+      startY: invoiceHeaderElement.offsetHeight - 130,
+      columnStyles: { 2: { halign: "center" } },
+    });
 
     // Total amount
     doc.setFont("helvetica", "bold");
-    doc.text('total', companyNameX - 5, doc.autoTableEndPosY() + 10);
+    doc.text("total", companyNameX - 5, doc.autoTableEndPosY() + 10);
     doc.setFont("helvetica", "normal");
-    doc.text(parseFloat(totalProductAmount(invoiceProducts)).toFixed(2), companyNameX + 30, doc.autoTableEndPosY() + 10);
+    doc.text(
+      parseFloat(totalProductAmount(invoiceProducts)).toFixed(2),
+      companyNameX + 30,
+      doc.autoTableEndPosY() + 10
+    );
     // Payment Notes Section
     const paymentNotesText = "Payment Notes";
     const paymentNotesY = doc.autoTableEndPosY() + 15;
     doc.setFontSize(10);
     doc.text(paymentNotesText, 15, paymentNotesY);
-    doc.setDrawColor('#cccccc');
-    doc.rect(15, paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 5, doc.internal.pageSize.getWidth() - 18, 35, 'D');
+    doc.setDrawColor("#cccccc");
+    doc.rect(
+      15,
+      paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 5,
+      doc.internal.pageSize.getWidth() - 18,
+      35,
+      "D"
+    );
 
     // Customer Signature Section
     const signatureText = "Customer Signature";
-    const signatureY = paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 60;
+    const signatureY =
+      paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 60;
     doc.setFontSize(10);
     doc.text(signatureText, 15, signatureY);
-    doc.save('invoice.pdf');
+    doc.save("invoice.pdf");
   };
 
   useEffect(() => {
     fetchInvoiceProducts(data.original.products);
-  }, [])
+  }, []);
 
   return (
     <Container maxWidth="md">
-      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "end",
+          alignItems: "center",
+        }}
+      >
         <Tooltip placement="top" title="Download">
-          <Fab onClick={() => downloadInvoice()} variant="circle" size="small" sx={{ background: '#b06dd4', color: '#FFFFFF', '&:hover': { background: '#b06dd4' } }}>
+          <Fab
+            onClick={() => downloadInvoice()}
+            variant="circle"
+            size="small"
+            sx={{
+              background: "#b06dd4",
+              color: "#FFFFFF",
+              "&:hover": { background: "#b06dd4" },
+            }}
+          >
             <DownloadRoundedIcon />
           </Fab>
         </Tooltip>
@@ -155,7 +209,7 @@ export default function InvoiceTemplate({ data }) {
               <Typography variant="body1">
                 Invoice Number: {data.original?.invoiceNumber}
                 <br />
-                Date: {moment(data?.original?.invoiceDate).format('DD/MM/YYYY')}
+                Date: {moment(data?.original?.invoiceDate).format("DD/MM/YYYY")}
               </Typography>
             </div>
             <Typography
@@ -178,15 +232,16 @@ export default function InvoiceTemplate({ data }) {
                 gutterBottom
                 style={{ fontWeight: "bold", marginBottom: "16px" }}
               >
-                Customer Information
+                {type} Information
               </Typography>
               <Typography variant="body1" style={{ marginBottom: "8px" }}>
-                <strong>Customer Name:</strong> {data?.original?.shop?.CUSNAM}
+                <strong>{type} Name:</strong> {data?.original?.shop?.CUSNAM}
               </Typography>
               <Typography variant="body1" style={{ marginBottom: "8px" }}>
                 <strong>Address:</strong>{" "}
-                {`${data?.original?.shop?.ADRONE || ""} ${data?.original?.shop?.ADRTWO || ""
-                  } ${data?.original?.shop?.ADRTHR || ""}`}
+                {`${data?.original?.shop?.ADRONE || ""} ${
+                  data?.original?.shop?.ADRTWO || ""
+                } ${data?.original?.shop?.ADRTHR || ""}`}
               </Typography>
               <Typography variant="body1">
                 <strong>Phone Number:</strong> {data?.original?.shop?.TELNUM}
@@ -219,15 +274,27 @@ export default function InvoiceTemplate({ data }) {
                     <TableCell>{data.NAME}</TableCell>
                     <TableCell align="center">{data.quantity}</TableCell>
                     <TableCell align="right">{data.SPRICE}</TableCell>
-                    <TableCell align="right">{parseFloat(Number(data.SPRICE) * Number(data.quantity)).toFixed(2)}</TableCell>
+                    <TableCell align="right">
+                      {parseFloat(
+                        Number(data.SPRICE) * Number(data.quantity)
+                      ).toFixed(2)}
+                    </TableCell>
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>
           <TableFooter>
-            <TableRow sx={{ color: 'black' }}>
-              <TableCell colSpan={4} style={{ fontWeight: "bold", width: '100%', textAlign: 'end', pr: '39px' }}>
+            <TableRow sx={{ color: "black" }}>
+              <TableCell
+                colSpan={4}
+                style={{
+                  fontWeight: "bold",
+                  width: "100%",
+                  textAlign: "end",
+                  pr: "39px",
+                }}
+              >
                 Total
               </TableCell>
               <TableCell align="right" style={{ fontWeight: "bold" }}>
@@ -238,30 +305,34 @@ export default function InvoiceTemplate({ data }) {
         </TableContainer>
 
         {/* Payment details */}
+        {type === "Customer" ? (
+          <div style={{ marginTop: "24px" }}>
+            <Typography
+              variant="h5"
+              gutterBottom
+              style={{ fontWeight: "bold" }}
+            >
+              Payment Notes
+            </Typography>
+            <div
+              style={{
+                border: "1px solid #ccc",
+                width: "100%",
+                height: "100px",
+                marginTop: "8px",
+              }}
+            ></div>
+            <Divider style={{ marginTop: "20px" }} />
 
-        <div style={{ marginTop: "24px" }}>
-          <Typography variant="h5" gutterBottom style={{ fontWeight: "bold" }}>
-            Payment Notes
-          </Typography>
-          <div
-            style={{
-              border: "1px solid #ccc",
-              width: "100%",
-              height: "100px",
-              marginTop: "8px",
-            }}
-          ></div>
-          <Divider style={{ marginTop: "20px" }} />
-          <Typography
-            variant="h6"
-            gutterBottom
-            style={{ fontWeight: "bold", marginTop: "16px" }}
-          >
-            Customer Signature
-          </Typography>
-          {/* Add signature area */}
-          {/* You can use a SignaturePad component or any other method to capture the signature */}
-        </div>
+            <Typography
+              variant="h6"
+              gutterBottom
+              style={{ fontWeight: "bold", marginTop: "16px" }}
+            >
+              Customer Signature
+            </Typography>
+          </div>
+        ) : null}
       </Paper>
     </Container>
   );

@@ -4,7 +4,13 @@ import { useSelector } from "react-redux";
 
 // material-ui
 import { useTheme } from "@mui/material/styles";
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import {
+  Grid,
+  MenuItem,
+  TextField,
+  Typography,
+  LinearProgress,
+} from "@mui/material";
 
 // third-party
 import ApexCharts from "apexcharts";
@@ -17,21 +23,6 @@ import { gridSpacing } from "../../../store/constant";
 
 // chart data
 import chartData from "./chart-data/total-growth-bar-chart";
-
-const status = [
-  {
-    value: "today",
-    label: "Today",
-  },
-  {
-    value: "month",
-    label: "This Month",
-  },
-  {
-    value: "year",
-    label: "This Year",
-  },
-];
 
 // ==============================|| DASHBOARD DEFAULT - TOTAL GROWTH BAR CHART ||============================== //
 
@@ -112,6 +103,15 @@ const TotalGrowthBarChart = ({ isLoading }) => {
     grey500,
   ]);
 
+  const deliveryGuys = [
+    { id: 1, progress: 10, total: 20 },
+    { id: 2, progress: 15, total: 25 },
+    { id: 3, progress: 8, total: 15 },
+    { id: 4, progress: 20, total: 20 },
+    { id: 5, progress: 15, total: 25 },
+    { id: 6, progress: 8, total: 15 },
+  ];
+
   return (
     <>
       {isLoading ? (
@@ -128,32 +128,58 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                 <Grid item>
                   <Grid container direction="column" spacing={1}>
                     <Grid item>
-                      <Typography variant="subtitle2">Total Growth</Typography>
-                    </Grid>
-                    <Grid item>
-                      <Typography variant="h3">INR 6889.00</Typography>
+                      <Typography variant="h3">Delivery</Typography>
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid item>
-                  <TextField
-                    id="standard-select-currency"
-                    select
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                  >
-                    {status.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
               </Grid>
             </Grid>
+            {/* comment below */}
             <Grid item xs={12}>
               <Chart {...chartData} />
             </Grid>
+            {/* uncomment below */}
+            {/* <Grid item xs={12}>
+              {deliveryGuys.map((deliveryGuy, index) => (
+                <Grid
+                  key={index}
+                  container
+                  alignItems="center"
+                  spacing={2}
+                  sx={{
+                    backgroundColor: "#fff",
+                    borderRadius: "10px",
+                    padding: "20px",
+                  }}
+                >
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: "bold", color: "#333" }}
+                    >{`Delivery Guy ${index + 1}`}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(deliveryGuy.progress / deliveryGuy.total) * 100}
+                      sx={{
+                        height: "10px",
+                        borderRadius: "5px",
+                        backgroundColor: "#ddd",
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography
+                      variant="body1"
+                      sx={{ color: "#555", textAlign: "center" }}
+                    >{`${Math.round(
+                      (deliveryGuy.progress / deliveryGuy.total) * 100
+                    )}%`}</Typography>
+                  </Grid>
+                </Grid>
+              ))}
+            </Grid> */}
           </Grid>
         </MainCard>
       )}

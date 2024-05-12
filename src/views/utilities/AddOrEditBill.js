@@ -133,7 +133,7 @@ export default function Invoice() {
         <DialogTemplate
           open={openDialog}
           title={"Invoice"}
-          body={<InvoiceTemplate data={invoiceData} />}
+          body={<InvoiceTemplate data={invoiceData} type={"Customer"} />}
           handleCloseDialog={handleCloseDialog}
           handleSave={handleSubmitDialog}
           type={"Invoice"}

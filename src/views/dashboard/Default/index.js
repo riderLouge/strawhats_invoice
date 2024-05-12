@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 // material-ui
-import { Grid } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
 
 // project imports
 import EarningCard from "./EarningCard";
@@ -12,18 +12,26 @@ import TotalIncomeLightCard from "./TotalIncomeLightCard";
 import TotalGrowthBarChart from "./TotalGrowthBarChart";
 import { gridSpacing } from "../../../store/constant";
 import DialogTemplate from "../../../ui-component/Dialog";
-import { TextField } from "@mui/material";
+import axios from "axios";
 
 // ==============================|| DEFAULT DASHBOARD ||============================== //
 
 const Dashboard = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setLoading] = useState(true);
+  const [pdfType, setPdfType] = useState("");
   useEffect(() => {
     setLoading(false);
   }, []);
 
   const handleWarehousePdf = () => {
+    setPdfType("Warehouse");
+    setOpenDialog(true);
+    console.log("Grid item clicked!");
+  };
+
+  const handleDeliveryPdf = () => {
+    setPdfType("Delivery");
     setOpenDialog(true);
     console.log("Grid item clicked!");
   };
@@ -31,12 +39,15 @@ const Dashboard = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-  const handleSubmitDialog = () => {
-    console.log(document.getElementById("invoiceDate").value);
+  const handleSubmitDialog = async () => {
+    const date = document.getElementById("invoiceDate").value;
+    const response = await axios
+      .post("api/dayInvoice/download", date)
+      .then((res) => {});
+    console.log(response);
     setOpenDialog(false);
   };
 
-  const handleChange = (event) => {};
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -60,7 +71,15 @@ const Dashboard = () => {
               >
                 <TotalIncomeDarkCard isLoading={isLoading} />
               </Grid>
-              <Grid item sm={6} xs={12} md={6} lg={12}>
+              <Grid
+                item
+                sm={6}
+                xs={12}
+                md={6}
+                lg={12}
+                onClick={handleDeliveryPdf}
+                style={{ cursor: "pointer" }}
+              >
                 <TotalIncomeLightCard isLoading={isLoading} />
               </Grid>
             </Grid>
@@ -72,14 +91,39 @@ const Dashboard = () => {
         title={"Day Sales List"}
         type={"Bill"}
         body={
-          <TextField
-            fullWidth
-            type="date"
-            variant="outlined"
-            id="invoiceDate"
-            name="invoiceDate"
-            onChange={handleChange}
-          />
+          <>
+            {pdfType === "Warehouse" ? (
+              <TextField
+                fullWidth
+                type="date"
+                variant="outlined"
+                id="invoiceDate"
+                name="invoiceDate"
+              />
+            ) : (
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    variant="outlined"
+                    id="invoiceDate"
+                    name="invoiceDate"
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    placeholder="Area"
+                    type="text"
+                    variant="outlined"
+                    id="invoiceArea"
+                    name="invoiceArea"
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </>
         }
         handleCloseDialog={handleCloseDialog}
         handleSave={handleSubmitDialog}
@@ -90,7 +134,7 @@ const Dashboard = () => {
             <TotalGrowthBarChart isLoading={isLoading} />
           </Grid>
           <Grid item xs={12} md={4}>
-            {/* <PopularCard isLoading={isLoading} /> */}
+            <PopularCard isLoading={isLoading} />
           </Grid>
         </Grid>
       </Grid>

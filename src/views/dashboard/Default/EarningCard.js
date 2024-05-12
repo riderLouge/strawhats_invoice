@@ -15,7 +15,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import GetAppTwoToneIcon from "@mui/icons-material/GetAppOutlined";
 import AttachEmailIcon from "@mui/icons-material/AttachEmail";
-
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 const CardWrapper = styled(MainCard)(({ theme }) => ({
   backgroundColor: theme.palette.secondary.dark,
   color: "#fff",
@@ -87,10 +87,11 @@ const EarningCard = ({ isLoading }) => {
                         mt: 1,
                       }}
                     >
-                      <img src={EarningIcon} alt="Notification" />
+                      <CurrencyRupeeIcon sx={{ color: "white" }} />
+                      {/* <img src={EarningIcon} alt="Notification" /> */}
                     </Avatar>
                   </Grid>
-                  <Grid item>
+                  {/* <Grid item>
                     <Avatar
                       variant="rounded"
                       sx={{
@@ -129,7 +130,7 @@ const EarningCard = ({ isLoading }) => {
                         <AttachEmailIcon sx={{ mr: 1.75 }} /> Send via mail
                       </MenuItem>
                     </Menu>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
               <Grid item>
@@ -144,10 +145,10 @@ const EarningCard = ({ isLoading }) => {
                         mb: 0.75,
                       }}
                     >
-                      20
+                      Debit
                     </Typography>
                   </Grid>
-                  <Grid item>
+                  {/* <Grid item>
                     <Avatar
                       sx={{
                         cursor: "pointer",
@@ -161,7 +162,7 @@ const EarningCard = ({ isLoading }) => {
                         sx={{ transform: "rotate3d(1, 1, 1, 45deg)" }}
                       />
                     </Avatar>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
               <Grid item sx={{ mb: 1.25 }}>
@@ -172,7 +173,7 @@ const EarningCard = ({ isLoading }) => {
                     color: theme.palette.secondary[200],
                   }}
                 >
-                  Today Orders
+                  Pending : 20
                 </Typography>
               </Grid>
             </Grid>

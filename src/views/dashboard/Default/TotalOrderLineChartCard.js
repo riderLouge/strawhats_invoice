@@ -18,7 +18,7 @@ import ChartDataYear from "./chart-data/total-order-year-line-chart";
 // assets
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 const CardWrapper = styled(MainCard)(({ theme }) => ({
   backgroundColor: theme.palette.primary.dark,
   color: "#fff",
@@ -92,10 +92,11 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                         mt: 1,
                       }}
                     >
-                      <LocalMallOutlinedIcon fontSize="inherit" />
+                      <CurrencyRupeeIcon />
+                      {/* <LocalMallOutlinedIcon fontSize="inherit" /> */}
                     </Avatar>
                   </Grid>
-                  <Grid item>
+                  {/* <Grid item>
                     <Button
                       disableElevation
                       variant={timeValue ? "contained" : "text"}
@@ -114,7 +115,7 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                     >
                       Year
                     </Button>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
               <Grid item sx={{ mb: 0.75 }}>
@@ -122,19 +123,19 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                   <Grid item xs={6}>
                     <Grid container alignItems="center">
                       <Grid item>
-                        {timeValue ? (
-                          <Typography
-                            sx={{
-                              fontSize: "2.125rem",
-                              fontWeight: 500,
-                              mr: 1,
-                              mt: 1.75,
-                              mb: 0.75,
-                            }}
-                          >
-                            108
-                          </Typography>
-                        ) : (
+                        {/* {timeValue ? ( */}
+                        <Typography
+                          sx={{
+                            fontSize: "2.125rem",
+                            fontWeight: 500,
+                            mr: 1,
+                            mt: 1.75,
+                            mb: 0.75,
+                          }}
+                        >
+                          Credit
+                        </Typography>
+                        {/* ) : (
                           <Typography
                             sx={{
                               fontSize: "2.125rem",
@@ -146,9 +147,9 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                           >
                             700
                           </Typography>
-                        )}
+                        )} */}
                       </Grid>
-                      <Grid item>
+                      {/* <Grid item>
                         <Avatar
                           sx={{
                             ...theme.typography.smallAvatar,
@@ -162,7 +163,7 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                             sx={{ transform: "rotate3d(1, 1, 1, 45deg)" }}
                           />
                         </Avatar>
-                      </Grid>
+                      </Grid> */}
                       <Grid item xs={12}>
                         <Typography
                           sx={{
@@ -171,18 +172,18 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                             color: theme.palette.primary[200],
                           }}
                         >
-                          Total Order
+                          Pending : 38
                         </Typography>
                       </Grid>
                     </Grid>
                   </Grid>
-                  <Grid item xs={6}>
+                  {/* <Grid item xs={6}>
                     {timeValue ? (
                       <Chart {...ChartDataMonth} />
                     ) : (
                       <Chart {...ChartDataYear} />
                     )}
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </Grid>

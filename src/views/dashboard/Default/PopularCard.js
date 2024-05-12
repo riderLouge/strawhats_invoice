@@ -57,7 +57,7 @@ const PopularCard = ({ isLoading }) => {
                   justifyContent="space-between"
                 >
                   <Grid item>
-                    <Typography variant="h4">Sales</Typography>
+                    <Typography variant="h4">Stock Alert</Typography>
                   </Grid>
                   <Grid item>
                     <MoreHorizOutlinedIcon
@@ -93,9 +93,9 @@ const PopularCard = ({ isLoading }) => {
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item xs={12} sx={{ pt: "16px !important" }}>
+              {/* <Grid item xs={12} sx={{ pt: "16px !important" }}>
                 <SalesChartCard />
-              </Grid>
+              </Grid> */}
               <Grid item xs={12}>
                 <Grid container direction="column">
                   <Grid item>
@@ -106,7 +106,7 @@ const PopularCard = ({ isLoading }) => {
                     >
                       <Grid item>
                         <Typography variant="subtitle1" color="inherit">
-                          Shop 1
+                          Product 1
                         </Typography>
                       </Grid>
                       <Grid item>
@@ -117,7 +117,7 @@ const PopularCard = ({ isLoading }) => {
                         >
                           <Grid item>
                             <Typography variant="subtitle1" color="inherit">
-                              INR 1890.00
+                              1
                             </Typography>
                           </Grid>
                         </Grid>
@@ -135,7 +135,7 @@ const PopularCard = ({ isLoading }) => {
                     >
                       <Grid item>
                         <Typography variant="subtitle1" color="inherit">
-                          Shop 2
+                          Product 2
                         </Typography>
                       </Grid>
                       <Grid item>
@@ -146,7 +146,7 @@ const PopularCard = ({ isLoading }) => {
                         >
                           <Grid item>
                             <Typography variant="subtitle1" color="inherit">
-                              INR 1600.00
+                              6
                             </Typography>
                           </Grid>
                         </Grid>
@@ -164,7 +164,7 @@ const PopularCard = ({ isLoading }) => {
                     >
                       <Grid item>
                         <Typography variant="subtitle1" color="inherit">
-                          Shop 3
+                          Product 3
                         </Typography>
                       </Grid>
                       <Grid item>
@@ -175,7 +175,7 @@ const PopularCard = ({ isLoading }) => {
                         >
                           <Grid item>
                             <Typography variant="subtitle1" color="inherit">
-                              INR 1800.00
+                              8
                             </Typography>
                           </Grid>
                         </Grid>
@@ -193,7 +193,7 @@ const PopularCard = ({ isLoading }) => {
                     >
                       <Grid item>
                         <Typography variant="subtitle1" color="inherit">
-                          Shop 4
+                          Product 4
                         </Typography>
                       </Grid>
                       <Grid item>
@@ -204,7 +204,7 @@ const PopularCard = ({ isLoading }) => {
                         >
                           <Grid item>
                             <Typography variant="subtitle1" color="inherit">
-                              INR 1500.00
+                              6
                             </Typography>
                           </Grid>
                         </Grid>
@@ -222,7 +222,7 @@ const PopularCard = ({ isLoading }) => {
                     >
                       <Grid item>
                         <Typography variant="subtitle1" color="inherit">
-                          Shop 5
+                          Product 5
                         </Typography>
                       </Grid>
                       <Grid item>
@@ -233,7 +233,7 @@ const PopularCard = ({ isLoading }) => {
                         >
                           <Grid item>
                             <Typography variant="subtitle1" color="inherit">
-                              INR 189.00
+                              3
                             </Typography>
                           </Grid>
                         </Grid>

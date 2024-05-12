@@ -47,7 +47,7 @@ export default function Invoice() {
     setOpenDialog(false);
   };
 
-  const handleSubmitDialog = async () => { };
+  const handleSubmitDialog = async () => {};
   const fetchInvoices = async () => {
     try {
       const response = await axios.get("/api/supplier-bills");
@@ -147,7 +147,7 @@ export default function Invoice() {
         <DialogTemplate
           open={openDialog}
           title={"Invoice"}
-          body={<SupplierViewInvoice data={invoiceData} />}
+          body={<SupplierViewInvoice data={invoiceData} type={"Supplier"} />}
           handleCloseDialog={handleCloseDialog}
           handleSave={handleSubmitDialog}
         />
