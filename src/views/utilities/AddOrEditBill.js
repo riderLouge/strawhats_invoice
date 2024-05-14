@@ -15,6 +15,7 @@ import SecondaryAction from "../../ui-component/cards/CardSecondaryAction";
 import { gridSpacing } from "../../store/constant";
 import InvoiceTemplate from "./ViewInvoice";
 import axios from "axios";
+import moment from "moment";
 
 const ShadowBox = ({ shadow }) => (
   <Card sx={{ mb: 3, boxShadow: shadow }}>
@@ -80,6 +81,7 @@ export default function Invoice() {
       {
         accessorKey: "invoiceDate",
         header: "Invoice Date",
+        Cell: ({ row }) => moment(row.original.createdAt).format('DD/MM/YYYY')
       },
       {
         accessorKey: "user.name",

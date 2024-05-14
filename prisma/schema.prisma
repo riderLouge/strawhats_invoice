@@ -50,6 +50,7 @@ model LoginAuth {
   passwordResetExpiresAt DateTime?
   invoice                Invoice[]
   SupplierBill           SupplierBill[]
+  StockAdjust            StockAdjust[]
 }
 
 model Product {
@@ -70,11 +71,18 @@ model Product {
 }
 
 model StockAdjust {
-  ID        Int    @id @default(autoincrement())
-  productID Int
-  FQTY      String
-  Reason    String
-  DQTY      String
+  id              String    @id @default(uuid())
+  productName     String    @map("product_name")
+  productId       Int       @map("product_id")
+  productQuantity Int       @map("product_quantity")
+  Reason          String
+  damagedQuantity Int       @map("damaged_quantity")
+  userId          Int
+  user            LoginAuth @relation(fields: [userId], references: [Id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("Stock_Update")
 }
 
 model Company {

@@ -11,6 +11,7 @@ import themes from "./themes";
 
 // project imports
 import NavigationScroll from "./layout/NavigationScroll";
+import { OverAllContextProvider } from "./context/overAllContext";
 
 // ==============================|| APP ||============================== //
 
@@ -22,7 +23,9 @@ const App = () => {
       <ThemeProvider theme={themes(customization)}>
         <CssBaseline />
         <NavigationScroll>
+          <OverAllContextProvider>
           <Routes />
+          </OverAllContextProvider>
         </NavigationScroll>
       </ThemeProvider>
     </StyledEngineProvider>

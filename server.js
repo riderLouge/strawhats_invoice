@@ -379,6 +379,79 @@ app.get("/api/invoices", async (req, res) => {
     });
   }
 });
+app.get("/api/get-all-invoices-by-date", async (req, res) => {
+  try {
+    const { createdAt } = req.query;
+    if (!createdAt) return res.status(400).json({
+      status: 'failed',
+      error: 'createdAt parameter is required!'
+    })
+
+    const createdAtDate = new Date(createdAt);
+
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: createdAtDate,
+          lt: new Date(createdAtDate.getTime() + 24 * 60 * 60 * 1000),
+        }
+      }
+    })
+
+    //Getting the products array from the each invoices
+    const invoiceProducts = invoices.flatMap((data) => data.products).map((d) => {
+      if (d.quantity === undefined) {
+        return {
+          ...d,
+          quantity: 1,
+        }
+      } else {
+        return d;
+      }
+    });
+
+    const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
+      if (acc[product.productId]) {
+        acc[product.productId].quantity += product.quantity;
+      } else {
+        acc[product.productId] = { ...product };
+      }
+      return acc;
+    }, {});
+    const combinedProducts = Object.values(aggregatedProducts);
+    const productIds = combinedProducts.map((product) => product.productId);
+    const productsData = await prisma.product.findMany({
+      where: {
+        ID: {
+          in: productIds
+        },
+      }
+    })
+    const updatedProductList = combinedProducts.map((product) => {
+      const foundProduct = productsData.find((d) => d.ID === product.productId);
+      if (foundProduct) {
+        return {
+          ...product,
+          name: foundProduct.NAME,
+        };
+      } else {
+        return product;
+      }
+    });
+
+    res.status(200).json({
+      status: 'success',
+      invoiceDate: createdAt,
+      data: updatedProductList,
+      message: 'products fetched successfully',
+    })
+  } catch (error) {
+    return res.status(500).json({
+      status: "failure",
+      error: 'An error occurred while fetching invoices'
+    })
+  }
+});
 
 app.post("/api/invoice/products", async (req, res) => {
   try {
@@ -419,17 +492,6 @@ app.post("/api/invoice/products", async (req, res) => {
 app.post("/api/supplier-bill/create", async (req, res) => {
   try {
     // validate request body
-    console.log(
-      req.body.billNumber,
-      "-",
-      req.body.billTotal,
-      "-",
-      req.body.paymentMode,
-      "-",
-      req.body.billDate,
-      "-",
-      req.body.pendingPayment
-    );
 
     if (
       !req.body.billNumber ||
@@ -499,6 +561,68 @@ app.get("/api/supplier-bills", async (req, res) => {
     res.status(500).json({
       status: "failure",
       error: "An error occurred while fetching invoices",
+    });
+  }
+});
+
+app.post("/api/update/product-stock", async (req, res) => {
+  console.log(req.body);
+  try {
+    const { productName, productId, productQuantity, damagedQuantity, Reason, userId } = req.body;
+    if (!productName || !productId || !productQuantity || !damagedQuantity || !Reason || !userId) {
+      return res.status(400).json({
+        status: 'failure',
+        message: 'missing required fields',
+      })
+    }
+    const user = await prisma.loginAuth.findUnique({
+      where: {
+        Id: Number(userId),
+      }
+    })
+    if (!user) return res.status(404).json({
+      status: 'failure',
+      message: 'user not found',
+    })
+    // Update the product's quantity
+    const updatedQuantity = Number(productQuantity) - Number(damagedQuantity);
+    console.log(updatedQuantity);
+    const updatedProduct = await prisma.product.update({
+      where: {
+        ID: productId,
+      },
+      data: {
+        FQTY: updatedQuantity.toString(),
+      },
+    });
+
+    // Store the adjustment data in the StockAdjust table
+    const stockAdjust = await prisma.stockAdjust.create({
+      data: {
+        productName: productName,
+        productId: Number(productId),
+        productQuantity: Number(productQuantity),
+        Reason: Reason,
+        damagedQuantity: Number(damagedQuantity),
+        userId: Number(userId),
+      },
+    });
+
+    // Respond with success message
+    res.status(200).json({
+      status: 'success',
+      message: 'Product stock updated successfully',
+      data: {
+        updatedProduct: updatedProduct,
+        stockAdjust: stockAdjust,
+      },
+    });
+  } catch (error) {
+    console.error('Error while updating product stock:', error);  // Log the error for debugging
+    res.status(500).json({
+      status: "failure",
+      message: 'Error while updating product stock',
+      error: error.message,
     });
   }
 });

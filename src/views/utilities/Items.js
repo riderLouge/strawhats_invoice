@@ -7,11 +7,19 @@ import DialogTemplate from "../../ui-component/Dialog";
 import axios from "axios";
 import { TextField, Grid, Autocomplete } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const Items = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [hoveredRow, setHoveredRow] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [buttonClicked, setButtonClicked] = useState("");
+  const [products, setProducts] = useState([]); 
+  const [modifiedData, setModifiedData] = useState([]);
 
   const columns = useMemo(
     () => [
@@ -93,12 +101,7 @@ const Items = () => {
     "USHODAYA ENTERPRISES LTD",
     "VIKAAS FOOD PRODUCTS",
   ];
-  const [openDialog, setOpenDialog] = useState(false);
-  const [fileName, setFileName] = useState("");
-  const [dialogTitle, setDialogTitle] = useState("");
-  const [buttonClicked, setButtonClicked] = useState("");
-  const [products, setProducts] = useState([]);
-  const [stockQuantity, setStockQuantity] = useState(0);
+
 
   const fetchProduct = async () => {
     try {
@@ -116,7 +119,7 @@ const Items = () => {
   useEffect(() => {
     fetchProduct();
   }, []);
-  const [modifiedData, setModifiedData] = useState([]);
+
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -251,21 +254,52 @@ const Items = () => {
         );
         console.log("Item edited successfully:", response);
       } else if (buttonClicked === "Stock Adjustment") {
-        const editedData = {
-          ID: selectedItem.ID,
-          FQTY:
-            document.getElementById("stockQuantity").value -
-            document.getElementById("damagedQuantity").value,
-        };
-        const newData = {
-          ID: selectedItem.ID,
-          DQTY: document.getElementById("damagedQuantity").value,
-        };
-        console.log(newData);
-      }
+        const productQuantity = Number(document.getElementById("stockQuantity").value);
+        const damagedQuantity = Number(document.getElementById("damagedQuantity").value);
+        if (damagedQuantity > productQuantity) {
+          setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo("Damaged quantity must be lesser than product available quantity");
+        } else {
+          const params = {
+            productName: selectedProduct.NAME,
+            productId: selectedProduct.ID,
+            productQuantity: productQuantity,
+            damagedQuantity: damagedQuantity,
+            Reason: document.getElementById("reason").value,
+            userId: localStorage.getItem('userId'),
+          };
+          axios.post('/api/update/product-stock', params)
+            .then(response => {
+              if (response.data.status === 'success') {
+                setSuccess(true);
+                setOpenErrorAlert(true);
+                setErrorInfo(response.data.message);
+                setProducts((prevProd) => {
+                  const updatedProducts = prevProd.map((product) => {
+                    if (product.ID === response.data.data.updatedProduct.ID) {
+                      return {
+                        ...product,
+                        FQTY: response.data.data.updatedProduct.FQTY,
+                      }
+                    } else {
+                      return product;
+                    }
+                  })
+                  return updatedProducts;
+                })
+                setTimeout(() => {
+                  handleCloseDialog();
+                }, 1500);
+              } else {
+                setSuccess(false);
+                setOpenErrorAlert(true);
+                setErrorInfo(response.data.message);
+              }
+            })
+        }
 
-      // Clear form fields and close dialog
-      handleCloseDialog();
+      }
     } catch (error) {
       console.error("Error:", error);
     }
@@ -314,7 +348,7 @@ const Items = () => {
     quantity: "",
   });
   const handleProductChange = (event, newValue) => {
-    setSelectedProducts(newValue);
+
 
     const selectedProduct = products.find(
       (product) => product.NAME === newValue
@@ -323,7 +357,7 @@ const Items = () => {
       ...formData,
       quantity: selectedProduct.FQTY,
     });
-    console.log(selectedProduct);
+    setSelectedProduct(selectedProduct);
   };
   return (
     <MainCard title="Items" sx={{ position: "relative" }}>
@@ -601,7 +635,7 @@ const Items = () => {
               </Grid>
             </div>
           ) : (
-            <div style={{ width: "500px" }}>
+            <div>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Autocomplete
@@ -639,8 +673,11 @@ const Items = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
+                    multiline
+                    rows={3}
                     id="reason"
                     label="Reason"
+                    placeholder="Enter the Reason"
                     variant="outlined"
                     fullWidth
                   />
