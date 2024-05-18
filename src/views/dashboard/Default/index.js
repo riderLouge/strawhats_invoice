@@ -109,7 +109,7 @@ const Dashboard = () => {
   // Function to fetch invoices based on createdAt date
   async function fetchInvoicesByDate(createdAt) {
     try {
-      const response = await axios.get('/api/get-all-invoices-by-date', {
+      const response = await axios.get('https://api-skainvoice.top/api/get-all-invoices-by-date', {
         params: {
           createdAt: createdAt
         }

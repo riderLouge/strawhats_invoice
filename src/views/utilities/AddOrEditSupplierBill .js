@@ -50,7 +50,7 @@ export default function Invoice() {
   const handleSubmitDialog = async () => {};
   const fetchInvoices = async () => {
     try {
-      const response = await axios.get("/api/supplier-bills");
+      const response = await axios.get("https://api-skainvoice.top/api/supplier-bills");
       setData(response.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);

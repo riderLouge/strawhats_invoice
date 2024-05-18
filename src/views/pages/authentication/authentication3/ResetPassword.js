@@ -38,7 +38,7 @@ export default function ResetPassword() {
 
   const verifyPassword = async () => {
     try {
-      const response = await axios.post('api/reset-password', { email: 'd.b.dhanush007@gmail.com', otp: userOtp, newPassword })
+      const response = await axios.post('https://api-skainvoice.top/api/reset-password', { email: 'd.b.dhanush007@gmail.com', otp: userOtp, newPassword })
       if (response.data.status === 'success') {
         navigate('/')
       }

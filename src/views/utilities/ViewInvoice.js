@@ -29,7 +29,7 @@ export default function InvoiceTemplate({ data, type }) {
   const invoiceHeaderRef = useRef(null);
   const fetchInvoiceProducts = async (products) => {
     try {
-      const response = await axios.post("/api/invoice/products", { products });
+      const response = await axios.post("https://api-skainvoice.top/api/invoice/products", { products });
       console.log(response);
       setInvoiceProducts(response.data.data);
     } catch (error) {

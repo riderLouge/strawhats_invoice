@@ -249,7 +249,7 @@ const Items = () => {
 
         // Make API call to edit the item
         const response = await axios.put(
-          `api/items/edit/${selectedItem.ID}`,
+          `https://api-skainvoice.top/api/items/edit/${selectedItem.ID}`,
           editedData
         );
         console.log("Item edited successfully:", response);
@@ -269,7 +269,7 @@ const Items = () => {
             Reason: document.getElementById("reason").value,
             userId: localStorage.getItem('userId'),
           };
-          axios.post('/api/update/product-stock', params)
+          axios.post('https://api-skainvoice.top/api/update/product-stock', params)
             .then(response => {
               if (response.data.status === 'success') {
                 setSuccess(true);

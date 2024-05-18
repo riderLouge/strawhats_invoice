@@ -30,7 +30,7 @@ export default function SupplierViewInvoice({ data }) {
   console.log(data);
   const fetchInvoiceProducts = async (products) => {
     try {
-      const response = await axios.post("/api/invoice/products", { products });
+      const response = await axios.post("https://api-skainvoice.top/api/invoice/products", { products });
       setInvoiceProducts(response.data.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);

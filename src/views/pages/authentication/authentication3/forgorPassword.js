@@ -36,7 +36,7 @@ export default function ForgorPassword() {
 
   const sendEmailOtp = async () => {
     try {
-      const response = await axios.post('api/forgot-password', { email })
+      const response = await axios.post('https://api-skainvoice.top/api/forgot-password', { email })
       if (response.data.status === 'success') {
         navigate('/reset-password')
       }

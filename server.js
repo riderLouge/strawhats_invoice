@@ -8,8 +8,10 @@ app.use(express.json());
 app.use(cors());
 // Increase payload limit (e.g., 10MB)
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 
+
+// Generation random OTP code for reset the user password
 function generateOtp() {
   const length = 6;
   const digits = "0123456789";
@@ -22,6 +24,7 @@ function generateOtp() {
   return OTP;
 }
 
+// Send the forgot password OTP to the user Email
 function sendOtpEmail(email, otp) {
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -566,7 +569,6 @@ app.get("/api/supplier-bills", async (req, res) => {
 });
 
 app.post("/api/update/product-stock", async (req, res) => {
-  console.log(req.body);
   try {
     const { productName, productId, productQuantity, damagedQuantity, Reason, userId } = req.body;
     if (!productName || !productId || !productQuantity || !damagedQuantity || !Reason || !userId) {
@@ -586,7 +588,6 @@ app.post("/api/update/product-stock", async (req, res) => {
     })
     // Update the product's quantity
     const updatedQuantity = Number(productQuantity) - Number(damagedQuantity);
-    console.log(updatedQuantity);
     const updatedProduct = await prisma.product.update({
       where: {
         ID: productId,

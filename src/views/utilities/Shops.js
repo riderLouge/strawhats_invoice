@@ -154,7 +154,7 @@ const Shops = () => {
           ZONNAM: document.getElementById("zoneName").value,
         };
         console.log(newData);
-        const response = await axios.post("api/shop/add", newData).then(() => {
+        const response = await axios.post("https://api-skainvoice.top/api/shop/add", newData).then(() => {
           fetchProduct();
         });
         console.log(response, "========");
@@ -179,7 +179,7 @@ const Shops = () => {
 
         // Make API call to edit the item
         const response = await axios.put(
-          `api/items/edit/${selectedItem.ID}`,
+          `https://api-skainvoice.top/api/items/edit/${selectedItem.ID}`,
           editedData
         );
         console.log("Item edited successfully:", response);
