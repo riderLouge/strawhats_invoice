@@ -387,7 +387,7 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
     const { createdAt } = req.query;
     if (!createdAt) return res.status(400).json({
       status: 'failed',
-      error: 'createdAt parameter is required!'
+      error: 'Date field shouldn\'t be empty'
     })
 
     const createdAtDate = new Date(createdAt);
@@ -441,13 +441,21 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
         return product;
       }
     });
+    console.log(updatedProductList.length);
+    if (updatedProductList.length > 0) {
+      res.status(200).json({
+        status: 'success',
+        invoiceDate: createdAt,
+        data: updatedProductList,
+        message: 'products fetched successfully',
+      })
+    } else {
+      res.status(404).json({
+        status: 'failure',
+        message: 'Invoice not generated on this date',
+      })
+    }
 
-    res.status(200).json({
-      status: 'success',
-      invoiceDate: createdAt,
-      data: updatedProductList,
-      message: 'products fetched successfully',
-    })
   } catch (error) {
     return res.status(500).json({
       status: "failure",
@@ -625,6 +633,102 @@ app.post("/api/update/product-stock", async (req, res) => {
       message: 'Error while updating product stock',
       error: error.message,
     });
+  }
+});
+app.get("/api/get-products/based-on-area", async (req, res) => {
+  try {
+    const { area, invoiceDate } = req.query;
+    console.log(area, invoiceDate);
+    if (!area) {
+      return res.status(400).json({ message: 'Area field shouldn\'t be empty', status: 'failure' });
+    }
+    if (!invoiceDate) {
+      return res.status(400).json({ message: 'Date field shouldn\'t be empty', status: 'failure' });
+    }
+    const createdAtDate = new Date(invoiceDate);
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: createdAtDate,
+          lt: new Date(createdAtDate.getTime() + 24 * 60 * 60 * 1000),
+        },
+        shop: {
+          ZONNAM: area,
+        },
+      }
+    });
+    //Getting the products array from the each invoices
+    const invoiceProducts = invoices.flatMap((data) => data.products).map((d) => {
+      if (d.quantity === undefined) {
+        return {
+          ...d,
+          quantity: 1,
+        }
+      } else {
+        return d;
+      }
+    });
+
+    const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
+      if (acc[product.productId]) {
+        acc[product.productId].quantity += product.quantity;
+      } else {
+        acc[product.productId] = { ...product };
+      }
+      return acc;
+    }, {});
+    const combinedProducts = Object.values(aggregatedProducts);
+    const productIds = combinedProducts.map((product) => product.productId);
+    const productsData = await prisma.product.findMany({
+      where: {
+        ID: {
+          in: productIds
+        },
+      }
+    })
+    const updatedProductList = combinedProducts.map((product) => {
+      const foundProduct = productsData.find((d) => d.ID === product.productId);
+      if (foundProduct) {
+        return {
+          ...product,
+          name: foundProduct.NAME,
+        };
+      } else {
+        return product;
+      }
+    });
+    if (updatedProductList.length > 0) {
+      res.status(200).json({
+        status: 'success',
+        invoiceDate: invoiceDate,
+        invoiceArea: area,
+        data: updatedProductList,
+        message: 'products fetched successfully',
+      });
+    } else {
+      res.status(404).json({
+        status: 'failure',
+        message: 'Products not found on this date and area',
+      })
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'failure', error: 'Internal server error' });
+  }
+});
+
+// Get all zone name values
+app.get('/api/get-all-zone-name', async (req, res) => {
+  try {
+    const zones = await prisma.shop.findMany({
+      select: { ZONNAM: true }
+    });
+    const zoneNames = [...new Set(zones.map((shop) => shop.ZONNAM).filter((zonName) => zonName.trim() !== ''))];
+    res.status(200).json({ status: 'success', data: zoneNames });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'failure', error: 'Internal server error' });
   }
 });
 const PORT = process.env.PORT || 9000;

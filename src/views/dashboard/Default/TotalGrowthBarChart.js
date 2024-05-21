@@ -42,66 +42,66 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   const secondaryMain = theme.palette.secondary.main;
   const secondaryLight = theme.palette.secondary.light;
 
-  useEffect(() => {
-    const newChartData = {
-      ...chartData.options,
-      colors: [primary200, primaryDark, secondaryMain, secondaryLight],
-      xaxis: {
-        labels: {
-          style: {
-            colors: [
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-              primary,
-            ],
-          },
-        },
-      },
-      yaxis: {
-        labels: {
-          style: {
-            colors: [primary],
-          },
-        },
-      },
-      grid: {
-        borderColor: grey200,
-      },
-      tooltip: {
-        theme: "light",
-      },
-      legend: {
-        labels: {
-          colors: grey500,
-        },
-      },
-    };
+  // useEffect(() => {
+  //   const newChartData = {
+  //     ...chartData.options,
+  //     colors: [primary200, primaryDark, secondaryMain, secondaryLight],
+  //     xaxis: {
+  //       labels: {
+  //         style: {
+  //           colors: [
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //             primary,
+  //           ],
+  //         },
+  //       },
+  //     },
+  //     yaxis: {
+  //       labels: {
+  //         style: {
+  //           colors: [primary],
+  //         },
+  //       },
+  //     },
+  //     grid: {
+  //       borderColor: grey200,
+  //     },
+  //     tooltip: {
+  //       theme: "light",
+  //     },
+  //     legend: {
+  //       labels: {
+  //         colors: grey500,
+  //       },
+  //     },
+  //   };
 
-    // do not load chart when loading
-    if (!isLoading) {
-      ApexCharts.exec(`bar-chart`, "updateOptions", newChartData);
-    }
-  }, [
-    navType,
-    primary200,
-    primaryDark,
-    secondaryMain,
-    secondaryLight,
-    primary,
-    darkLight,
-    grey200,
-    isLoading,
-    grey500,
-  ]);
+  //   // do not load chart when loading
+  //   if (!isLoading) {
+  //     ApexCharts.exec(`bar-chart`, "updateOptions", newChartData);
+  //   }
+  // }, [
+  //   navType,
+  //   primary200,
+  //   primaryDark,
+  //   secondaryMain,
+  //   secondaryLight,
+  //   primary,
+  //   darkLight,
+  //   grey200,
+  //   isLoading,
+  //   grey500,
+  // ]);
 
   const deliveryGuys = [
     { id: 1, progress: 10, total: 20 },
@@ -135,11 +135,11 @@ const TotalGrowthBarChart = ({ isLoading }) => {
               </Grid>
             </Grid>
             {/* comment below */}
-            <Grid item xs={12}>
+              {/*<Grid item xs={12}>
               <Chart {...chartData} />
-            </Grid>
+      </Grid>*/}
             {/* uncomment below */}
-            {/* <Grid item xs={12}>
+            <Grid item xs={12}>
               {deliveryGuys.map((deliveryGuy, index) => (
                 <Grid
                   key={index}
@@ -179,7 +179,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                   </Grid>
                 </Grid>
               ))}
-            </Grid> */}
+            </Grid>
           </Grid>
         </MainCard>
       )}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 // material-ui
-import { Card, CardContent, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Autocomplete, Card, CardContent, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow, TextField, Typography } from "@mui/material";
 
 // project imports
 import EarningCard from "./EarningCard";
@@ -16,15 +16,28 @@ import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import moment from "moment";
+import { useOverAllContext } from "../../../context/overAllContext";
 
 // ==============================|| DEFAULT DASHBOARD ||============================== //
 
 const Dashboard = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [pdfType, setPdfType] = useState("");
+  const [zoneNames, setZoneNames] = useState([]);
+
+  const fetchZonNames = async () => {
+    try {
+      const response = await axios.get('/api/get-all-zone-name');
+      setZoneNames(response.data.data);
+    } catch (error) {
+      console.error('Error fetching zone name:', error);
+    }
+  };
   useEffect(() => {
     setLoading(false);
+    fetchZonNames();
   }, []);
 
   const handleWarehousePdf = () => {
@@ -41,12 +54,13 @@ const Dashboard = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-  const downloadInvoice = async (data, invoiceDate) => {
+  const downloadInvoice = async (data, invoiceDate, area) => {
     const doc = new jsPDF();
 
     // Define content
     const date = moment(invoiceDate).format("DD/MM/YYYY");
     const companyName = "Sri Krishna Agencies";
+    const shopArea = area;
 
     // Define positions
     const invoiceNumberX = 15;
@@ -62,6 +76,9 @@ const Dashboard = () => {
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     doc.text(`Date: ${date}`, invoiceNumberX, dateY);
+    if (shopArea) {
+      doc.text(`Shop Area: ${shopArea}`, invoiceNumberX, dateY + 10);
+    }
     doc.setFont("helvetica", "bold");
     doc.text(companyName, companyNameX, companyNameY);
 
@@ -109,7 +126,7 @@ const Dashboard = () => {
   // Function to fetch invoices based on createdAt date
   async function fetchInvoicesByDate(createdAt) {
     try {
-      const response = await axios.get('https://api-skainvoice.top/api/get-all-invoices-by-date', {
+      const response = await axios.get('/api/get-all-invoices-by-date', {
         params: {
           createdAt: createdAt
         }
@@ -117,14 +134,40 @@ const Dashboard = () => {
       downloadInvoice(response.data.data, response.data.invoiceDate);
     } catch (error) {
       console.error('Error fetching invoices:', error.message);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+      throw error;
+    }
+  }
+
+  async function fetchProductsBasedOnArea(data) {
+    try {
+      const response = await axios.get('/api/get-products/based-on-area', {
+        params: {
+          invoiceDate: data.date,
+          area: data.shopArea,
+        }
+      });
+      downloadInvoice(response.data.data, response.data.invoiceDate, response.data.invoiceArea);
+    } catch (error) {
+      console.error('Error fetching invoices:', error.message);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
       throw error;
     }
   }
 
   const handleSubmitDialog = async () => {
-    const date = document.getElementById("invoiceDate").value;
-    fetchInvoicesByDate(date);
-    setOpenDialog(false);
+    if (pdfType === "Warehouse") {
+      const date = document.getElementById("invoiceDate").value;
+      fetchInvoicesByDate(date);
+    } else {
+      const date = document.getElementById("invoiceDate").value;
+      const shopArea = document.getElementById("shopArea").value;
+      fetchProductsBasedOnArea({ date, shopArea });
+    }
   };
 
   return (
@@ -191,13 +234,14 @@ const Dashboard = () => {
                   />
                 </Grid>
                 <Grid item xs={6}>
-                  <TextField
+                  <Autocomplete
+                    options={zoneNames}
+                    getOptionLabel={(option) => option}
+                    renderInput={(params) => <TextField {...params} label="zones" />}
                     fullWidth
+                    id="shopArea"
                     placeholder="Area"
-                    type="text"
                     variant="outlined"
-                    id="invoiceArea"
-                    name="invoiceArea"
                   />
                 </Grid>
               </Grid>
