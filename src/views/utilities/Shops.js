@@ -154,9 +154,11 @@ const Shops = () => {
           ZONNAM: document.getElementById("zoneName").value,
         };
         console.log(newData);
-        const response = await axios.post("https://api-skainvoice.top/api/shop/add", newData).then(() => {
-          fetchProduct();
-        });
+        const response = await axios
+          .post("https://api-skainvoice.top/api/shop/add", newData)
+          .then(() => {
+            fetchProduct();
+          });
         console.log(response, "========");
       } else if (buttonClicked === "Edit Shops") {
         // Gather edited data from form fields
@@ -202,6 +204,61 @@ const Shops = () => {
     } catch (error) {
       console.error("Error:", error);
     }
+  };
+
+  const handleExportToExcel = () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Products");
+
+    // Add headers
+    const headers = [
+      "Shop Id",
+      "Group Name",
+      "Cust Name",
+      "Address One",
+      "Address Two",
+      "Address Three",
+      "Address Four",
+      "Place",
+      "Pincode",
+      "Contact Person",
+      "Sl No",
+      "Tn GST",
+      "Tel Number",
+      "Zone Name",
+    ];
+    worksheet.addRow(headers);
+
+    // Add data
+    shops.forEach((data) => {
+      console.log(data);
+      const row = [
+        data.shopId,
+        data.GRPNAM,
+        data.CUSNAM,
+        data.ADRONE,
+        data.ADRTWO,
+        data.ADRTHR,
+        data.ADRFOU,
+        data.PLC,
+        data.PINCOD,
+        data.CNTPER,
+        data.SLNO,
+        data.TNGST,
+        data.TELNUM,
+        data.ZONNAM,
+      ];
+      worksheet.addRow(row);
+    });
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Customers.xlsx";
+      a.click();
+    });
   };
 
   const handleFileUpload = async (event) => {
@@ -261,7 +318,7 @@ const Shops = () => {
       <Card sx={{ overflow: "hidden" }}>
         <MaterialReactTable columns={columns} data={shops} />
       </Card>
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         style={{
@@ -274,6 +331,20 @@ const Shops = () => {
         onClick={() => handleOpenDialog("Import")}
       >
         Import
+      </Button> */}
+      <Button
+        variant="contained"
+        color="primary"
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={handleExportToExcel}
+      >
+        Export to Excel
       </Button>
       <Button
         variant="contained"
