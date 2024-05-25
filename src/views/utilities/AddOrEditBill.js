@@ -2,12 +2,12 @@ import PropTypes from "prop-types";
 import React, { useEffect, useMemo, useState } from "react";
 
 // material-ui
-import { Box, Card, Grid, Button } from "@mui/material";
+import { Box, Card, Grid, Button, TextField, Typography } from "@mui/material";
 import DialogTemplate from "../../ui-component/Dialog";
 import { MaterialReactTable } from "material-react-table";
 import EditIcon from "@mui/icons-material/Edit";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
-
+import DeleteIcon from '@mui/icons-material/Delete';
 // project imports
 import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
@@ -16,6 +16,7 @@ import { gridSpacing } from "../../store/constant";
 import InvoiceTemplate from "./ViewInvoice";
 import axios from "axios";
 import moment from "moment";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const ShadowBox = ({ shadow }) => (
   <Card sx={{ mb: 3, boxShadow: shadow }}>
@@ -39,37 +40,67 @@ ShadowBox.propTypes = {
 };
 
 export default function Invoice() {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [openDialog, setOpenDialog] = useState(false);
   const [data, setData] = useState(false);
-  const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const [hoveredRow, setHoveredRow] = useState(0);
+  const [hoveredRowId, setHoveredRowId] = useState('');
   const [invoiceData, setInvoiceDate] = useState(null);
-
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [invoiceType, setInvoiceType] = useState('');
+  console.log(selectedItem);
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
-  const handleSubmitDialog = async () => {};
   const fetchInvoices = async () => {
     try {
-      const response = await axios.get("https://api-skainvoice.top/api/invoices");
+      const response = await axios.get("/api/invoices");
       setData(response.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       throw error;
     }
   };
+
+  const deleteInvoice = async () => {
+    try {
+      const response = await axios.delete(`/api/invoice/delete/${selectedItem.id}`);
+      if (response.status === 200) {
+        setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
+        setOpenDialog(false);
+        fetchInvoices();
+      }
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo('Error while deleting invoice');
+    }
+  };
+  const handleSubmitDialog = () => {
+    if (invoiceType === 'Delete invoice') {
+      deleteInvoice();
+    }
+
+  };
+
   useEffect(() => {
     fetchInvoices();
   }, []);
 
-  const handleEdit = (row) => {
-    // setSelectedItem(row.original);
-    // handleOpenDialog("Edit Items");
+  const handleOpenDialog = (type) => {
+    setInvoiceType(type);
+    setOpenDialog(true);
+  };
+  const handleEdit = (row, type) => {
+    setSelectedItem(row.original);
+    handleOpenDialog(type);
   };
 
-  const columns = useMemo(
-    () => [
+  const columns =  [
       {
         accessorKey: "invoiceNumber",
         header: "Invoice Number",
@@ -99,31 +130,81 @@ export default function Invoice() {
             <EditIcon
               style={{
                 cursor: "pointer",
-                color: hoveredRowEdit === row.id ? "blue" : "inherit",
+                color: (hoveredRow === 1 && hoveredRowId === row.id) ? "blue" : "inherit",
               }}
-              onMouseEnter={() => setHoveredRowEdit(row.id)}
-              onMouseLeave={() => setHoveredRowEdit(null)}
-              onClick={() => handleEdit(row)}
+              onMouseEnter={() => { setHoveredRow(1); setHoveredRowId(row.id); }}
+              onMouseLeave={() => { setHoveredRow(0); setHoveredRowId(null); }}
+              onClick={() => handleEdit(row, "Edit invoice")}
             />
             <FileCopyIcon
               style={{
                 cursor: "pointer",
-                color: hoveredRow === row.id ? "blue" : "inherit",
+                color: (hoveredRow === 2 && hoveredRowId === row.id) ? "blue" : "inherit",
                 marginLeft: "20px",
               }}
-              onMouseEnter={() => setHoveredRow(row.id)}
-              onMouseLeave={() => setHoveredRow(null)}
+              onMouseEnter={() => { setHoveredRow(2); setHoveredRowId(row.id); }}
+              onMouseLeave={() => { setHoveredRow(0); setHoveredRowId(null); }}
               onClick={() => {
-                setOpenDialog(true);
+                handleOpenDialog('View invoice');
                 setInvoiceDate(row);
+              }}
+            />
+            <DeleteIcon
+              style={{
+                cursor: "pointer",
+                color: (hoveredRow === 3 && hoveredRowId === row.id) ? "blue" : "inherit",
+                marginLeft: "20px",
+              }}
+              onMouseEnter={() => { setHoveredRow(3); setHoveredRowId(row.id); }}
+              onMouseLeave={() => { setHoveredRow(0); setHoveredRowId(null); }}
+              onClick={() => {
+                handleEdit(row, "Delete invoice");
               }}
             />
           </div>
         ),
       },
-    ],
-    [hoveredRow, hoveredRowEdit]
-  );
+    ];
+
+  const editInvoiceColumns = [
+    {
+      accessorKey: "productName",
+      header: "Product Name",
+    },
+    {
+      accessorKey: "quantity",
+      header: "Quantity",
+    },
+    {
+      accessorKey: "rate",
+      header: "Selling Price",
+    },
+    {
+      accessorKey: "gst",
+      header: "GST",
+    },
+    {
+      accessorKey: "totalWithDiscount",
+      header: "Total",
+    },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      Cell: ({ row }) => (
+        <EditIcon
+          style={{
+            cursor: "pointer",
+            color: (hoveredRow === 1 && hoveredRowId === row.id) ? "blue" : "inherit",
+          }}
+          onMouseEnter={() => { setHoveredRow(1); setHoveredRowId(row.id); }}
+          onMouseLeave={() => { setHoveredRow(0); setHoveredRowId(null); }}
+          onClick={() => { handleEdit(row, "Edit Product") }
+          }
+        />
+      )
+    }
+  ];
+
   return (
     <MainCard title="Invoice">
       <Grid container spacing={gridSpacing}>
@@ -134,11 +215,29 @@ export default function Invoice() {
         </Grid>
         <DialogTemplate
           open={openDialog}
-          title={"Invoice"}
-          body={<InvoiceTemplate data={invoiceData} type={"Customer"} />}
+          title={invoiceType}
+          body={
+            invoiceType === 'View invoice' ? (
+              <InvoiceTemplate data={invoiceData} type={"Customer"} />
+            ) : invoiceType === 'Edit Product' ? (
+              <TextField
+                fullWidth
+                label="Product Quantity"
+                variant="outlined"
+                type="number"
+                name="productQuantity"
+                defaultValue={selectedItem.quantity}
+                onChange={(e) => setSelectedItem((prevData) => ({ ...prevData, quantity: e.target.value }))}
+              />
+            ) : invoiceType === 'Delete invoice' ? (
+              <Typography variant="body2">Are you sure do you want to delete this invoice?</Typography>
+            ) : (
+              <MaterialReactTable columns={editInvoiceColumns} data={selectedItem?.products} />
+            )
+          }
           handleCloseDialog={handleCloseDialog}
           handleSave={handleSubmitDialog}
-          type={"Invoice"}
+          type={invoiceType === 'View invoice' ? 'Invoice' : invoiceType === 'Delete invoice' ? 'Delete' : 'Update'}
         />
       </Grid>
     </MainCard>

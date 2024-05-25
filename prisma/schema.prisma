@@ -104,8 +104,8 @@ model Customer {
 }
 
 model Invoice {
-  id            String    @default(uuid()) @map("invoice_id")
-  invoiceNumber Int       @id
+  id            String    @id @default(uuid()) @map("invoice_id")
+  invoiceNumber Int
   products      Json[]
   invoiceDate   DateTime
   shopId        Int

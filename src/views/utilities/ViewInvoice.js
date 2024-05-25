@@ -27,10 +27,10 @@ export default function InvoiceTemplate({ data, type }) {
   const [invoiceProducts, setInvoiceProducts] = useState([]);
   const invoiceRef = useRef(null);
   const invoiceHeaderRef = useRef(null);
+  console.log(invoiceProducts);
   const fetchInvoiceProducts = async (products) => {
     try {
-      const response = await axios.post("https://api-skainvoice.top/api/invoice/products", { products });
-      console.log(response);
+      const response = await axios.post("/api/invoice/products", { products });
       setInvoiceProducts(response.data.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -40,7 +40,7 @@ export default function InvoiceTemplate({ data, type }) {
 
   const totalProductAmount = (data) => {
     const total = data.reduce((acc, cur) => {
-      return acc + Number(cur.SPRICE) * Number(cur.quantity);
+      return acc + Number(cur.productCurrentPrice) * Number(cur.quantity);
     }, 0);
     return total;
   };
@@ -269,14 +269,14 @@ export default function InvoiceTemplate({ data, type }) {
               {invoiceProducts.map((data, index) => {
                 const sNo = index + 1;
                 return (
-                  <TableRow key={data.ID}>
+                  <TableRow key={data.productId}>
                     <TableCell>{sNo}</TableCell>
-                    <TableCell>{data.NAME}</TableCell>
+                    <TableCell>{data.productName}</TableCell>
                     <TableCell align="center">{data.quantity}</TableCell>
-                    <TableCell align="right">{data.SPRICE}</TableCell>
+                    <TableCell align="right">{data.productCurrentPrice}</TableCell>
                     <TableCell align="right">
                       {parseFloat(
-                        Number(data.SPRICE) * Number(data.quantity)
+                        Number(data.productCurrentPrice) * Number(data.quantity)
                       ).toFixed(2)}
                     </TableCell>
                   </TableRow>
