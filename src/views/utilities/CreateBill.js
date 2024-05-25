@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Grid, TextField, Button, Autocomplete } from "@mui/material";
+import { Grid, TextField, Button, Autocomplete, Tooltip } from "@mui/material";
 import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
 import { MaterialReactTable } from "material-react-table";
 import axios from "axios";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const UtilitiesCreateBill = () => {
   const [formData, setFormData] = useState({
@@ -24,20 +25,26 @@ const UtilitiesCreateBill = () => {
     mrp: "",
     purchasePrice: "",
   });
-
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [tableData, setTableData] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  console.log(selectedCustomer, tableData);
+  const [selectedZone, setSelectedZone] = useState('');
+  const [zoneNames, setZoneNames] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
 
+  console.log(zoneNames);
   const fetchCustomers = async () => {
     try {
       const response = await axios.get(
         "https://api-skainvoice.top/api/shops/fetchItems"
       );
       setCustomers(response.data);
+      const zoneNames = response.data.map((v) => v.ZONNAM).filter((name) => name);
+      const uniqueZoneNames = [...new Set(zoneNames)];
+      setZoneNames(uniqueZoneNames);
     } catch (error) {
       console.error("Error fetching company:", error);
     }
@@ -147,33 +154,35 @@ const UtilitiesCreateBill = () => {
       state: "",
     });
   };
-  const productData = (data) => {
-    console.log(data);
-    const filteredProductData = data.map((v) => {
-      return { productId: v.productId, currentPrice: v.productCurrentPrice, quantity: v.quantity };
-    });
-    return filteredProductData;
-  };
+  console.log(tableData);
+
   const saveAndGenerateInvoice = async () => {
-    const invoiceData = {
-      invoiceNumber:
-        formData.invoiceNumber !== "" ? Number(formData.invoiceNumber) : "",
-      products: productData(tableData),
-      invoiceDate: new Date(formData.invoiceDate).toISOString(),
-      shopId: selectedCustomer.shopId,
-      userId: JSON.parse(localStorage.getItem("userId")),
-    };
-
-    console.log(invoiceData);
-
-    try {
-      const response = await axios.post("https://api-skainvoice.top/api/invoice/create", invoiceData);
-      console.log("Invoice saved successfully:", response.data);
-      setFormData({});
-      setTableData([]);
-    } catch (error) {
-      console.error("Error saving invoice:", error);
+    if (tableData.length === 0) {
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo('please add a product to create invoice');
+    } else {
+      const invoiceData = {
+        invoiceNumber:
+          formData.invoiceNumber !== "" ? Number(formData.invoiceNumber) : "",
+        products: tableData,
+        invoiceDate: new Date(formData.invoiceDate).toISOString(),
+        shopId: selectedCustomer.shopId,
+        userId: JSON.parse(localStorage.getItem("userId")),
+      };
+  
+      console.log(invoiceData);
+  
+      try {
+        const response = await axios.post("/api/invoice/create", invoiceData);
+        console.log("Invoice saved successfully:", response.data);
+        setFormData({});
+        setTableData([]);
+      } catch (error) {
+        console.error("Error saving invoice:", error);
+      }
     }
+    
   };
   const columns = [
     {
@@ -222,6 +231,15 @@ const UtilitiesCreateBill = () => {
     },
   ];
 
+  useEffect(() => {
+    if (selectedZone) {
+      const filteredCustomers = customers.filter((v) => v.ZONNAM === selectedZone);
+      setFilteredCustomers(filteredCustomers);
+    } else {
+      setFilteredCustomers(customers);
+    }
+  }, [selectedZone, customers]);
+
   return (
     <MainCard title="Invoice">
       <Grid item xs={12}>
@@ -254,18 +272,47 @@ const UtilitiesCreateBill = () => {
             <Grid item xs={6}>
               <Autocomplete
                 fullWidth
-                options={customers}
-                getOptionLabel={(option) => option.CUSNAM}
-                value={selectedCustomer} // Set the value prop to the selectedCustomer state
+                options={zoneNames}
+                getOptionLabel={(option) => option}
+                value={selectedZone}
+                renderOption={(props, option) => (
+                  <li {...props} key={option}>
+                    {option}
+                  </li>
+                )}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Customer Name"
+                    label="Zone Name"
                     variant="outlined"
                   />
                 )}
-                onChange={(event, value) => handleCustomerSelect(value)}
+                onChange={(event, value) => setSelectedZone(value)}
               />
+            </Grid>
+            <Grid item xs={6}>
+              <Tooltip arrow  placement="top" title={!selectedZone ? "please select a zone to access this field" : ""}>
+                <Autocomplete
+                  fullWidth
+                  disabled={!selectedZone}
+                  options={filteredCustomers}
+                  getOptionLabel={(option) => option.CUSNAM}
+                  value={selectedCustomer}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.shopId}>
+                      {option.CUSNAM}
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Shop Name"
+                      variant="outlined"
+                    />
+                  )}
+                  onChange={(event, value) => handleCustomerSelect(value)}
+                />
+              </Tooltip>
             </Grid>
             <Grid item xs={6}>
               <TextField

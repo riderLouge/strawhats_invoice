@@ -368,6 +368,9 @@ app.post("/api/invoice/create", async (req, res) => {
 app.get("/api/invoices", async (req, res) => {
   try {
     const invoices = await prisma.invoice.findMany({
+      where: {
+        isDeleted: false,
+      },
       include: {
         shop: true,
         user: true,
@@ -473,24 +476,30 @@ app.post("/api/invoice/products", async (req, res) => {
         .json({ status: "failure", error: "Invalid products" });
     }
 
-    const productIds = products.map((d) => parseInt(d.productId));
+    // Create a map to store products by productId
+    const productMap = new Map();
 
-    const fetchedProducts = await prisma.product.findMany({
-      where: {
-        ID: { in: productIds },
-      },
+    // Iterate through each product
+    products.forEach(product => {
+      const productId = product.productId;
+
+      if (productMap.has(productId)) {
+        // If productId exists, combine the quantity
+        const existingProduct = productMap.get(productId);
+        existingProduct.quantity += product.quantity;
+      } else {
+        // If productId does not exist, add it to the map
+        productMap.set(productId, { ...product });
+      }
+    });
+    // Convert the map back to an array
+    const mergedProducts = Array.from(productMap.values());
+
+    res.status(200).json({
+      status: "success",
+      data: mergedProducts,
     });
 
-    const productsWithQuantity = fetchedProducts.map((product) => {
-      const matchingProduct = products.find(
-        ({ productId }) => parseInt(productId) === parseInt(product.ID)
-      );
-      return {
-        ...product,
-        quantity: matchingProduct ? parseInt(matchingProduct.quantity) || 1 : 0,
-      };
-    });
-    res.json({ data: productsWithQuantity, status: "success" });
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({
@@ -500,6 +509,31 @@ app.post("/api/invoice/products", async (req, res) => {
   }
 });
 
+app.delete('/api/invoice/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Check if the invoice exists
+    const invoice = await prisma.invoice.findUnique({
+      where: { id },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    // Perform soft delete by setting isDeleted to true
+    await prisma.invoice.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+
+    res.status(200).json({ status: 'success', message: 'Invoice deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting invoice:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 app.post("/api/supplier-bill/create", async (req, res) => {
   try {
     // validate request body

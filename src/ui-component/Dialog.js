@@ -37,7 +37,7 @@ const DialogTemplate = ({
           </Button>
           {type === "Invoice" ? null : (
             <Button onClick={handleSave} color="primary">
-              {type === "Bill" ? "Download" : "Save"}
+              {type === "Bill" ? "Download" : type === "Update" ? "Update" : type === "Delete" ? "Delete" : "Save"}
             </Button>
           )}
         </DialogActions>
