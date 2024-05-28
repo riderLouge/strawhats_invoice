@@ -120,6 +120,9 @@ const Dashboard = () => {
     );
 
     doc.save("SaleList.pdf");
+    setSuccess(true);
+    setOpenErrorAlert(true);
+    setErrorInfo('Invoice generated successfully');
   };
 
 

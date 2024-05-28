@@ -126,8 +126,8 @@ model CreditDebit {
 }
 
 model SupplierBill {
-  id             String    @default(uuid())
-  billNumber     Int       @id @unique
+  id             String    @id @default(uuid())
+  billNumber     Int
   billTotal      Int
   paymentMode    String
   pendingPayment Int
