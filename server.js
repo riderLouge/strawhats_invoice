@@ -8,8 +8,9 @@ app.use(express.json());
 app.use(cors());
 // Increase payload limit (e.g., 10MB)
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
-
+app.use(
+  express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 })
+);
 
 // Generation random OTP code for reset the user password
 function generateOtp() {
@@ -332,12 +333,14 @@ app.post("/api/invoice/create", async (req, res) => {
       !req.body.invoiceNumber ||
       !req.body.invoiceDate ||
       !req.body.shopId ||
-      !req.body.userId
+      !req.body.userId ||
+      !req.body.total
     ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const { invoiceNumber, products, invoiceDate, shopId, userId } = req.body;
+    const { invoiceNumber, products, invoiceDate, shopId, userId, total } =
+      req.body;
 
     const shop = await prisma.shop.findUnique({ where: { shopId: shopId } });
     const user = await prisma.loginAuth.findUnique({ where: { Id: userId } });
@@ -356,6 +359,16 @@ app.post("/api/invoice/create", async (req, res) => {
         invoiceDate,
         shopId: shopId,
         userId: userId,
+      },
+    });
+
+    await prisma.creditDebit.create({
+      data: {
+        invoiceNumber,
+        invoiceDate,
+        shopId: shopId,
+        status: "Credit",
+        total,
       },
     });
 
@@ -388,10 +401,11 @@ app.get("/api/invoices", async (req, res) => {
 app.get("/api/get-all-invoices-by-date", async (req, res) => {
   try {
     const { createdAt } = req.query;
-    if (!createdAt) return res.status(400).json({
-      status: 'failed',
-      error: 'Date field shouldn\'t be empty'
-    })
+    if (!createdAt)
+      return res.status(400).json({
+        status: "failed",
+        error: "Date field shouldn't be empty",
+      });
 
     const createdAtDate = new Date(createdAt);
 
@@ -400,21 +414,23 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
         createdAt: {
           gte: createdAtDate,
           lt: new Date(createdAtDate.getTime() + 24 * 60 * 60 * 1000),
-        }
-      }
-    })
+        },
+      },
+    });
 
     //Getting the products array from the each invoices
-    const invoiceProducts = invoices.flatMap((data) => data.products).map((d) => {
-      if (d.quantity === undefined) {
-        return {
-          ...d,
-          quantity: 1,
+    const invoiceProducts = invoices
+      .flatMap((data) => data.products)
+      .map((d) => {
+        if (d.quantity === undefined) {
+          return {
+            ...d,
+            quantity: 1,
+          };
+        } else {
+          return d;
         }
-      } else {
-        return d;
-      }
-    });
+      });
 
     const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
       if (acc[product.productId]) {
@@ -429,10 +445,10 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
     const productsData = await prisma.product.findMany({
       where: {
         ID: {
-          in: productIds
+          in: productIds,
         },
-      }
-    })
+      },
+    });
     const updatedProductList = combinedProducts.map((product) => {
       const foundProduct = productsData.find((d) => d.ID === product.productId);
       if (foundProduct) {
@@ -447,23 +463,22 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
     console.log(updatedProductList.length);
     if (updatedProductList.length > 0) {
       res.status(200).json({
-        status: 'success',
+        status: "success",
         invoiceDate: createdAt,
         data: updatedProductList,
-        message: 'products fetched successfully',
-      })
+        message: "products fetched successfully",
+      });
     } else {
       res.status(404).json({
-        status: 'failure',
-        message: 'Invoice not generated on this date',
-      })
+        status: "failure",
+        message: "Invoice not generated on this date",
+      });
     }
-
   } catch (error) {
     return res.status(500).json({
       status: "failure",
-      error: 'An error occurred while fetching invoices'
-    })
+      error: "An error occurred while fetching invoices",
+    });
   }
 });
 
@@ -480,7 +495,7 @@ app.post("/api/invoice/products", async (req, res) => {
     const productMap = new Map();
 
     // Iterate through each product
-    products.forEach(product => {
+    products.forEach((product) => {
       const productId = product.productId;
 
       if (productMap.has(productId)) {
@@ -499,7 +514,6 @@ app.post("/api/invoice/products", async (req, res) => {
       status: "success",
       data: mergedProducts,
     });
-
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({
@@ -509,13 +523,16 @@ app.post("/api/invoice/products", async (req, res) => {
   }
 });
 
-app.put('/api/invoice/update-product/:id', async (req, res) => {
+app.put("/api/invoice/update-product/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { productId, quantity } = req.body;
 
     if (!productId || quantity === undefined) {
-      return res.status(400).json({ status: 'failed', message: 'Please provide the product details to update' });
+      return res.status(400).json({
+        status: "failed",
+        message: "Please provide the product details to update",
+      });
     }
 
     const product = await prisma.product.findUnique({
@@ -523,7 +540,9 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
     });
 
     if (!product) {
-      return res.status(404).json({ status: 'failed', message: 'Product not found' });
+      return res
+        .status(404)
+        .json({ status: "failed", message: "Product not found" });
     }
 
     const invoice = await prisma.invoice.findUnique({
@@ -531,17 +550,26 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
     });
 
     if (!invoice) {
-      return res.status(404).json({ status: 'failed', message: 'Invoice not found' });
+      return res
+        .status(404)
+        .json({ status: "failed", message: "Invoice not found" });
     }
 
-    const invoiceProduct = invoice.products.find((p) => p.productId === productId);
+    const invoiceProduct = invoice.products.find(
+      (p) => p.productId === productId
+    );
 
     if (!invoiceProduct) {
-      return res.status(404).json({ status: 'failed', message: 'Product not found in this invoice' });
+      return res.status(404).json({
+        status: "failed",
+        message: "Product not found in this invoice",
+      });
     }
 
     if (quantity === invoiceProduct.quantity) {
-      return res.status(400).json({ status: 'failed', message: 'Same quantity cannot be updated' });
+      return res
+        .status(400)
+        .json({ status: "failed", message: "Same quantity cannot be updated" });
     }
 
     let updatedProducts;
@@ -550,7 +578,9 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
 
     if (quantity === 0) {
       newQuantity = invoiceProduct.quantity;
-      updatedProducts = invoice.products.filter((p) => productId !== p.productId);
+      updatedProducts = invoice.products.filter(
+        (p) => productId !== p.productId
+      );
     } else if (quantity > invoiceProduct.quantity) {
       updatedQuantity = quantity - invoiceProduct.quantity;
       if (product.FQTY >= updatedQuantity) {
@@ -559,7 +589,9 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
           p.productId === productId ? { ...p, quantity } : p
         );
       } else {
-        return res.status(400).json({ status: 'failed', message: 'Product quantity out of stock' });
+        return res
+          .status(400)
+          .json({ status: "failed", message: "Product quantity out of stock" });
       }
     } else if (quantity < invoiceProduct.quantity) {
       updatedQuantity = invoiceProduct.quantity - quantity;
@@ -580,14 +612,20 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
       data: { products: updatedProducts },
     });
 
-    res.status(200).json({ status: 'success', message: 'Product quantity updated successfully', data: updatedProducts });
+    res.status(200).json({
+      status: "success",
+      message: "Product quantity updated successfully",
+      data: updatedProducts,
+    });
   } catch (error) {
-    console.log(error, 'error while updating the invoice');
-    res.status(500).json({ status: 'failed', message: 'Error while updating the invoice' });
+    console.log(error, "error while updating the invoice");
+    res
+      .status(500)
+      .json({ status: "failed", message: "Error while updating the invoice" });
   }
 });
 
-app.delete('/api/invoice/delete/:id', async (req, res) => {
+app.delete("/api/invoice/delete/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -597,7 +635,7 @@ app.delete('/api/invoice/delete/:id', async (req, res) => {
     });
 
     if (!invoice) {
-      return res.status(404).json({ error: 'Invoice not found' });
+      return res.status(404).json({ error: "Invoice not found" });
     }
 
     // Perform soft delete by setting isDeleted to true
@@ -606,10 +644,12 @@ app.delete('/api/invoice/delete/:id', async (req, res) => {
       data: { isDeleted: true },
     });
 
-    res.status(200).json({ status: 'success', message: 'Invoice deleted successfully' });
+    res
+      .status(200)
+      .json({ status: "success", message: "Invoice deleted successfully" });
   } catch (err) {
-    console.error('Error deleting invoice:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error deleting invoice:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 app.post("/api/supplier-bill/create", async (req, res) => {
@@ -688,25 +728,39 @@ app.get("/api/supplier-bills", async (req, res) => {
   }
 });
 
-
 app.post("/api/update/product-stock", async (req, res) => {
   try {
-    const { productName, productId, productQuantity, damagedQuantity, Reason, userId } = req.body;
-    if (!productName || !productId || !productQuantity || !damagedQuantity || !Reason || !userId) {
+    const {
+      productName,
+      productId,
+      productQuantity,
+      damagedQuantity,
+      Reason,
+      userId,
+    } = req.body;
+    if (
+      !productName ||
+      !productId ||
+      !productQuantity ||
+      !damagedQuantity ||
+      !Reason ||
+      !userId
+    ) {
       return res.status(400).json({
-        status: 'failure',
-        message: 'missing required fields',
-      })
+        status: "failure",
+        message: "missing required fields",
+      });
     }
     const user = await prisma.loginAuth.findUnique({
       where: {
         Id: Number(userId),
-      }
-    })
-    if (!user) return res.status(404).json({
-      status: 'failure',
-      message: 'user not found',
-    })
+      },
+    });
+    if (!user)
+      return res.status(404).json({
+        status: "failure",
+        message: "user not found",
+      });
     // Update the product's quantity
     const updatedQuantity = Number(productQuantity) - Number(damagedQuantity);
     const updatedProduct = await prisma.product.update({
@@ -732,18 +786,18 @@ app.post("/api/update/product-stock", async (req, res) => {
 
     // Respond with success message
     res.status(200).json({
-      status: 'success',
-      message: 'Product stock updated successfully',
+      status: "success",
+      message: "Product stock updated successfully",
       data: {
         updatedProduct: updatedProduct,
         stockAdjust: stockAdjust,
       },
     });
   } catch (error) {
-    console.error('Error while updating product stock:', error);  // Log the error for debugging
+    console.error("Error while updating product stock:", error); // Log the error for debugging
     res.status(500).json({
       status: "failure",
-      message: 'Error while updating product stock',
+      message: "Error while updating product stock",
       error: error.message,
     });
   }
@@ -753,10 +807,14 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
     const { area, invoiceDate } = req.query;
     console.log(area, invoiceDate);
     if (!area) {
-      return res.status(400).json({ message: 'Area field shouldn\'t be empty', status: 'failure' });
+      return res
+        .status(400)
+        .json({ message: "Area field shouldn't be empty", status: "failure" });
     }
     if (!invoiceDate) {
-      return res.status(400).json({ message: 'Date field shouldn\'t be empty', status: 'failure' });
+      return res
+        .status(400)
+        .json({ message: "Date field shouldn't be empty", status: "failure" });
     }
     const createdAtDate = new Date(invoiceDate);
     const invoices = await prisma.invoice.findMany({
@@ -768,19 +826,21 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
         shop: {
           ZONNAM: area,
         },
-      }
+      },
     });
     //Getting the products array from the each invoices
-    const invoiceProducts = invoices.flatMap((data) => data.products).map((d) => {
-      if (d.quantity === undefined) {
-        return {
-          ...d,
-          quantity: 1,
+    const invoiceProducts = invoices
+      .flatMap((data) => data.products)
+      .map((d) => {
+        if (d.quantity === undefined) {
+          return {
+            ...d,
+            quantity: 1,
+          };
+        } else {
+          return d;
         }
-      } else {
-        return d;
-      }
-    });
+      });
 
     const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
       if (acc[product.productId]) {
@@ -795,10 +855,10 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
     const productsData = await prisma.product.findMany({
       where: {
         ID: {
-          in: productIds
+          in: productIds,
         },
-      }
-    })
+      },
+    });
     const updatedProductList = combinedProducts.map((product) => {
       const foundProduct = productsData.find((d) => d.ID === product.productId);
       if (foundProduct) {
@@ -812,36 +872,41 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
     });
     if (updatedProductList.length > 0) {
       res.status(200).json({
-        status: 'success',
+        status: "success",
         invoiceDate: invoiceDate,
         invoiceArea: area,
         data: updatedProductList,
-        message: 'products fetched successfully',
+        message: "products fetched successfully",
       });
     } else {
       res.status(404).json({
-        status: 'failure',
-        message: 'Products not found on this date and area',
-      })
+        status: "failure",
+        message: "Products not found on this date and area",
+      });
     }
-
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 'failure', error: 'Internal server error' });
+    res.status(500).json({ status: "failure", error: "Internal server error" });
   }
 });
 
 // Get all zone name values
-app.get('/api/get-all-zone-name', async (req, res) => {
+app.get("/api/get-all-zone-name", async (req, res) => {
   try {
     const zones = await prisma.shop.findMany({
-      select: { ZONNAM: true }
+      select: { ZONNAM: true },
     });
-    const zoneNames = [...new Set(zones.map((shop) => shop.ZONNAM).filter((zonName) => zonName.trim() !== ''))];
-    res.status(200).json({ status: 'success', data: zoneNames });
+    const zoneNames = [
+      ...new Set(
+        zones
+          .map((shop) => shop.ZONNAM)
+          .filter((zonName) => zonName.trim() !== "")
+      ),
+    ];
+    res.status(200).json({ status: "success", data: zoneNames });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 'failure', error: 'Internal server error' });
+    res.status(500).json({ status: "failure", error: "Internal server error" });
   }
 });
 const PORT = process.env.PORT || 9000;
