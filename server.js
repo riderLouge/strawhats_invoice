@@ -519,7 +519,7 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
     }
 
     const product = await prisma.product.findUnique({
-      where: { id: productId },
+      where: { ID: productId },
     });
 
     if (!product) {
@@ -545,51 +545,42 @@ app.put('/api/invoice/update-product/:id', async (req, res) => {
     }
 
     let updatedProducts;
+    let updatedQuantity;
+    let newQuantity;
 
-    if (quantity > invoiceProduct.quantity) {
-      const updatedQuantity = quantity - invoiceProduct.quantity;
-
+    if (quantity === 0) {
+      newQuantity = invoiceProduct.quantity;
+      updatedProducts = invoice.products.filter((p) => productId !== p.productId);
+    } else if (quantity > invoiceProduct.quantity) {
+      updatedQuantity = quantity - invoiceProduct.quantity;
       if (product.FQTY >= updatedQuantity) {
-        const newQuantity = product.FQTY - updatedQuantity;
-
-        await prisma.product.update({
-          where: { id: productId },
-          data: { FQTY: newQuantity },
-        });
-
+        newQuantity = product.FQTY - updatedQuantity;
         updatedProducts = invoice.products.map((p) =>
           p.productId === productId ? { ...p, quantity } : p
         );
-
-        await prisma.invoice.update({
-          where: { id: id },
-          data: { products: updatedProducts },
-        });
-
-        res.status(200).json({ status: 'success', message: 'Product quantity updated successfully' });
       } else {
-        res.status(400).json({ status: 'failed', message: 'Product quantity out of stock' });
+        return res.status(400).json({ status: 'failed', message: 'Product quantity out of stock' });
       }
     } else if (quantity < invoiceProduct.quantity) {
-      const updatedQuantity = invoiceProduct.quantity - quantity;
-      const newQuantity = product.FQTY + updatedQuantity;
-
-      await prisma.product.update({
-        where: { id: productId },
-        data: { FQTY: newQuantity },
-      });
-
+      updatedQuantity = invoiceProduct.quantity - quantity;
+      newQuantity = product.FQTY + updatedQuantity;
+      // filter a products based on quantity
       updatedProducts = invoice.products.map((p) =>
         p.productId === productId ? { ...p, quantity } : p
       );
-
-      await prisma.invoice.update({
-        where: { id: id },
-        data: { products: updatedProducts },
-      });
-
-      res.status(200).json({ status: 'success', message: 'Product quantity updated successfully' });
     }
+
+    await prisma.product.update({
+      where: { ID: productId },
+      data: { FQTY: JSON.stringify(newQuantity) },
+    });
+
+    await prisma.invoice.update({
+      where: { id: id },
+      data: { products: updatedProducts },
+    });
+
+    res.status(200).json({ status: 'success', message: 'Product quantity updated successfully', data: updatedProducts });
   } catch (error) {
     console.log(error, 'error while updating the invoice');
     res.status(500).json({ status: 'failed', message: 'Error while updating the invoice' });

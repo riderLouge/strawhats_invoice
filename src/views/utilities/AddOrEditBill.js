@@ -49,8 +49,11 @@ export default function Invoice() {
   const [invoiceData, setInvoiceDate] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [invoiceType, setInvoiceType] = useState('');
+  const [openEditProductPopup, setOpenEditProductPopup] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const currentUserRole = constants.role;
-  console.log(selectedItem);
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
@@ -82,9 +85,39 @@ export default function Invoice() {
       setErrorInfo('Error while deleting invoice');
     }
   };
+
+  const updateInvoiceProductQuantity = async () => {
+    const updatedProductQuantity = document.getElementById("productQuantity").value;
+    try {
+      const response = await axios.put(`/api/invoice/update-product/${selectedItem.id}`, {
+        productId: selectedProduct.productId,
+        quantity: parseInt(updatedProductQuantity) || 0,
+      });
+
+      if (response.status === 200) {
+        setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
+        setSelectedItem((prev) => {
+          return {
+            ...prev,
+            products: response.data.data,
+          };
+        })
+        setOpenEditProductPopup(false);
+      }
+    } catch (err) {
+      console.error('Error updating product quantity:', err);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(err.response.data.message);
+    }
+  };
   const handleSubmitDialog = () => {
     if (invoiceType === 'Delete invoice') {
       deleteInvoice();
+    } else if ('Edit Product') {
+      updateInvoiceProductQuantity();
     }
 
   };
@@ -195,24 +228,16 @@ export default function Invoice() {
       accessorKey: "actions",
       header: "Actions",
       Cell: ({ row }) => (
-        (selectedItem?.id === row.original.id && invoiceType === 'Edit Product') ? (
-          <CloseIcon style={{
-            cursor: "pointer"
+        <EditIcon
+          style={{
+            cursor: "pointer",
+            color: (hoveredRow === 1 && hoveredRowId === row.id) ? "blue" : "inherit",
           }}
-            onClick={() => { setSelectedItem(null); setInvoiceType('Edit invoice'); }} />
-        ) : (
-          <EditIcon
-            style={{
-              cursor: "pointer",
-              color: (hoveredRow === 1 && hoveredRowId === row.id) ? "blue" : "inherit",
-            }}
-            onMouseEnter={() => { setHoveredRow(1); setHoveredRowId(row.id); }}
-            onMouseLeave={() => { setHoveredRow(0); setHoveredRowId(null); }}
-            onClick={() => { handleEdit(row, "Edit Product") }
-            }
-          />
-        )
-
+          onMouseEnter={() => { setHoveredRow(1); setHoveredRowId(row.id); }}
+          onMouseLeave={() => { setHoveredRow(0); setHoveredRowId(null); }}
+          onClick={() => { setOpenEditProductPopup(true); setInvoiceType('Edit Product'); setSelectedProduct(row.original); }
+          }
+        />
       )
     }
   ];
@@ -241,6 +266,20 @@ export default function Invoice() {
           handleSave={handleSubmitDialog}
           type={invoiceType === 'View invoice' ? 'Invoice' : invoiceType === 'Delete invoice' ? 'Delete' : 'Update'}
           width={(invoiceType === 'Edit invoice' || invoiceType === 'Edit Product') ? 'lg' : 'md'}
+        />
+        <DialogTemplate
+          open={openEditProductPopup}
+          title={'Edit Product'}
+          body={
+            <Box>
+              <Typography variant="body2" fontWeight={600} mb={1}>Update a quantity</Typography>
+              <TextField id="productQuantity" fullWidth defaultValue={selectedProduct?.quantity} />
+            </Box>
+          }
+          handleCloseDialog={() => setOpenEditProductPopup(false)}
+          handleSave={handleSubmitDialog}
+          type={'Update'}
+          width={'sm'}
         />
       </Grid>
     </MainCard>
