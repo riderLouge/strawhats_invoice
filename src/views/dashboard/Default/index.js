@@ -1,7 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 
 // material-ui
-import { Autocomplete, Card, CardContent, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Card,
+  CardContent,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 // project imports
 import EarningCard from "./EarningCard";
@@ -29,10 +44,10 @@ const Dashboard = () => {
 
   const fetchZonNames = async () => {
     try {
-      const response = await axios.get('/api/get-all-zone-name');
+      const response = await axios.get("/api/get-all-zone-name");
       setZoneNames(response.data.data);
     } catch (error) {
-      console.error('Error fetching zone name:', error);
+      console.error("Error fetching zone name:", error);
     }
   };
   useEffect(() => {
@@ -84,11 +99,11 @@ const Dashboard = () => {
 
     // Define table columns
     const columns = [
-      { header: 'S.No', dataKey: 'serialNo' },
-      { header: 'Product', dataKey: 'productName' },
-      { header: 'Quantity', dataKey: 'quantity' },
-      { header: 'Price', dataKey: 'price' },
-      { header: 'Total', dataKey: 'total' }
+      { header: "S.No", dataKey: "serialNo" },
+      { header: "Product", dataKey: "productName" },
+      { header: "Quantity", dataKey: "quantity" },
+      { header: "Price", dataKey: "price" },
+      { header: "Total", dataKey: "total" },
     ];
 
     // Generate table rows from data
@@ -97,19 +112,26 @@ const Dashboard = () => {
       productName: product.name,
       quantity: product.quantity,
       price: product.currentPrice,
-      total: parseFloat(Number(product.currentPrice) * Number(product.quantity)).toFixed(2),
+      total: parseFloat(
+        Number(product.currentPrice) * Number(product.quantity)
+      ).toFixed(2),
     }));
 
     // Product table with custom options to control the footer
     doc.autoTable({
-      head: [columns.map(col => col.header)],
-      body: rows.map(row => columns.map(col => row[col.dataKey])),
+      head: [columns.map((col) => col.header)],
+      body: rows.map((row) => columns.map((col) => row[col.dataKey])),
       startY: companyNameY + 20,
-      columnStyles: { 2: { halign: 'center' } }
+      columnStyles: { 2: { halign: "center" } },
     });
 
     // Total amount
-    const totalAmount = data.reduce((sum, product) => sum + parseFloat(Number(product.currentPrice) * Number(product.quantity)), 0);
+    const totalAmount = data.reduce(
+      (sum, product) =>
+        sum +
+        parseFloat(Number(product.currentPrice) * Number(product.quantity)),
+      0
+    );
     doc.setFont("helvetica", "bold");
     doc.text("Total", companyNameX + 10, doc.autoTableEndPosY() + 10);
     doc.setFont("helvetica", "normal");
@@ -122,18 +144,17 @@ const Dashboard = () => {
     doc.save("SaleList.pdf");
   };
 
-
   // Function to fetch invoices based on createdAt date
   async function fetchInvoicesByDate(createdAt) {
     try {
-      const response = await axios.get('/api/get-all-invoices-by-date', {
+      const response = await axios.get("/api/get-all-invoices-by-date", {
         params: {
-          createdAt: createdAt
-        }
+          createdAt: createdAt,
+        },
       });
       downloadInvoice(response.data.data, response.data.invoiceDate);
     } catch (error) {
-      console.error('Error fetching invoices:', error.message);
+      console.error("Error fetching invoices:", error.message);
       setSuccess(false);
       setOpenErrorAlert(true);
       setErrorInfo(error.response.data.message);
@@ -143,15 +164,19 @@ const Dashboard = () => {
 
   async function fetchProductsBasedOnArea(data) {
     try {
-      const response = await axios.get('/api/get-products/based-on-area', {
+      const response = await axios.get("/api/get-products/based-on-area", {
         params: {
           invoiceDate: data.date,
           area: data.shopArea,
-        }
+        },
       });
-      downloadInvoice(response.data.data, response.data.invoiceDate, response.data.invoiceArea);
+      downloadInvoice(
+        response.data.data,
+        response.data.invoiceDate,
+        response.data.invoiceArea
+      );
     } catch (error) {
-      console.error('Error fetching invoices:', error.message);
+      console.error("Error fetching invoices:", error.message);
       setSuccess(false);
       setOpenErrorAlert(true);
       setErrorInfo(error.response.data.message);
@@ -237,7 +262,9 @@ const Dashboard = () => {
                   <Autocomplete
                     options={zoneNames}
                     getOptionLabel={(option) => option}
-                    renderInput={(params) => <TextField {...params} label="zones" />}
+                    renderInput={(params) => (
+                      <TextField {...params} label="zones" />
+                    )}
                     fullWidth
                     id="shopArea"
                     placeholder="Area"
@@ -262,7 +289,6 @@ const Dashboard = () => {
         </Grid>
       </Grid>
     </Grid>
-
   );
 };
 

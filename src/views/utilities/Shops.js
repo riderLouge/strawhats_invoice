@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button } from "@mui/material";
+import { Card, Button, Tooltip } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogTemplate from "../../ui-component/Dialog";
@@ -21,6 +21,10 @@ const Shops = () => {
   const [shops, setShops] = useState([]);
   const [modifiedData, setModifiedData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [zoneNames, setZoneNames] = useState([]);
+  const [selectedZone, setSelectedZone] = useState("");
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   const fetchProduct = async () => {
     try {
@@ -28,11 +32,23 @@ const Shops = () => {
         "https://api-skainvoice.top/api/shops/fetchItems"
       );
       setShops(response.data);
+      const zoneNames = response.data
+        .map((v) => v.ZONNAM)
+        .filter((name) => name);
+      const uniqueZoneNames = [...new Set(zoneNames)];
+      setZoneNames(uniqueZoneNames);
     } catch (error) {
       console.error("Error fetching company:", error);
     }
   };
-
+  useEffect(() => {
+    if (selectedZone) {
+      const filteredCustomers = shops.filter((v) => v.ZONNAM === selectedZone);
+      setFilteredCustomers(filteredCustomers);
+    } else {
+      setFilteredCustomers(shops);
+    }
+  }, [selectedZone, shops]);
   useEffect(() => {
     fetchProduct();
   }, []);
@@ -104,7 +120,24 @@ const Shops = () => {
     ],
     [hoveredRow, hoveredRowEdit]
   );
+  const handleCustomerSelect = (customer) => {
+    setSelectedCustomer(customer);
 
+    // Concatenate address fields for billing address
+    // const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${
+    //   customer.ADRTHR || ""
+    // }`;
+
+    // setFormData({
+    //   ...formData,
+    //   customerName: customer.CUSNAM || "",
+    //   billingAddress: billingAddress.trim(),
+    //   phoneNumber: customer.TELNUM || "",
+    //   gstin: customer.GSTIN || "",
+    //   city: customer.City || "",
+    //   state: customer.State || "",
+    // });
+  };
   const handleEdit = (row) => {
     setSelectedItem(row.original);
     handleOpenDialog("Edit Items");
@@ -309,7 +342,8 @@ const Shops = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setFileName("");
-
+    setSelectedCustomer("");
+    setSelectedZone("");
     setButtonClicked("");
     setDialogTitle("");
   };
@@ -355,7 +389,9 @@ const Shops = () => {
           margin: "8px",
           zIndex: 1,
         }}
-        onClick={() => {}}
+        onClick={() => {
+          handleOpenDialog("Debit / Credit");
+        }}
       >
         Update Debit / Credit
       </Button>
@@ -580,6 +616,62 @@ const Shops = () => {
                 </Grid>
               </Grid>
             </div>
+          ) : buttonClicked === "Debit / Credit" ? (
+            <Grid container spacing={3}>
+              <Grid item xs={6}>
+                <Autocomplete
+                  fullWidth
+                  options={zoneNames}
+                  getOptionLabel={(option) => option}
+                  value={selectedZone}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option}>
+                      {option}
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Zone Name"
+                      variant="outlined"
+                    />
+                  )}
+                  onChange={(event, value) => setSelectedZone(value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Tooltip
+                  arrow
+                  placement="top"
+                  title={
+                    !selectedZone
+                      ? "please select a zone to access this field"
+                      : ""
+                  }
+                >
+                  <Autocomplete
+                    fullWidth
+                    disabled={!selectedZone}
+                    options={filteredCustomers}
+                    getOptionLabel={(option) => option.CUSNAM}
+                    value={selectedCustomer}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.shopId}>
+                        {option.CUSNAM}
+                      </li>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Shop Name"
+                        variant="outlined"
+                      />
+                    )}
+                    onChange={(event, value) => handleCustomerSelect(value)}
+                  />
+                </Tooltip>
+              </Grid>
+            </Grid>
           ) : (
             <span>{`You clicked on: ${buttonClicked}`}</span>
           )
