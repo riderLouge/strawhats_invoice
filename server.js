@@ -352,7 +352,7 @@ app.post("/api/invoice/create", async (req, res) => {
     }
 
     // Create the invoice
-    await prisma.invoice.create({
+    const response = await prisma.invoice.create({
       data: {
         invoiceNumber,
         products,
@@ -361,10 +361,9 @@ app.post("/api/invoice/create", async (req, res) => {
         userId: userId,
       },
     });
-
     await prisma.creditDebit.create({
       data: {
-        invoiceNumber,
+        invoiceNumber: response.id,
         invoiceDate,
         shopId: shopId,
         status: "Credit",

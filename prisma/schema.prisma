@@ -118,11 +118,14 @@ model Invoice {
 }
 
 model CreditDebit {
-  invoiceNumber Int      @id
+  id            String   @id @default(uuid()) @map("credit_debit_id")
+  invoiceNumber Int
   invoiceDate   DateTime
   shopId        Int
   status        String
-  pending       Int
+  total         Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model SupplierBill {
