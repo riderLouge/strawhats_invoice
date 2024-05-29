@@ -155,7 +155,12 @@ const UtilitiesCreateBill = () => {
     });
   };
   console.log(tableData);
-
+  const getTotalProductAmount = (data) => {
+    const totalProductAmount = data.reduce((accumulator, currentItem) => {
+      return accumulator + (currentItem.totalWithGST || 0);
+    }, 0);
+    return totalProductAmount;
+}
   const saveAndGenerateInvoice = async () => {
     if (tableData.length === 0) {
       setSuccess(false);
@@ -169,6 +174,7 @@ const UtilitiesCreateBill = () => {
         invoiceDate: new Date(formData.invoiceDate).toISOString(),
         shopId: selectedCustomer.shopId,
         userId: JSON.parse(localStorage.getItem("userId")),
+        total: getTotalProductAmount(tableData),
       };
   
       console.log(invoiceData);
