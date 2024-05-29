@@ -509,6 +509,84 @@ app.post("/api/invoice/products", async (req, res) => {
   }
 });
 
+app.put('/api/invoice/update-product/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { productId, quantity } = req.body;
+
+    if (!productId || quantity === undefined) {
+      return res.status(400).json({ status: 'failed', message: 'Please provide the product details to update' });
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { ID: productId },
+    });
+
+    if (!product) {
+      return res.status(404).json({ status: 'failed', message: 'Product not found' });
+    }
+
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: id },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ status: 'failed', message: 'Invoice not found' });
+    }
+
+    const invoiceProduct = invoice.products.find((p) => p.productId === productId);
+
+    if (!invoiceProduct) {
+      return res.status(404).json({ status: 'failed', message: 'Product not found in this invoice' });
+    }
+
+    if (quantity === invoiceProduct.quantity) {
+      return res.status(400).json({ status: 'failed', message: 'Same quantity cannot be updated' });
+    }
+
+    let updatedProducts;
+    let updatedQuantity;
+    let newQuantity;
+
+    if (quantity === 0) {
+      newQuantity = invoiceProduct.quantity;
+      updatedProducts = invoice.products.filter((p) => productId !== p.productId);
+    } else if (quantity > invoiceProduct.quantity) {
+      updatedQuantity = quantity - invoiceProduct.quantity;
+      if (product.FQTY >= updatedQuantity) {
+        newQuantity = product.FQTY - updatedQuantity;
+        updatedProducts = invoice.products.map((p) =>
+          p.productId === productId ? { ...p, quantity } : p
+        );
+      } else {
+        return res.status(400).json({ status: 'failed', message: 'Product quantity out of stock' });
+      }
+    } else if (quantity < invoiceProduct.quantity) {
+      updatedQuantity = invoiceProduct.quantity - quantity;
+      newQuantity = product.FQTY + updatedQuantity;
+      // filter a products based on quantity
+      updatedProducts = invoice.products.map((p) =>
+        p.productId === productId ? { ...p, quantity } : p
+      );
+    }
+
+    await prisma.product.update({
+      where: { ID: productId },
+      data: { FQTY: JSON.stringify(newQuantity) },
+    });
+
+    await prisma.invoice.update({
+      where: { id: id },
+      data: { products: updatedProducts },
+    });
+
+    res.status(200).json({ status: 'success', message: 'Product quantity updated successfully', data: updatedProducts });
+  } catch (error) {
+    console.log(error, 'error while updating the invoice');
+    res.status(500).json({ status: 'failed', message: 'Error while updating the invoice' });
+  }
+});
+
 app.delete('/api/invoice/delete/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -609,6 +687,7 @@ app.get("/api/supplier-bills", async (req, res) => {
     });
   }
 });
+
 
 app.post("/api/update/product-stock", async (req, res) => {
   try {

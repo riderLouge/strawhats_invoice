@@ -7,7 +7,7 @@ import DialogTemplate from "../../ui-component/Dialog";
 import { MaterialReactTable } from "material-react-table";
 import EditIcon from "@mui/icons-material/Edit";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
-
+import * as constants from '../../utils/constants';
 // project imports
 import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
@@ -42,7 +42,8 @@ export default function Invoice() {
   const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [invoiceData, setInvoiceDate] = useState(null);
-  console.log(data);
+  const currentUserRole = constants.role;
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
@@ -97,6 +98,7 @@ export default function Invoice() {
               style={{
                 cursor: "pointer",
                 color: hoveredRowEdit === row.id ? "blue" : "inherit",
+                display: currentUserRole === constants.ROLE_ADMIN ? 'revert' : 'none',
               }}
               onMouseEnter={() => setHoveredRowEdit(row.id)}
               onMouseLeave={() => setHoveredRowEdit(null)}

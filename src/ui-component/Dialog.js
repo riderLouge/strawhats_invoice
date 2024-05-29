@@ -14,10 +14,11 @@ const DialogTemplate = ({
   handleCloseDialog,
   handleSave,
   type,
+  width,
 }) => {
   return (
     <div>
-      <Dialog fullWidth maxWidth="md" open={open}>
+      <Dialog fullWidth maxWidth={width || 'md'} open={open}>
         <DialogTitle
           style={{
             display: "flex",

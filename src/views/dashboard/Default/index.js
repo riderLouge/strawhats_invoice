@@ -142,6 +142,9 @@ const Dashboard = () => {
     );
 
     doc.save("SaleList.pdf");
+    setSuccess(true);
+    setOpenErrorAlert(true);
+    setErrorInfo('Invoice generated successfully');
   };
 
   // Function to fetch invoices based on createdAt date
