@@ -370,6 +370,18 @@ app.post("/api/invoice/create", async (req, res) => {
         total,
       },
     });
+    // Update product quantities
+    for (const product of products) {
+      const existingProduct = await prisma.product.findUnique({ where: { ID: product.id } });
+      if (!existingProduct) {
+        throw new Error(`Product with ID ${product.id} not found`);
+      }
+      const updatedQuantity = parseInt(existingProduct.FQTY) - product.quantity;
+      await prisma.product.update({
+        where: { ID: product.id },
+        data: { FQTY: updatedQuantity.toString() },
+      });
+    }
 
     res.status(201).json({ message: "Invoice created successfully" });
   } catch (error) {
@@ -899,7 +911,7 @@ app.get('/api/product/availability-check', async (req, res) => {
     }
 
     // Convert requestedQuantity to a number
-    const requestedQty = parseInt(requestedQuantity, 10);
+    const requestedQty = parseInt(requestedQuantity);
 
     if (isNaN(requestedQty) || requestedQty <= 0) {
       return res.status(400).json({ error: 'Requested quantity must be a positive number.' });
@@ -907,14 +919,14 @@ app.get('/api/product/availability-check', async (req, res) => {
 
     // Fetch the product from the database
     const product = await prisma.product.findUnique({
-      where: { ID: parseInt(productId, 10) },
+      where: { ID: parseInt(productId) },
     });
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
-    const availableQty = parseInt(product.FQTY, 10) || 0;
+    const availableQty = parseInt(product.FQTY) || 0;
     // Check if the product has enough quantity
     const isAvailable = availableQty >= requestedQty;
 
