@@ -44,7 +44,7 @@ const Dashboard = () => {
 
   const fetchZonNames = async () => {
     try {
-      const response = await axios.get("/api/get-all-zone-name");
+      const response = await axios.get("https://api-skainvoice.top/api/get-all-zone-name");
       setZoneNames(response.data.data);
     } catch (error) {
       console.error("Error fetching zone name:", error);
@@ -150,7 +150,7 @@ const Dashboard = () => {
   // Function to fetch invoices based on createdAt date
   async function fetchInvoicesByDate(createdAt) {
     try {
-      const response = await axios.get("/api/get-all-invoices-by-date", {
+      const response = await axios.get("https://api-skainvoice.top/api/get-all-invoices-by-date", {
         params: {
           createdAt: createdAt,
         },
@@ -167,7 +167,7 @@ const Dashboard = () => {
 
   async function fetchProductsBasedOnArea(data) {
     try {
-      const response = await axios.get("/api/get-products/based-on-area", {
+      const response = await axios.get("https://api-skainvoice.top/api/get-products/based-on-area", {
         params: {
           invoiceDate: data.date,
           area: data.shopArea,

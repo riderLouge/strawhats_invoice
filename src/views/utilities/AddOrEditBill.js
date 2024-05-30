@@ -60,7 +60,7 @@ export default function Invoice() {
 
   const fetchInvoices = async () => {
     try {
-      const response = await axios.get("/api/invoices");
+      const response = await axios.get("https://api-skainvoice.top/api/invoices");
       setData(response.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -70,7 +70,7 @@ export default function Invoice() {
 
   const deleteInvoice = async () => {
     try {
-      const response = await axios.delete(`/api/invoice/delete/${selectedItem.id}`);
+      const response = await axios.delete(`https://api-skainvoice.top/api/invoice/delete/${selectedItem.id}`);
       if (response.status === 200) {
         setSuccess(true);
         setOpenErrorAlert(true);
@@ -89,7 +89,7 @@ export default function Invoice() {
   const updateInvoiceProductQuantity = async () => {
     const updatedProductQuantity = document.getElementById("productQuantity").value;
     try {
-      const response = await axios.put(`/api/invoice/update-product/${selectedItem.id}`, {
+      const response = await axios.put(`https://api-skainvoice.top/api/invoice/update-product/${selectedItem.id}`, {
         productId: selectedProduct.productId,
         quantity: parseInt(updatedProductQuantity) || 0,
       });

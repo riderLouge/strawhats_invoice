@@ -888,6 +888,48 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
     res.status(500).json({ status: "failure", error: "Internal server error" });
   }
 });
+//* Check product availability
+app.get('/api/product/availability-check', async (req, res) => {
+  try {
+    // Extract product ID and requested quantity from the request query
+    const { productId, requestedQuantity } = req.query;
+
+    if (!productId || !requestedQuantity) {
+      return res.status(400).json({ error: 'Product ID and requested quantity are required.' });
+    }
+
+    // Convert requestedQuantity to a number
+    const requestedQty = parseInt(requestedQuantity, 10);
+
+    if (isNaN(requestedQty) || requestedQty <= 0) {
+      return res.status(400).json({ error: 'Requested quantity must be a positive number.' });
+    }
+
+    // Fetch the product from the database
+    const product = await prisma.product.findUnique({
+      where: { ID: parseInt(productId, 10) },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    const availableQty = parseInt(product.FQTY, 10) || 0;
+    // Check if the product has enough quantity
+    const isAvailable = availableQty >= requestedQty;
+
+    res.status(200).json({
+      productId: product.ID,
+      productName: product.CNAME,
+      availableQuantity: availableQty,
+      requestedQuantity: requestedQty,
+      isAvailable,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while checking product availability.' });
+  }
+});
 
 // Get all zone name values
 app.get("/api/get-all-zone-name", async (req, res) => {

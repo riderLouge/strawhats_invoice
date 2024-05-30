@@ -35,7 +35,7 @@ const UtilitiesCreateBill = () => {
   const [zoneNames, setZoneNames] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
 
-  console.log(zoneNames);
+  console.log(formData);
   const fetchCustomers = async () => {
     try {
       const response = await axios.get(
@@ -110,37 +110,59 @@ const UtilitiesCreateBill = () => {
     });
   };
 
+  const checkProductAvailability = async () => {
+    try {
+      const response = await axios.get('https://api-skainvoice.top/api/product/availability-check', {
+        params: { productId: formData.productId, requestedQuantity: formData.quantity },
+      });
+      console.log(response);
+      if (response.data.isAvailable) {
+        const totalWithoutGST = formData.quantity * formData.rate;
+        const totalWithGST =
+          totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
+        const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
+        const totalWithDiscount = totalWithGST - discountAmount;
+    
+        setTableData([
+          ...tableData,
+          {
+            ...formData,
+            totalWithoutGST,
+            totalWithGST,
+            totalWithDiscount,
+          },
+        ]);
+    
+        setFormData({
+          ...formData, // Keep other form data fields
+          productName: "", // Clear product name
+          quantity: "",
+          rate: "",
+          hsnNumber: "",
+          discount: "",
+          gst: "",
+          mrp: "",
+          purchasePrice: "",
+        });
+    
+        // Clear the Autocomplete component
+        setSelectedProduct(null);
+      } else {
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.availableQuantity === 0 
+          ? 'Product out of stock' 
+          : `Only ${response.data.availableQuantity} items available. Please adjust your quantity.`);
+      }
+      // setAvailability(response.data);
+    } catch (err) {
+      // setAvailability(null);
+      console.log(err.response?.data?.error || 'An error occurred');
+    }
+  };
+
   const handleAdd = () => {
-    const totalWithoutGST = formData.quantity * formData.rate;
-    const totalWithGST =
-      totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
-    const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
-    const totalWithDiscount = totalWithGST - discountAmount;
-
-    setTableData([
-      ...tableData,
-      {
-        ...formData,
-        totalWithoutGST,
-        totalWithGST,
-        totalWithDiscount,
-      },
-    ]);
-
-    setFormData({
-      ...formData, // Keep other form data fields
-      productName: "", // Clear product name
-      quantity: "",
-      rate: "",
-      hsnNumber: "",
-      discount: "",
-      gst: "",
-      mrp: "",
-      purchasePrice: "",
-    });
-
-    // Clear the Autocomplete component
-    setSelectedProduct(null);
+    checkProductAvailability();
   };
   const clearCustomerDetails = () => {
     setSelectedCustomer(null);
@@ -180,7 +202,7 @@ const UtilitiesCreateBill = () => {
       console.log(invoiceData);
   
       try {
-        const response = await axios.post("/api/invoice/create", invoiceData);
+        const response = await axios.post("https://api-skainvoice.top/api/invoice/create", invoiceData);
         console.log("Invoice saved successfully:", response.data);
         setFormData({});
         setTableData([]);
