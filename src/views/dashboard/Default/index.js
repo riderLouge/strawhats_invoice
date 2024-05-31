@@ -111,14 +111,14 @@ const Dashboard = () => {
       { header: "Price", dataKey: "price" },
       { header: "Total", dataKey: "total" },
     ];
-
+    console.log(data);
     const rows = data.map((product, index) => ({
       serialNo: index + 1,
       productName: product.name,
       quantity: product.quantity,
-      price: product.currentPrice,
+      price: product.rate,
       total: parseFloat(
-        Number(product.currentPrice) * Number(product.quantity)
+        Number(product.rate) * Number(product.quantity)
       ).toFixed(2),
     }));
 
@@ -132,7 +132,7 @@ const Dashboard = () => {
     const totalAmount = data.reduce(
       (sum, product) =>
         sum +
-        parseFloat(Number(product.currentPrice) * Number(product.quantity)),
+        parseFloat(Number(product.rate) * Number(product.quantity)),
       0
     );
     doc.setFont("helvetica", "bold");
@@ -169,7 +169,7 @@ const Dashboard = () => {
 
   async function fetchProductsBasedOnArea(data) {
     try {
-      const response = await axios.get("https://api-skainvoice.top/api/get-products/based-on-area", {
+      const response = await axios.get("/api/get-products/based-on-area", {
         params: {
           invoiceDate: data.date,
           area: data.shopArea,

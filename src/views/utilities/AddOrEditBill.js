@@ -147,7 +147,7 @@ export default function Invoice() {
     {
       accessorKey: "invoiceDate",
       header: "Invoice Date",
-      Cell: ({ row }) => moment(row.original.createdAt).format('DD/MM/YYYY')
+      Cell: ({ row }) => moment(row.original.invoiceDate).format('DD/MM/YYYY')
     },
     {
       accessorKey: "user.name",

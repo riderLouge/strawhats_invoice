@@ -385,13 +385,13 @@ app.post("/api/invoice/create", async (req, res) => {
     });
     // Update product quantities
     for (const product of products) {
-      const existingProduct = await prisma.product.findUnique({ where: { ID: product.id } });
+      const existingProduct = await prisma.product.findUnique({ where: { ID: product.productId } });
       if (!existingProduct) {
-        throw new Error(`Product with ID ${product.id} not found`);
+        throw new Error(`Product with ID ${product.productId} not found`);
       }
       const updatedQuantity = parseInt(existingProduct.FQTY) - product.quantity;
       await prisma.product.update({
-        where: { ID: product.id },
+        where: { ID: product.productId },
         data: { FQTY: updatedQuantity.toString() },
       });
     }
@@ -424,7 +424,7 @@ app.get("/api/invoices", async (req, res) => {
 });
 app.get("/api/get-all-invoices-by-date", async (req, res) => {
   try {
-    const createdAt = req.query.createdAt;
+    const { createdAt } = req.query;
     if (!createdAt)
       return res.status(400).json({
         status: "failed",
@@ -432,17 +432,16 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
       });
 
     const createdAtDate = new Date(createdAt);
-    console.log(createdAt, "==", createdAtDate);
-
+    createdAtDate.setHours(0, 0, 0, 0);
     const invoices = await prisma.invoice.findMany({
       where: {
-        createdAt: {
+        invoiceDate: {
           gte: createdAtDate,
-          lt: new Date(createdAtDate),
+          lt: new Date(createdAtDate.getTime() + 24 * 60 * 60 * 1000),
         },
       },
     });
-
+    console.log(invoices);
     //Getting the products array from the each invoices
     const invoiceProducts = invoices
       .flatMap((data) => data.products)
@@ -459,7 +458,7 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
 
     const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
       if (acc[product.productId]) {
-        acc[product.productId].quantity += product.quantity;
+        acc[product.productId].quantity = Number(acc[product.productId].quantity) + Number(product.quantity);
       } else {
         acc[product.productId] = { ...product };
       }
@@ -842,9 +841,10 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
         .json({ message: "Date field shouldn't be empty", status: "failure" });
     }
     const createdAtDate = new Date(invoiceDate);
+    createdAtDate.setHours(0, 0, 0, 0);
     const invoices = await prisma.invoice.findMany({
       where: {
-        createdAt: {
+        invoiceDate: {
           gte: createdAtDate,
           lt: new Date(createdAtDate.getTime() + 24 * 60 * 60 * 1000),
         },
@@ -868,8 +868,9 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
       });
 
     const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
+      console.log(product.quantity);
       if (acc[product.productId]) {
-        acc[product.productId].quantity += product.quantity;
+        acc[product.productId].quantity = Number(acc[product.productId].quantity) + Number(product.quantity);
       } else {
         acc[product.productId] = { ...product };
       }

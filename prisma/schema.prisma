@@ -124,7 +124,7 @@ model CreditDebit {
   invoiceDate   DateTime
   shopId        Int
   status        String
-  total         Int
+  total         Float
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

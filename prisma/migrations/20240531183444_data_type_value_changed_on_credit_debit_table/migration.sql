@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "CreditDebit" ALTER COLUMN "total" SET DATA TYPE DOUBLE PRECISION;
