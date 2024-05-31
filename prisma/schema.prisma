@@ -120,6 +120,7 @@ model Invoice {
 model CreditDebit {
   id            String   @id @default(uuid()) @map("credit_debit_id")
   invoiceNumber Int
+  invoiceId     String
   invoiceDate   DateTime
   shopId        Int
   status        String

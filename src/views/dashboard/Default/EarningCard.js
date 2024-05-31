@@ -54,7 +54,7 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
 
 // ===========================|| DASHBOARD DEFAULT - EARNING CARD ||=========================== //
 
-const EarningCard = ({ isLoading }) => {
+const EarningCard = ({ isLoading, count }) => {
   const theme = useTheme();
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -88,49 +88,8 @@ const EarningCard = ({ isLoading }) => {
                       }}
                     >
                       <CurrencyRupeeIcon sx={{ color: "white" }} />
-                      {/* <img src={EarningIcon} alt="Notification" /> */}
                     </Avatar>
                   </Grid>
-                  {/* <Grid item>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        ...theme.typography.commonAvatar,
-                        ...theme.typography.mediumAvatar,
-                        backgroundColor: theme.palette.secondary.dark,
-                        color: theme.palette.secondary[200],
-                        zIndex: 1,
-                      }}
-                      aria-controls="menu-earning-card"
-                      aria-haspopup="true"
-                      onClick={handleClick}
-                    >
-                      <MoreHorizIcon fontSize="inherit" />
-                    </Avatar>
-                    <Menu
-                      id="menu-earning-card"
-                      anchorEl={anchorEl}
-                      keepMounted
-                      open={Boolean(anchorEl)}
-                      onClose={handleClose}
-                      variant="selectedMenu"
-                      anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "right",
-                      }}
-                      transformOrigin={{
-                        vertical: "top",
-                        horizontal: "right",
-                      }}
-                    >
-                      <MenuItem onClick={handleClose}>
-                        <GetAppTwoToneIcon sx={{ mr: 1.75 }} /> Download
-                      </MenuItem>
-                      <MenuItem onClick={handleClose}>
-                        <AttachEmailIcon sx={{ mr: 1.75 }} /> Send via mail
-                      </MenuItem>
-                    </Menu>
-                  </Grid> */}
                 </Grid>
               </Grid>
               <Grid item>
@@ -148,21 +107,6 @@ const EarningCard = ({ isLoading }) => {
                       Debit
                     </Typography>
                   </Grid>
-                  {/* <Grid item>
-                    <Avatar
-                      sx={{
-                        cursor: "pointer",
-                        ...theme.typography.smallAvatar,
-                        backgroundColor: theme.palette.secondary[200],
-                        color: theme.palette.secondary.dark,
-                      }}
-                    >
-                      <ArrowUpwardIcon
-                        fontSize="inherit"
-                        sx={{ transform: "rotate3d(1, 1, 1, 45deg)" }}
-                      />
-                    </Avatar>
-                  </Grid> */}
                 </Grid>
               </Grid>
               <Grid item sx={{ mb: 1.25 }}>
@@ -173,7 +117,7 @@ const EarningCard = ({ isLoading }) => {
                     color: theme.palette.secondary[200],
                   }}
                 >
-                  Pending : 20
+                  Pending : {count}
                 </Typography>
               </Grid>
             </Grid>

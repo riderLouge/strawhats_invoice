@@ -28,7 +28,7 @@ const other = {
     },
     {
       id: "icons",
-      title: "Supplier Inovice",
+      title: "Supplier Invoice",
       type: "collapse",
       icon: icons.IconFileInvoice,
       children: [

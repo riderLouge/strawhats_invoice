@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-
-// material-ui
+import { useEffect, useState } from "react";
 import {
   Autocomplete,
   Card,
@@ -11,14 +9,16 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableFooter,
   TableHead,
   TableRow,
   TextField,
   Typography,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
-
-// project imports
 import EarningCard from "./EarningCard";
 import PopularCard from "./PopularCard";
 import TotalOrderLineChartCard from "./TotalOrderLineChartCard";
@@ -33,14 +33,19 @@ import "jspdf-autotable";
 import moment from "moment";
 import { useOverAllContext } from "../../../context/overAllContext";
 
-// ==============================|| DEFAULT DASHBOARD ||============================== //
-
 const Dashboard = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [openDialog, setOpenDialog] = useState(false);
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [pdfType, setPdfType] = useState("");
   const [zoneNames, setZoneNames] = useState([]);
+  const [credit, setCredit] = useState([]);
+  const [debit, setDebit] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [filteredCredit, setFilteredCredit] = useState([]);
+  const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState("");
+  const [selectedShopId, setSelectedShopId] = useState("");
 
   const fetchZonNames = async () => {
     try {
@@ -50,6 +55,7 @@ const Dashboard = () => {
       console.error("Error fetching zone name:", error);
     }
   };
+
   useEffect(() => {
     setLoading(false);
     fetchZonNames();
@@ -69,21 +75,22 @@ const Dashboard = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+
+  const handleCloseCreditDialog = () => {
+    setCreditDialogOpen(false);
+  };
+
   const downloadInvoice = async (data, invoiceDate, area) => {
     const doc = new jsPDF();
-
-    // Define content
     const date = moment(invoiceDate).format("DD/MM/YYYY");
     const companyName = "Sri Krishna Agencies";
     const shopArea = area;
 
-    // Define positions
     const invoiceNumberX = 15;
     const dateY = 35;
     const companyNameX = 150;
     const companyNameY = 30;
 
-    // Draw text content
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.text("Sales List", 15, 20);
@@ -97,7 +104,6 @@ const Dashboard = () => {
     doc.setFont("helvetica", "bold");
     doc.text(companyName, companyNameX, companyNameY);
 
-    // Define table columns
     const columns = [
       { header: "S.No", dataKey: "serialNo" },
       { header: "Product", dataKey: "productName" },
@@ -106,7 +112,6 @@ const Dashboard = () => {
       { header: "Total", dataKey: "total" },
     ];
 
-    // Generate table rows from data
     const rows = data.map((product, index) => ({
       serialNo: index + 1,
       productName: product.name,
@@ -117,7 +122,6 @@ const Dashboard = () => {
       ).toFixed(2),
     }));
 
-    // Product table with custom options to control the footer
     doc.autoTable({
       head: [columns.map((col) => col.header)],
       body: rows.map((row) => columns.map((col) => row[col.dataKey])),
@@ -125,7 +129,6 @@ const Dashboard = () => {
       columnStyles: { 2: { halign: "center" } },
     });
 
-    // Total amount
     const totalAmount = data.reduce(
       (sum, product) =>
         sum +
@@ -144,10 +147,9 @@ const Dashboard = () => {
     doc.save("SaleList.pdf");
     setSuccess(true);
     setOpenErrorAlert(true);
-    setErrorInfo('Invoice generated successfully');
+    setErrorInfo("Invoice generated successfully");
   };
 
-  // Function to fetch invoices based on createdAt date
   async function fetchInvoicesByDate(createdAt) {
     try {
       const response = await axios.get("/api/get-all-invoices-by-date", {
@@ -190,6 +192,7 @@ const Dashboard = () => {
   const handleSubmitDialog = async () => {
     if (pdfType === "Warehouse") {
       const date = document.getElementById("invoiceDate").value;
+      console.log(date);
       fetchInvoicesByDate(date);
     } else {
       const date = document.getElementById("invoiceDate").value;
@@ -198,6 +201,63 @@ const Dashboard = () => {
     }
   };
 
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/shops/debitcredit");
+      const data = response.data;
+      const creditData = data.filter((item) => item.status === "Credit");
+      const debitData = data.filter((item) => item.status === "Debit");
+      setCredit(creditData);
+      setDebit(debitData);
+      setFilteredCredit(creditData);
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
+
+  const fetchShops = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/shops/fetchItems"
+      );
+      setShops(response.data);
+      const zoneNames = response.data
+        .map((v) => v.ZONNAM)
+        .filter((name) => name);
+      const uniqueZoneNames = [...new Set(zoneNames)];
+      setZoneNames(uniqueZoneNames);
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchShops();
+  }, []);
+
+  const handleCreditClick = () => {
+    setCreditDialogOpen(true);
+  };
+
+  const handleSearch = () => {
+    let filtered = credit;
+    if (selectedInvoiceNumber) {
+      filtered = filtered.filter(
+        (item) => item.invoiceNumber === selectedInvoiceNumber
+      );
+    }
+    if (selectedShopId) {
+      filtered = filtered.filter((item) => item.shopId === selectedShopId);
+    }
+    setFilteredCredit(filtered);
+  };
+
+  const uniqueInvoiceNumbers = [
+    ...new Set(credit.map((item) => item.invoiceNumber)),
+  ];
+  const uniqueShopIds = [...new Set(credit.map((item) => item.shopId))];
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -205,8 +265,11 @@ const Dashboard = () => {
           <Grid item lg={4} md={6} sm={6} xs={12}>
             <EarningCard isLoading={isLoading} />
           </Grid>
-          <Grid item lg={4} md={6} sm={6} xs={12}>
-            <TotalOrderLineChartCard isLoading={isLoading} />
+          <Grid item lg={4} md={6} sm={6} xs={12} onClick={handleCreditClick}>
+            <TotalOrderLineChartCard
+              isLoading={isLoading}
+              count={credit.length}
+            />
           </Grid>
           <Grid item lg={4} md={12} sm={12} xs={12}>
             <Grid container spacing={gridSpacing}>
@@ -281,6 +344,82 @@ const Dashboard = () => {
         handleCloseDialog={handleCloseDialog}
         handleSave={handleSubmitDialog}
       />
+      <Dialog
+        open={creditDialogOpen}
+        onClose={handleCloseCreditDialog}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Credit Data</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={4}>
+              <Autocomplete
+                options={uniqueInvoiceNumbers}
+                getOptionLabel={(option) => option.toString()}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Invoice Number"
+                    variant="outlined"
+                  />
+                )}
+                value={selectedInvoiceNumber}
+                onChange={(event, newValue) =>
+                  setSelectedInvoiceNumber(newValue)
+                }
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <Autocomplete
+                options={uniqueShopIds}
+                getOptionLabel={(option) => option.toString()}
+                renderInput={(params) => (
+                  <TextField {...params} label="Shop ID" variant="outlined" />
+                )}
+                value={selectedShopId}
+                onChange={(event, newValue) => setSelectedShopId(newValue)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
+            </Grid>
+          </Grid>
+          <TableContainer component={Paper} style={{ marginTop: "16px" }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Invoice Number</TableCell>
+                  <TableCell>Shop ID</TableCell>
+                  <TableCell>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredCredit.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{item.invoiceNumber}</TableCell>
+                    <TableCell>{item.shopId}</TableCell>
+                    <TableCell>{item.total}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCreditDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
           <Grid item xs={12} md={8}>

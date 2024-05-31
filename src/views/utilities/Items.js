@@ -18,7 +18,7 @@ const Items = () => {
   const [fileName, setFileName] = useState("");
   const [dialogTitle, setDialogTitle] = useState("");
   const [buttonClicked, setButtonClicked] = useState("");
-  const [products, setProducts] = useState([]); 
+  const [products, setProducts] = useState([]);
   const [modifiedData, setModifiedData] = useState([]);
 
   const columns = useMemo(
@@ -102,7 +102,6 @@ const Items = () => {
     "VIKAAS FOOD PRODUCTS",
   ];
 
-
   const fetchProduct = async () => {
     try {
       const response = await axios.get(
@@ -119,7 +118,6 @@ const Items = () => {
   useEffect(() => {
     fetchProduct();
   }, []);
-
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -254,12 +252,18 @@ const Items = () => {
         );
         console.log("Item edited successfully:", response);
       } else if (buttonClicked === "Stock Adjustment") {
-        const productQuantity = Number(document.getElementById("stockQuantity").value);
-        const damagedQuantity = Number(document.getElementById("damagedQuantity").value);
+        const productQuantity = Number(
+          document.getElementById("stockQuantity").value
+        );
+        const damagedQuantity = Number(
+          document.getElementById("damagedQuantity").value
+        );
         if (damagedQuantity > productQuantity) {
           setSuccess(false);
           setOpenErrorAlert(true);
-          setErrorInfo("Damaged quantity must be lesser than product available quantity");
+          setErrorInfo(
+            "Damaged quantity must be lesser than product available quantity"
+          );
         } else {
           const params = {
             productName: selectedProduct.NAME,
@@ -267,11 +271,12 @@ const Items = () => {
             productQuantity: productQuantity,
             damagedQuantity: damagedQuantity,
             Reason: document.getElementById("reason").value,
-            userId: localStorage.getItem('userId'),
+            userId: localStorage.getItem("userId"),
           };
-          axios.post('https://api-skainvoice.top/api/update/product-stock', params)
-            .then(response => {
-              if (response.data.status === 'success') {
+          axios
+            .post("https://api-skainvoice.top/api/update/product-stock", params)
+            .then((response) => {
+              if (response.data.status === "success") {
                 setSuccess(true);
                 setOpenErrorAlert(true);
                 setErrorInfo(response.data.message);
@@ -281,13 +286,13 @@ const Items = () => {
                       return {
                         ...product,
                         FQTY: response.data.data.updatedProduct.FQTY,
-                      }
+                      };
                     } else {
                       return product;
                     }
-                  })
+                  });
                   return updatedProducts;
-                })
+                });
                 setTimeout(() => {
                   handleCloseDialog();
                 }, 1500);
@@ -296,9 +301,8 @@ const Items = () => {
                 setOpenErrorAlert(true);
                 setErrorInfo(response.data.message);
               }
-            })
+            });
         }
-
       }
     } catch (error) {
       console.error("Error:", error);
@@ -348,8 +352,6 @@ const Items = () => {
     quantity: "",
   });
   const handleProductChange = (event, newValue) => {
-
-
     const selectedProduct = products.find(
       (product) => product.NAME === newValue
     );

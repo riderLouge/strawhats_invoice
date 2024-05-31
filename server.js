@@ -124,6 +124,18 @@ app.get("/api/company/fetchCompany", async (req, res) => {
   }
 });
 
+app.get("/api/shops/debitcredit", async (req, res) => {
+  try {
+    const data = await prisma.creditDebit.findMany();
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the companies" });
+  }
+});
+
 app.post("/api/items/add", async (req, res) => {
   try {
     const newItem = req.body;
@@ -363,7 +375,8 @@ app.post("/api/invoice/create", async (req, res) => {
     });
     await prisma.creditDebit.create({
       data: {
-        invoiceNumber: response.id,
+        invoiceNumber,
+        invoiceId: response.id,
         invoiceDate,
         shopId: shopId,
         status: "Credit",
@@ -399,7 +412,7 @@ app.get("/api/invoices", async (req, res) => {
 });
 app.get("/api/get-all-invoices-by-date", async (req, res) => {
   try {
-    const { createdAt } = req.query;
+    const createdAt = req.query.createdAt;
     if (!createdAt)
       return res.status(400).json({
         status: "failed",
@@ -407,12 +420,13 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
       });
 
     const createdAtDate = new Date(createdAt);
+    console.log(createdAt, "==", createdAtDate);
 
     const invoices = await prisma.invoice.findMany({
       where: {
         createdAt: {
           gte: createdAtDate,
-          lt: new Date(createdAtDate.getTime() + 24 * 60 * 60 * 1000),
+          lt: new Date(createdAtDate),
         },
       },
     });
