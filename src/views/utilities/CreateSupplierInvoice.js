@@ -4,8 +4,10 @@ import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
 import { MaterialReactTable } from "material-react-table";
 import axios from "axios";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const UtilitiesCreateSupplierBill = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [formData, setFormData] = useState({
     invoiceNumber: "",
     billDate: "",
@@ -112,37 +114,59 @@ const UtilitiesCreateSupplierBill = () => {
     });
   };
 
+  const checkProductAvailability = async () => {
+    try {
+      const response = await axios.get('https://api-skainvoice.top/api/product/availability-check', {
+        params: { productId: formData.productId, requestedQuantity: formData.quantity },
+      });
+      console.log(response);
+      if (response.data.isAvailable) {
+        const totalWithoutGST = formData.quantity * formData.rate;
+        const totalWithGST =
+          totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
+        const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
+        const totalWithDiscount = totalWithGST - discountAmount;
+    
+        setTableData([
+          ...tableData,
+          {
+            ...formData,
+            totalWithoutGST,
+            totalWithGST,
+            totalWithDiscount,
+          },
+        ]);
+    
+        setFormData({
+          ...formData, // Keep other form data fields
+          productName: "", // Clear product name
+          quantity: "",
+          rate: "",
+          hsnNumber: "",
+          discount: "",
+          gst: "",
+          mrp: "",
+          purchasePrice: "",
+        });
+    
+        // Clear the Autocomplete component
+        setSelectedProduct(null);
+      } else {
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.availableQuantity === 0 
+          ? 'Product out of stock' 
+          : `Only ${response.data.availableQuantity} items available. Please adjust your quantity.`);
+      }
+      // setAvailability(response.data);
+    } catch (err) {
+      // setAvailability(null);
+      console.log(err.response?.data?.error || 'An error occurred');
+    }
+  };
+
   const handleAdd = () => {
-    const totalWithoutGST = formData.quantity * formData.rate;
-    const totalWithGST =
-      totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
-    const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
-    const totalWithDiscount = totalWithGST - discountAmount;
-
-    setTableData([
-      ...tableData,
-      {
-        ...formData,
-        totalWithoutGST,
-        totalWithGST,
-        totalWithDiscount,
-      },
-    ]);
-
-    setFormData({
-      ...formData, // Keep other form data fields
-      productName: "", // Clear product name
-      quantity: "",
-      rate: "",
-      hsnNumber: "",
-      discount: "",
-      gst: "",
-      mrp: "",
-      purchasePrice: "",
-    });
-
-    // Clear the Autocomplete component
-    setSelectedProduct(null);
+    checkProductAvailability();
   };
   const clearCustomerDetails = () => {
     setSelectedCustomer(null);
@@ -155,13 +179,6 @@ const UtilitiesCreateSupplierBill = () => {
       city: "",
       state: "",
     });
-  };
-  const productData = (data) => {
-    console.log(data);
-    const filteredProductData = data.map((v) => {
-      return { productId: v.productId, currentPrice: v.productCurrentPrice, quantity: v.quantity };
-    });
-    return filteredProductData;
   };
 
   const billTotal = (data) => {
@@ -179,7 +196,7 @@ const UtilitiesCreateSupplierBill = () => {
   const saveAndGenerateInvoice = async () => {
     const invoiceData = {
       billNumber: Number(formData.invoiceNumber) || "",
-      products: productData(tableData),
+      products: tableData,
       billTotal: billTotal(tableData),
       billDate: new Date(formData.billDate).toISOString(),
       paymentMode: formData.paymentType,

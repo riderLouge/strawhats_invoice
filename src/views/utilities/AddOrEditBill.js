@@ -51,7 +51,7 @@ export default function Invoice() {
   const [invoiceType, setInvoiceType] = useState('');
   const [openEditProductPopup, setOpenEditProductPopup] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+ 
   const currentUserRole = constants.role;
 
   const handleCloseDialog = () => {
@@ -264,7 +264,7 @@ export default function Invoice() {
           }
           handleCloseDialog={handleCloseDialog}
           handleSave={handleSubmitDialog}
-          type={invoiceType === 'View invoice' ? 'Invoice' : invoiceType === 'Delete invoice' ? 'Delete' : 'Update'}
+          type={invoiceType === 'View invoice' ? 'Invoice' : invoiceType === 'Delete invoice' ? 'Delete' : invoiceType === 'Edit invoice' ? 'Invoice' : 'Update'}
           width={(invoiceType === 'Edit invoice' || invoiceType === 'Edit Product') ? 'lg' : 'md'}
         />
         <DialogTemplate
