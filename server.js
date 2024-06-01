@@ -362,6 +362,7 @@ app.post("/api/invoice/create", async (req, res) => {
     } else if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    console.log(total);
 
     // Create the invoice
     const response = await prisma.invoice.create({
@@ -380,12 +381,14 @@ app.post("/api/invoice/create", async (req, res) => {
         invoiceDate,
         shopId: shopId,
         status: "Credit",
-        total,
+        total: total,
       },
     });
     // Update product quantities
     for (const product of products) {
-      const existingProduct = await prisma.product.findUnique({ where: { ID: product.productId } });
+      const existingProduct = await prisma.product.findUnique({
+        where: { ID: product.productId },
+      });
       if (!existingProduct) {
         throw new Error(`Product with ID ${product.productId} not found`);
       }
@@ -458,7 +461,8 @@ app.get("/api/get-all-invoices-by-date", async (req, res) => {
 
     const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
       if (acc[product.productId]) {
-        acc[product.productId].quantity = Number(acc[product.productId].quantity) + Number(product.quantity);
+        acc[product.productId].quantity =
+          Number(acc[product.productId].quantity) + Number(product.quantity);
       } else {
         acc[product.productId] = { ...product };
       }
@@ -870,7 +874,8 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
     const aggregatedProducts = invoiceProducts.reduce((acc, product) => {
       console.log(product.quantity);
       if (acc[product.productId]) {
-        acc[product.productId].quantity = Number(acc[product.productId].quantity) + Number(product.quantity);
+        acc[product.productId].quantity =
+          Number(acc[product.productId].quantity) + Number(product.quantity);
       } else {
         acc[product.productId] = { ...product };
       }
@@ -916,20 +921,24 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
   }
 });
 //* Check product availability
-app.get('/api/product/availability-check', async (req, res) => {
+app.get("/api/product/availability-check", async (req, res) => {
   try {
     // Extract product ID and requested quantity from the request query
     const { productId, requestedQuantity } = req.query;
 
     if (!productId || !requestedQuantity) {
-      return res.status(400).json({ error: 'Product ID and requested quantity are required.' });
+      return res
+        .status(400)
+        .json({ error: "Product ID and requested quantity are required." });
     }
 
     // Convert requestedQuantity to a number
     const requestedQty = parseInt(requestedQuantity);
 
     if (isNaN(requestedQty) || requestedQty <= 0) {
-      return res.status(400).json({ error: 'Requested quantity must be a positive number.' });
+      return res
+        .status(400)
+        .json({ error: "Requested quantity must be a positive number." });
     }
 
     // Fetch the product from the database
@@ -938,7 +947,7 @@ app.get('/api/product/availability-check', async (req, res) => {
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found.' });
+      return res.status(404).json({ error: "Product not found." });
     }
 
     const availableQty = parseInt(product.FQTY) || 0;
@@ -954,7 +963,9 @@ app.get('/api/product/availability-check', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred while checking product availability.' });
+    res.status(500).json({
+      error: "An error occurred while checking product availability.",
+    });
   }
 });
 

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   Autocomplete,
-  Card,
-  CardContent,
   Grid,
   Paper,
   Table,
@@ -12,12 +10,14 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  ToggleButtonGroup,
+  ToggleButton,
+  Typography,
 } from "@mui/material";
 import EarningCard from "./EarningCard";
 import PopularCard from "./PopularCard";
@@ -32,6 +32,8 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import moment from "moment";
 import { useOverAllContext } from "../../../context/overAllContext";
+import { CreditCard } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 
 const Dashboard = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
@@ -42,24 +44,51 @@ const Dashboard = () => {
   const [zoneNames, setZoneNames] = useState([]);
   const [credit, setCredit] = useState([]);
   const [debit, setDebit] = useState([]);
-  const [shops, setShops] = useState([]);
-  const [filteredCredit, setFilteredCredit] = useState([]);
   const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState("");
   const [selectedShopId, setSelectedShopId] = useState("");
+  const [searchBy, setSearchBy] = useState("invoice"); // 'invoice' or 'shop'
+  const [selectedZoneName, setSelectedZoneName] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+  const theme = useTheme();
 
   const fetchZonNames = async () => {
     try {
-      const response = await axios.get("https://api-skainvoice.top/api/get-all-zone-name");
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/get-all-zone-name"
+      );
       setZoneNames(response.data.data);
+      const debitcreditResponse = await axios.get("/api/shops/debitcredit");
+      const data = debitcreditResponse.data;
+      const creditData = data.filter((item) => item.status === "Credit");
+      const debitData = data.filter((item) => item.status === "Debit");
+      const fetchItemsResponse = await axios.get(
+        "https://api-skainvoice.top/api/shops/fetchItems"
+      );
+
+      const updatedCredit = creditData.map((creditItem) => {
+        const matchingShop = fetchItemsResponse.data.find(
+          (shop) => shop.shopId === creditItem.shopId
+        );
+        if (matchingShop) {
+          console.log(matchingShop);
+          // Update credit item with additional data from matching shop
+          return {
+            ...creditItem,
+            shopName: matchingShop.CUSNAM,
+            zoneName: matchingShop.ZONNAM,
+          };
+        }
+        return creditItem; // Return original credit item if no match found
+      });
+
+      setCredit(updatedCredit);
+      setDebit(debitData);
+      setFilteredData(creditData);
+      console.log(filteredData, "00000");
     } catch (error) {
       console.error("Error fetching zone name:", error);
     }
   };
-
-  useEffect(() => {
-    setLoading(false);
-    fetchZonNames();
-  }, []);
 
   const handleWarehousePdf = () => {
     setPdfType("Warehouse");
@@ -111,7 +140,6 @@ const Dashboard = () => {
       { header: "Price", dataKey: "price" },
       { header: "Total", dataKey: "total" },
     ];
-    console.log(data);
     const rows = data.map((product, index) => ({
       serialNo: index + 1,
       productName: product.name,
@@ -131,8 +159,7 @@ const Dashboard = () => {
 
     const totalAmount = data.reduce(
       (sum, product) =>
-        sum +
-        parseFloat(Number(product.rate) * Number(product.quantity)),
+        sum + parseFloat(Number(product.rate) * Number(product.quantity)),
       0
     );
     doc.setFont("helvetica", "bold");
@@ -152,7 +179,7 @@ const Dashboard = () => {
 
   async function fetchInvoicesByDate(createdAt) {
     try {
-      const response = await axios.get("https://api-skainvoice.top/api/get-all-invoices-by-date", {
+      const response = await axios.get("/api/get-all-invoices-by-date", {
         params: {
           createdAt: createdAt,
         },
@@ -192,7 +219,6 @@ const Dashboard = () => {
   const handleSubmitDialog = async () => {
     if (pdfType === "Warehouse") {
       const date = document.getElementById("invoiceDate").value;
-      console.log(date);
       fetchInvoicesByDate(date);
     } else {
       const date = document.getElementById("invoiceDate").value;
@@ -201,69 +227,62 @@ const Dashboard = () => {
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get("/api/shops/debitcredit");
-      const data = response.data;
-      const creditData = data.filter((item) => item.status === "Credit");
-      const debitData = data.filter((item) => item.status === "Debit");
-      setCredit(creditData);
-      setDebit(debitData);
-      setFilteredCredit(creditData);
-    } catch (error) {
-      console.error("Error fetching company:", error);
-    }
-  };
-
-  const fetchShops = async () => {
-    try {
-      const response = await axios.get(
-        "https://api-skainvoice.top/api/shops/fetchItems"
-      );
-      setShops(response.data);
-      const zoneNames = response.data
-        .map((v) => v.ZONNAM)
-        .filter((name) => name);
-      const uniqueZoneNames = [...new Set(zoneNames)];
-      setZoneNames(uniqueZoneNames);
-    } catch (error) {
-      console.error("Error fetching company:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-    fetchShops();
+    fetchZonNames();
+    setLoading(false);
   }, []);
 
   const handleCreditClick = () => {
     setCreditDialogOpen(true);
   };
-
   const handleSearch = () => {
-    let filtered = credit;
-    if (selectedInvoiceNumber) {
-      filtered = filtered.filter(
+    // Filter data based on selected criteria
+    let newData = [...credit];
+
+    if (searchBy === "invoice" && selectedInvoiceNumber) {
+      newData = newData.filter(
         (item) => item.invoiceNumber === selectedInvoiceNumber
       );
+    } else if (searchBy === "shop" && selectedZoneName && selectedShopId) {
+      newData = newData.filter(
+        (item) =>
+          item.shopName === selectedShopId && item.zoneName === selectedZoneName
+      );
+    } else if (searchBy === "shop" && selectedZoneName) {
+      newData = newData.filter((item) => item.zoneName === selectedZoneName);
+    } else if (searchBy === "shop" && selectedShopId) {
+      newData = newData.filter((item) => item.shopName === selectedShopId);
     }
-    if (selectedShopId) {
-      filtered = filtered.filter((item) => item.shopId === selectedShopId);
-    }
-    setFilteredCredit(filtered);
+
+    setFilteredData(newData);
   };
+
+  const zoneOptions = credit
+    .filter((item) => item.shopName === selectedShopId)
+    .map((item) => item.zoneName)
+    .filter((name, index, self) => self.indexOf(name) === index);
+
+  const shopOptions = credit
+    .filter((item) => item.zoneName === selectedZoneName)
+    .map((item) => item.shopName)
+    .filter((name, index, self) => self.indexOf(name) === index);
 
   const uniqueInvoiceNumbers = [
     ...new Set(credit.map((item) => item.invoiceNumber)),
   ];
   const uniqueShopIds = [...new Set(credit.map((item) => item.shopId))];
 
+  const handleToggle = (event, newSearchBy) => {
+    if (newSearchBy !== null) {
+      setSearchBy(newSearchBy);
+    }
+  };
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
           <Grid item lg={4} md={6} sm={6} xs={12}>
-            <EarningCard isLoading={isLoading} />
+            <EarningCard isLoading={isLoading} count={debit.length} />
           </Grid>
           <Grid item lg={4} md={6} sm={6} xs={12} onClick={handleCreditClick}>
             <TotalOrderLineChartCard
@@ -350,43 +369,139 @@ const Dashboard = () => {
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>Credit Data</DialogTitle>
+        <DialogTitle
+          style={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: theme.palette.primary.main,
+            padding: "16px",
+            marginBottom: "16px",
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            borderRadius: "4px 4px 0 0",
+            color: "white",
+          }}
+        >
+          <CreditCard style={{ marginRight: "10px", color: "white" }} />
+          <Typography
+            variant="h4"
+            style={{ fontWeight: "bold", color: "white" }}
+          >
+            Credit Data
+          </Typography>
+        </DialogTitle>
         <DialogContent>
+          <ToggleButtonGroup
+            value={searchBy}
+            exclusive
+            onChange={handleToggle}
+            aria-label="search by"
+            style={{ marginBottom: "16px" }}
+          >
+            <ToggleButton
+              value="invoice"
+              aria-label="invoice number"
+              style={{
+                padding: "8px 16px",
+                textAlign: "center",
+                border: "1px solid #ccc",
+                backgroundColor:
+                  searchBy === "invoice"
+                    ? theme.palette.primary.main
+                    : "#f0f0f0",
+                color: searchBy === "invoice" ? "white" : "#333",
+                transition: "background-color 0.3s, color 0.3s",
+              }}
+            >
+              Invoice Number
+            </ToggleButton>
+            <ToggleButton
+              value="shop"
+              aria-label="shop"
+              style={{
+                padding: "8px 16px",
+                textAlign: "center",
+                border: "1px solid #ccc",
+                backgroundColor:
+                  searchBy === "shop" ? theme.palette.primary.main : "#f0f0f0",
+                color: searchBy === "shop" ? "white" : "#333",
+                transition: "background-color 0.3s, color 0.3s",
+              }}
+            >
+              Shop
+            </ToggleButton>
+          </ToggleButtonGroup>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={4}>
-              <Autocomplete
-                options={uniqueInvoiceNumbers}
-                getOptionLabel={(option) => option.toString()}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Invoice Number"
-                    variant="outlined"
+            {searchBy === "invoice" && (
+              <Grid item xs={6}>
+                <Autocomplete
+                  options={uniqueInvoiceNumbers}
+                  getOptionLabel={(option) => option.toString()}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Invoice Number"
+                      variant="outlined"
+                    />
+                  )}
+                  value={selectedInvoiceNumber}
+                  onChange={(event, newValue) =>
+                    setSelectedInvoiceNumber(newValue)
+                  }
+                  fullWidth
+                />
+              </Grid>
+            )}
+            {searchBy === "shop" && (
+              <>
+                <Grid item xs={4}>
+                  <Autocomplete
+                    options={credit
+                      .map((item) => item.zoneName)
+                      .filter(
+                        (name, index, self) => self.indexOf(name) === index
+                      )}
+                    getOptionLabel={(option) => option.toString()}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Zone Name"
+                        variant="outlined"
+                      />
+                    )}
+                    value={selectedZoneName}
+                    onChange={(event, newValue) =>
+                      setSelectedZoneName(newValue)
+                    }
+                    fullWidth
                   />
-                )}
-                value={selectedInvoiceNumber}
-                onChange={(event, newValue) =>
-                  setSelectedInvoiceNumber(newValue)
-                }
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={4}>
-              <Autocomplete
-                options={uniqueShopIds}
-                getOptionLabel={(option) => option.toString()}
-                renderInput={(params) => (
-                  <TextField {...params} label="Shop ID" variant="outlined" />
-                )}
-                value={selectedShopId}
-                onChange={(event, newValue) => setSelectedShopId(newValue)}
-                fullWidth
-              />
-            </Grid>
+                </Grid>
+                <Grid item xs={4}>
+                  <Autocomplete
+                    options={credit
+                      .map((item) => item.shopName)
+                      .filter(
+                        (name, index, self) => self.indexOf(name) === index
+                      )}
+                    getOptionLabel={(option) => option.toString()}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Shop Name"
+                        variant="outlined"
+                      />
+                    )}
+                    value={selectedShopId}
+                    onChange={(event, newValue) => setSelectedShopId(newValue)}
+                    fullWidth
+                  />
+                </Grid>
+              </>
+            )}
             <Grid item xs={4}>
               <Button
                 variant="contained"
                 color="primary"
+                style={{ backgroundColor: theme.palette.primary.main }}
                 onClick={handleSearch}
               >
                 Search
@@ -403,7 +518,7 @@ const Dashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredCredit.map((item, index) => (
+                {filteredData.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell>{item.invoiceNumber}</TableCell>
                     <TableCell>{item.shopId}</TableCell>

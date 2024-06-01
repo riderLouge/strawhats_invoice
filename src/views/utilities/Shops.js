@@ -352,7 +352,7 @@ const Shops = () => {
       <Card sx={{ overflow: "hidden" }}>
         <MaterialReactTable columns={columns} data={shops} />
       </Card>
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         style={{
@@ -365,8 +365,8 @@ const Shops = () => {
         onClick={() => handleOpenDialog("Import")}
       >
         Import
-      </Button>
-      {/* <Button
+      </Button> */}
+      <Button
         variant="contained"
         color="primary"
         style={{
@@ -379,7 +379,7 @@ const Shops = () => {
         onClick={handleExportToExcel}
       >
         Export to Excel
-      </Button> */}
+      </Button>
       <Button
         variant="contained"
         color="secondary"
