@@ -27,7 +27,7 @@ export default function SupplierViewInvoice({ data }) {
   const [invoiceProducts, setInvoiceProducts] = useState([]);
   const supplierInvoiceRef = useRef(null);
   const supplierHeaderRef = useRef(null);
-  console.log(data);
+  console.log(invoiceProducts);
   const fetchInvoiceProducts = async (products) => {
     try {
       const response = await axios.post("https://api-skainvoice.top/api/invoice/products", { products });
@@ -40,7 +40,7 @@ export default function SupplierViewInvoice({ data }) {
 
   const totalProductAmount = (data) => {
     const total = data.reduce((acc, cur) => {
-      return acc + Number(cur.SPRICE) * Number(cur.quantity);
+      return acc + Number(cur.productCurrentPrice) * Number(cur.quantity);
     }, 0);
     return total;
   };
@@ -257,12 +257,12 @@ export default function SupplierViewInvoice({ data }) {
                 return (
                   <TableRow key={data.ID}>
                     <TableCell>{sNo}</TableCell>
-                    <TableCell>{data.NAME}</TableCell>
+                    <TableCell>{data.productName}</TableCell>
                     <TableCell align="center">{data.quantity}</TableCell>
-                    <TableCell align="right">{data.SPRICE}</TableCell>
+                    <TableCell align="right">{data.rate}</TableCell>
                     <TableCell align="right">
                       {parseFloat(
-                        Number(data.SPRICE) * Number(data.quantity)
+                        Number(data.productCurrentPrice) * Number(data.quantity)
                       ).toFixed(2)}
                     </TableCell>
                   </TableRow>
