@@ -45,7 +45,9 @@ const PopularCard = ({ isLoading }) => {
 
   const fetchProduct = async () => {
     try {
-      const response = await axios.get("/api/products/fetchItems");
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/products/fetchItems"
+      );
       const filteredProducts = response.data.filter((product) => product.HSN);
       const productsWithZeroFQTY = filteredProducts.filter(
         (product) => product.FQTY === ""

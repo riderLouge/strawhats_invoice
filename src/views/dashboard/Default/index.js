@@ -57,7 +57,9 @@ const Dashboard = () => {
         "https://api-skainvoice.top/api/get-all-zone-name"
       );
       setZoneNames(response.data.data);
-      const debitcreditResponse = await axios.get("/api/shops/debitcredit");
+      const debitcreditResponse = await axios.get(
+        "https://api-skainvoice.top/api/shops/debitcredit"
+      );
       const data = debitcreditResponse.data;
       const creditData = data.filter((item) => item.status === "Credit");
       const debitData = data.filter((item) => item.status === "Debit");
@@ -179,11 +181,14 @@ const Dashboard = () => {
 
   async function fetchInvoicesByDate(createdAt) {
     try {
-      const response = await axios.get("/api/get-all-invoices-by-date", {
-        params: {
-          createdAt: createdAt,
-        },
-      });
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/get-all-invoices-by-date",
+        {
+          params: {
+            createdAt: createdAt,
+          },
+        }
+      );
       downloadInvoice(response.data.data, response.data.invoiceDate);
     } catch (error) {
       console.error("Error fetching invoices:", error.message);
@@ -196,12 +201,15 @@ const Dashboard = () => {
 
   async function fetchProductsBasedOnArea(data) {
     try {
-      const response = await axios.get("/api/get-products/based-on-area", {
-        params: {
-          invoiceDate: data.date,
-          area: data.shopArea,
-        },
-      });
+      const response = await axios.get(
+        "https://api-skainvoice.top//api/get-products/based-on-area",
+        {
+          params: {
+            invoiceDate: data.date,
+            area: data.shopArea,
+          },
+        }
+      );
       downloadInvoice(
         response.data.data,
         response.data.invoiceDate,

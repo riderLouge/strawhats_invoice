@@ -31,7 +31,7 @@ const UtilitiesCreateBill = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedZone, setSelectedZone] = useState('');
+  const [selectedZone, setSelectedZone] = useState("");
   const [zoneNames, setZoneNames] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
 
@@ -42,7 +42,9 @@ const UtilitiesCreateBill = () => {
         "https://api-skainvoice.top/api/shops/fetchItems"
       );
       setCustomers(response.data);
-      const zoneNames = response.data.map((v) => v.ZONNAM).filter((name) => name);
+      const zoneNames = response.data
+        .map((v) => v.ZONNAM)
+        .filter((name) => name);
       const uniqueZoneNames = [...new Set(zoneNames)];
       setZoneNames(uniqueZoneNames);
     } catch (error) {
@@ -96,8 +98,9 @@ const UtilitiesCreateBill = () => {
     setSelectedCustomer(customer);
 
     // Concatenate address fields for billing address
-    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${customer.ADRTHR || ""
-      }`;
+    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${
+      customer.ADRTHR || ""
+    }`;
 
     setFormData({
       ...formData,
@@ -112,9 +115,15 @@ const UtilitiesCreateBill = () => {
 
   const checkProductAvailability = async () => {
     try {
-      const response = await axios.get('https://api-skainvoice.top/api/product/availability-check', {
-        params: { productId: formData.productId, requestedQuantity: formData.quantity },
-      });
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/product/availability-check",
+        {
+          params: {
+            productId: formData.productId,
+            requestedQuantity: formData.quantity,
+          },
+        }
+      );
       console.log(response);
       if (response.data.isAvailable) {
         const totalWithoutGST = formData.quantity * formData.rate;
@@ -122,7 +131,7 @@ const UtilitiesCreateBill = () => {
           totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
         const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
         const totalWithDiscount = totalWithGST - discountAmount;
-    
+
         setTableData([
           ...tableData,
           {
@@ -132,7 +141,7 @@ const UtilitiesCreateBill = () => {
             totalWithDiscount,
           },
         ]);
-    
+
         setFormData({
           ...formData, // Keep other form data fields
           productName: "", // Clear product name
@@ -144,20 +153,22 @@ const UtilitiesCreateBill = () => {
           mrp: "",
           purchasePrice: "",
         });
-    
+
         // Clear the Autocomplete component
         setSelectedProduct(null);
       } else {
         setSuccess(false);
         setOpenErrorAlert(true);
-        setErrorInfo(response.data.availableQuantity === 0 
-          ? 'Product out of stock' 
-          : `Only ${response.data.availableQuantity} items available. Please adjust your quantity.`);
+        setErrorInfo(
+          response.data.availableQuantity === 0
+            ? "Product out of stock"
+            : `Only ${response.data.availableQuantity} items available. Please adjust your quantity.`
+        );
       }
       // setAvailability(response.data);
     } catch (err) {
       // setAvailability(null);
-      console.log(err.response?.data?.error || 'An error occurred');
+      console.log(err.response?.data?.error || "An error occurred");
     }
   };
 
@@ -182,12 +193,12 @@ const UtilitiesCreateBill = () => {
       return accumulator + (currentItem.totalWithGST || 0);
     }, 0);
     return totalProductAmount;
-}
+  };
   const saveAndGenerateInvoice = async () => {
     if (tableData.length === 0) {
       setSuccess(false);
       setOpenErrorAlert(true);
-      setErrorInfo('please add a product to create invoice');
+      setErrorInfo("please add a product to create invoice");
     } else {
       const invoiceData = {
         invoiceNumber:
@@ -198,11 +209,14 @@ const UtilitiesCreateBill = () => {
         userId: JSON.parse(localStorage.getItem("userId")),
         total: getTotalProductAmount(tableData),
       };
-  
+
       console.log(invoiceData);
-  
+
       try {
-        const response = await axios.post("/api/invoice/create", invoiceData);
+        const response = await axios.post(
+          "https://api-skainvoice.top/api/invoice/create",
+          invoiceData
+        );
         console.log("Invoice saved successfully:", response.data);
         setFormData({});
         setTableData([]);
@@ -210,7 +224,6 @@ const UtilitiesCreateBill = () => {
         console.error("Error saving invoice:", error);
       }
     }
-    
   };
   const columns = [
     {
@@ -261,7 +274,9 @@ const UtilitiesCreateBill = () => {
 
   useEffect(() => {
     if (selectedZone) {
-      const filteredCustomers = customers.filter((v) => v.ZONNAM === selectedZone);
+      const filteredCustomers = customers.filter(
+        (v) => v.ZONNAM === selectedZone
+      );
       setFilteredCustomers(filteredCustomers);
     } else {
       setFilteredCustomers(customers);
@@ -309,17 +324,21 @@ const UtilitiesCreateBill = () => {
                   </li>
                 )}
                 renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Zone Name"
-                    variant="outlined"
-                  />
+                  <TextField {...params} label="Zone Name" variant="outlined" />
                 )}
                 onChange={(event, value) => setSelectedZone(value)}
               />
             </Grid>
             <Grid item xs={6}>
-              <Tooltip arrow  placement="top" title={!selectedZone ? "please select a zone to access this field" : ""}>
+              <Tooltip
+                arrow
+                placement="top"
+                title={
+                  !selectedZone
+                    ? "please select a zone to access this field"
+                    : ""
+                }
+              >
                 <Autocomplete
                   fullWidth
                   disabled={!selectedZone}
