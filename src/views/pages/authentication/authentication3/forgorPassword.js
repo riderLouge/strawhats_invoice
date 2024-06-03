@@ -36,15 +36,18 @@ export default function ForgorPassword() {
 
   const sendEmailOtp = async () => {
     try {
-      const response = await axios.post('https://api-skainvoice.top/api/forgot-password', { email })
-      if (response.data.status === 'success') {
-        navigate('/reset-password')
+      const response = await axios.post(
+        "https://api-skainvoice.top/api/forgot-password",
+        { email }
+      );
+      if (response.data.status === "success") {
+        navigate("/reset-password");
       }
       console.log(response);
     } catch (error) {
-      console.error('Error sending email OTP:', error);
+      console.error("Error sending email OTP:", error);
     }
-  }
+  };
   const handleSubmit = (event) => {
     event.preventDefault();
     if (email !== "") {
@@ -81,8 +84,8 @@ export default function ForgorPassword() {
               >
                 <Box>
                   <Typography style={softwareNameStyle}>
-                    <span className="strawhat">Straw</span>
-                    <span className="hat">hat</span> Invoice
+                    <span className="strawhat">SriKrishanAgencies</span>
+                    <span className="hat"></span>
                   </Typography>{" "}
                   <Typography
                     color={theme.palette.secondary.main}
