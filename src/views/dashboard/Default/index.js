@@ -86,7 +86,7 @@ const Dashboard = () => {
       setCredit(updatedCredit);
       setDebit(debitData);
       setFilteredData(creditData);
-      console.log(filteredData, "00000");
+      console.log(updatedCredit, "00000");
     } catch (error) {
       console.error("Error fetching zone name:", error);
     }
@@ -521,15 +521,15 @@ const Dashboard = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Invoice Number</TableCell>
-                  <TableCell>Shop ID</TableCell>
+                  <TableCell>Shop</TableCell>
                   <TableCell>Total</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData.map((item, index) => (
+                {credit.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell>{item.invoiceNumber}</TableCell>
-                    <TableCell>{item.shopId}</TableCell>
+                    <TableCell>{item.shopName}</TableCell>
                     <TableCell>{item.total}</TableCell>
                   </TableRow>
                 ))}
