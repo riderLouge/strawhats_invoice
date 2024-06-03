@@ -20,6 +20,7 @@ model Staff {
   designation String
   role        String
   photo       String
+  isActive    Boolean   @default(false)
 }
 
 model Shop {

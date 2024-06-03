@@ -219,13 +219,17 @@ const Items = () => {
           FREE: document.getElementById("free").value,
           DISCP: document.getElementById("discription").value,
         };
-        console.log(newData);
         const response = await axios
-          .post("https://api-skainvoice.top/api/items/add", newData)
-          .then(() => {
-            fetchProduct();
-          });
-        console.log(response, "========");
+          .post("https://api-skainvoice.top/api/items/add", newData)        
+        if (response.status === 200) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo("Product added successfully");
+          fetchProduct();
+          setTimeout(() => {
+            handleCloseDialog();
+          }, 1500);
+        }
       } else if (buttonClicked === "Edit Items") {
         // Gather edited data from form fields
         const editedData = {
@@ -246,12 +250,21 @@ const Items = () => {
         };
 
         // Make API call to edit the item
-        console.log(selectedItem.ID, "===", editedData);
+  
         const response = await axios.put(
           `https://api-skainvoice.top/api/items/edit/${selectedItem.ID}`,
           editedData
         );
         console.log("Item edited successfully:", response);
+        if (response.status === 200) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo("Product updated successfully");
+          fetchProduct();
+          setTimeout(() => {
+            handleCloseDialog();
+          }, 1500);
+        }
       } else if (buttonClicked === "Stock Adjustment") {
         const productQuantity = Number(
           document.getElementById("stockQuantity").value

@@ -162,6 +162,24 @@ app.post("/api/shop/add", async (req, res) => {
   }
 });
 
+app.put("/api/shop/edit/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedItemData = req.body;
+
+    console.log("Request:", req, "Updated Data:", updatedItemData, id);
+
+    const updatedItem = await prisma.shop.update({
+      where: { shopId: parseInt(id) },
+      data: updatedItemData,
+    });
+
+    res.json(updatedItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while editing the item" });
+  }
+});
 //fetch staff details
 app.get("/api/staff/staffDetails", async (req, res) => {
   try {
@@ -227,15 +245,38 @@ app.put("/api/staff/edit/:id", async (req, res) => {
       .json("An error occurred while editing the staff details", error);
   }
 });
+// app.put("/api/staff/active-inactive/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const updatedItemData = req.body;
+//     const updatedItem = await prisma.staff.update({
+//       where: { userid: parseInt(id) },
+//       data: {
+
+//       }
+//     });
+//     res
+//       .status(200)
+//       .json({ status: "staff edited successfully", data: updatedItem });
+//   } catch (error) {
+//     console.error("Error editing item:", error);
+//     res
+//       .status(500)
+//       .json("An error occurred while editing the staff details", error);
+//   }
+// });
 app.put("/api/items/edit/:id", async (req, res) => {
   try {
-    const { id } = req.params.id;
+    const { id } = req.params;
     const updatedItemData = req.body;
-    console.log(req, "===", updatedItemData);
+
+    console.log("Request:", req, "Updated Data:", updatedItemData);
+
     const updatedItem = await prisma.product.update({
-      where: { ID: updatedItemData.ID },
+      where: { ID: parseInt(id) },
       data: updatedItemData,
     });
+
     res.json(updatedItem);
   } catch (error) {
     console.error(error);
@@ -1119,6 +1160,18 @@ app.get("/api/get-all-zone-name", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "failure", error: "Internal server error" });
+  }
+});
+app.get("/api/invoice/overall-count", async (req, res) => {
+  try {
+    const invoices = await prisma.invoice.findMany();
+    res.json({ count: invoices.length + 1 });
+  } catch (error) {
+    console.error("Error while fetching invoices:", error);
+    res.status(500).json({
+      status: "failure",
+      error: "An error occurred while fetching invoices count",
+    });
   }
 });
 const PORT = process.env.PORT || 9000;

@@ -22,8 +22,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import emptyProfile from "../../assets/images/profileImage.jpg";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const ManageEmployees = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [hoveredRow, setHoveredRow] = useState(null);
   const [dialogMode, setDialogMode] = useState("");
   const [toggleActive, setToggleActive] = useState(false); // Toggle state
@@ -159,12 +161,13 @@ const ManageEmployees = () => {
         photo: selectedFile === null ? "" : selectedFile.imageUrl,
         joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
-      const response = await axios
-        .post("https://api-skainvoice.top/api/staff/add", newData)
-        .then((res) => {
-          console.log(res, "========");
+      const response = await axios.post("https://api-skainvoice.top/api/staff/add", newData)
+        if (response.status === 200) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo('Employee Created Successfully');
           fetchStaffDetails();
-        });
+        }
       console.log(response, "========");
     } else if (dialogMode === "edit") {
       const updatedData = {
@@ -177,12 +180,15 @@ const ManageEmployees = () => {
         photo: selectedFile === null ? "" : selectedFile.imageUrl,
         joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
-      const response = await axios
-        .put(`https://api-skainvoice.top/${selectedUserDetails.userid}`, updatedData)
-        .then((res) => {
-          console.log(res, "========");
-          fetchStaffDetails();
-        });
+      const response = await axios.put(`https://api-skainvoice.top/api/staff/edit/${selectedUserDetails.userid}`, updatedData)
+
+      if (response.status === 200) {
+        setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo('Details updated Successfully');
+        fetchStaffDetails();
+      }
+
       console.log(response, "========");
     }
     handleCloseDialog();
