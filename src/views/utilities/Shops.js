@@ -8,11 +8,12 @@ import * as ExcelJS from "exceljs";
 import axios from "axios";
 import EditIcon from "@mui/icons-material/Edit";
 import { TextField, Grid, Autocomplete } from "@mui/material";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const Shops = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [hoveredRow, setHoveredRow] = useState(null);
   const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
-
   const [rowSelection, setRowSelection] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -187,16 +188,20 @@ const Shops = () => {
           ZONNAM: document.getElementById("zoneName").value,
         };
         console.log(newData);
-        const response = await axios
-          .post("https://api-skainvoice.top/api/shop/add", newData)
-          .then(() => {
-            fetchProduct();
-          });
+        const response = await axios.post("https://api-skainvoice.top/api/shop/add", newData)
+        if (response.status === 200) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo("Customer added successfully");
+          fetchProduct();
+          setTimeout(() => {
+            handleCloseDialog();
+          }, 1500);
+        }
         console.log(response, "========");
-      } else if (buttonClicked === "Edit Shops") {
+      } else if (buttonClicked === "Edit Items") {
         // Gather edited data from form fields
         const editedData = {
-          ID: selectedItem.ID, // Assuming ID is required for editing
           GRPNAM: document.getElementById("groupName").value,
           CUSNAM: document.getElementById("customerName").value,
           ADRONE: document.getElementById("addressOne").value,
@@ -214,9 +219,19 @@ const Shops = () => {
 
         // Make API call to edit the item
         const response = await axios.put(
-          `https://api-skainvoice.top/api/items/edit/${selectedItem.ID}`,
+          `https://api-skainvoice.top/api/shop/edit/${selectedItem.shopId}`,
           editedData
         );
+        
+        if (response.status === 200) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo("Customer updated successfully");
+          fetchProduct();
+          setTimeout(() => {
+            handleCloseDialog();
+          }, 1500);
+        }
         console.log("Item edited successfully:", response);
       } else if (buttonClicked === "Stock Adjustment") {
         const editedData = {
@@ -231,9 +246,6 @@ const Shops = () => {
         };
         console.log(newData);
       }
-
-      // Clear form fields and close dialog
-      handleCloseDialog();
     } catch (error) {
       console.error("Error:", error);
     }
@@ -438,7 +450,7 @@ const Shops = () => {
               <span>Selected file: {fileName}</span>
             </label>
           ) : buttonClicked === "Add Shops" ||
-            buttonClicked === "Edit Shops" ? (
+            buttonClicked === "Edit Items" ? (
             <div>
               <Grid container spacing={2}>
                 <Grid item xs={6}>

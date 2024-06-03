@@ -34,8 +34,23 @@ const UtilitiesCreateBill = () => {
   const [selectedZone, setSelectedZone] = useState("");
   const [zoneNames, setZoneNames] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [availableProducts, setAvailableProducts] = useState([]);
 
-  console.log(formData);
+    const clearCustomerDetails = () => {
+    setSelectedCustomer(null);
+    setFormData({
+      ...formData,
+      customerName: "",
+      billingAddress: "",
+      phoneNumber: "",
+      gstin: "",
+      city: "",
+      state: "",
+      invoiceDate: '',
+      invoiceNumber: '',
+    });
+  };
   const fetchCustomers = async () => {
     try {
       const response = await axios.get(
@@ -51,6 +66,19 @@ const UtilitiesCreateBill = () => {
       console.error("Error fetching company:", error);
     }
   };
+  const getInvoiceCount = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/invoice/overall-count"
+      );
+      console.log(response);
+      if (response.status === 200) {
+        setInvoiceNumber(response.data.count);
+      }
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -60,6 +88,8 @@ const UtilitiesCreateBill = () => {
       const filteredProducts = response.data.filter((product) => product.HSN);
 
       setProducts(filteredProducts);
+      const availableProducts = filteredProducts.filter((product) => product.FQTY > 0);
+      setAvailableProducts(availableProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -67,6 +97,7 @@ const UtilitiesCreateBill = () => {
   useEffect(() => {
     fetchCustomers();
     fetchProducts();
+    getInvoiceCount();
   }, []);
 
   const handleChange = (event) => {
@@ -175,18 +206,6 @@ const UtilitiesCreateBill = () => {
   const handleAdd = () => {
     checkProductAvailability();
   };
-  const clearCustomerDetails = () => {
-    setSelectedCustomer(null);
-    setFormData({
-      ...formData,
-      customerName: "",
-      billingAddress: "",
-      phoneNumber: "",
-      gstin: "",
-      city: "",
-      state: "",
-    });
-  };
   console.log(tableData);
   const getTotalProductAmount = (data) => {
     const totalProductAmount = data.reduce((accumulator, currentItem) => {
@@ -201,8 +220,7 @@ const UtilitiesCreateBill = () => {
       setErrorInfo("please add a product to create invoice");
     } else {
       const invoiceData = {
-        invoiceNumber:
-          formData.invoiceNumber !== "" ? Number(formData.invoiceNumber) : "",
+        invoiceNumber:Number(invoiceNumber),
         products: tableData,
         invoiceDate: new Date(formData.invoiceDate).toISOString(),
         shopId: selectedCustomer.shopId,
@@ -217,9 +235,16 @@ const UtilitiesCreateBill = () => {
           "https://api-skainvoice.top/api/invoice/create",
           invoiceData
         );
-        console.log("Invoice saved successfully:", response.data);
-        setFormData({});
-        setTableData([]);
+        console.log("Invoice saved successfully:", response);
+        if (response.status === 201) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo("Invoice created successfully");
+          setTableData([]);
+          clearCustomerDetails();
+          setSelectedZone('');
+          getInvoiceCount();
+        }
       } catch (error) {
         console.error("Error saving invoice:", error);
       }
@@ -282,7 +307,7 @@ const UtilitiesCreateBill = () => {
       setFilteredCustomers(customers);
     }
   }, [selectedZone, customers]);
-
+  console.log(formData);
   return (
     <MainCard title="Invoice">
       <Grid item xs={12}>
@@ -293,9 +318,8 @@ const UtilitiesCreateBill = () => {
                 fullWidth
                 label="Invoice Number"
                 variant="outlined"
-                name="invoiceNumber"
-                value={formData.invoiceNumber}
-                onChange={handleChange}
+                value={invoiceNumber}
+                disabled
               />
             </Grid>
             <Grid item xs={6}>
@@ -443,7 +467,7 @@ const UtilitiesCreateBill = () => {
         <Grid item xs={12} sm={4} md={2}>
           <Autocomplete
             fullWidth
-            options={products}
+            options={availableProducts}
             getOptionLabel={(option) => option.NAME}
             value={selectedProduct}
             onChange={(event, newValue) => handleProductSelect(newValue)}
