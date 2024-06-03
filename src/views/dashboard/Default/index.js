@@ -111,7 +111,7 @@ const Dashboard = () => {
     setCreditDialogOpen(false);
   };
 
-  const downloadInvoice = async (data, invoiceDate, area) => {
+  const downloadInvoice = async (data, invoiceDate, area, allInvoices) => {
     const doc = new jsPDF();
     const date = moment(invoiceDate).format("DD/MM/YYYY");
     const companyName = "Sri Krishna Agencies";
@@ -172,7 +172,84 @@ const Dashboard = () => {
       companyNameX + 30,
       doc.autoTableEndPosY() + 10
     );
+    doc.addPage();
+    let currentY = 20;
 
+    for (let invoice of allInvoices) {
+      const invoiceNumber = invoice.invoiceNumber;
+      const date = moment(invoice.invoiceDate).format("DD/MM/YYYY");
+      const customerName = invoice.shop?.CUSNAM;
+      const address =
+        (invoice.shop?.ADRONE || "") +
+        (invoice.shop?.ADRTWO || "") +
+        (invoice.shop?.ADRTHR || "");
+      const phoneNumber = invoice.shop?.TELNUM;
+      const totalAmount = invoice.products.reduce(
+        (sum, product) =>
+          sum + parseFloat(Number(product.rate) * Number(product.quantity)),
+        0
+      );
+
+      // Define positions
+      const invoiceNumberX = 15;
+      const customerInfoX = 15;
+      const customerInfoPaddingX = 10;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Invoice Number: ${invoiceNumber}`, invoiceNumberX, currentY);
+      currentY += 5;
+      doc.text(`Date: ${date}`, invoiceNumberX, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(companyName, companyNameX, currentY - 5);
+      currentY += 10;
+
+      doc.setFillColor("#f5f5f5");
+      doc.rect(15, currentY, 180, 40, "F");
+      currentY += 10;
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Customer Info", customerInfoX + customerInfoPaddingX, currentY);
+      currentY += 5;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Customer Name: ${customerName}`, customerInfoX + customerInfoPaddingX, currentY);
+      currentY += 5;
+      doc.text(`Address: ${address}`, customerInfoX + customerInfoPaddingX, currentY);
+      currentY += 5;
+      doc.text(`Phone Number: ${phoneNumber}`, customerInfoX + customerInfoPaddingX, currentY);
+      currentY += 5;
+      doc.text(`Total Amount: ${parseFloat(totalAmount).toFixed(2)}`, customerInfoX + customerInfoPaddingX, currentY);
+      currentY += 20;
+
+      // Payment Notes Section
+      const paymentNotesText = "Payment Notes";
+      doc.setFontSize(10);
+      doc.text(paymentNotesText, 15, currentY);
+      doc.setDrawColor("#cccccc");
+      currentY -= 1;
+      doc.rect(
+        15,
+        currentY + 15,
+        doc.internal.pageSize.getWidth() - 30, // Reduced width
+        35,
+        "D"
+      );
+      currentY += 55;
+
+      // Customer Signature Section
+      const signatureText = "Customer Signature";
+      doc.setFontSize(10);
+      doc.text(signatureText, 15, currentY + 10);
+      currentY += 20;
+
+      // Check if we need a new page
+      if (currentY > doc.internal.pageSize.getHeight()) {
+        doc.addPage();
+        currentY = 20; // Reset Y position for the new page
+      }
+    }
     doc.save("SaleList.pdf");
     setSuccess(true);
     setOpenErrorAlert(true);
@@ -202,7 +279,7 @@ const Dashboard = () => {
   async function fetchProductsBasedOnArea(data) {
     try {
       const response = await axios.get(
-        "https://api-skainvoice.top/api/get-products/based-on-area",
+        "/api/get-products/based-on-area",
         {
           params: {
             invoiceDate: data.date,
@@ -213,7 +290,8 @@ const Dashboard = () => {
       downloadInvoice(
         response.data.data,
         response.data.invoiceDate,
-        response.data.invoiceArea
+        response.data.invoiceArea,
+        response.data.allInvoices,
       );
     } catch (error) {
       console.error("Error fetching invoices:", error.message);

@@ -1029,8 +1029,13 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
         shop: {
           ZONNAM: area,
         },
+        
       },
+      include: {
+        shop: true,
+      }
     });
+
     //Getting the products array from the each invoices
     const invoiceProducts = invoices
       .flatMap((data) => data.products)
@@ -1081,6 +1086,7 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
         invoiceDate: invoiceDate,
         invoiceArea: area,
         data: updatedProductList,
+        allInvoices: invoices,
         message: "products fetched successfully",
       });
     } else {

@@ -145,7 +145,7 @@ export default function InvoiceTemplate({ data, type }) {
     doc.rect(
       15,
       paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 5,
-      doc.internal.pageSize.getWidth() - 18,
+      doc.internal.pageSize.getWidth() - 30,
       35,
       "D"
     );
