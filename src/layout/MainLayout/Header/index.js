@@ -32,8 +32,8 @@ const Header = ({ handleLeftDrawerToggle }) => {
           sx={{ display: { xs: "none", md: "block" }, flexGrow: 1 }}
         >
           <Typography style={softwareNameStyle}>
-            <span className="strawhat">Straw</span>
-            <span className="hat">hat</span> Invoice
+            <span className="strawhat">Sri</span>
+            <span className="hat"></span>KrishnaAgencies
           </Typography>
         </Box>
         <ButtonBase sx={{ borderRadius: "12px", overflow: "hidden" }}>

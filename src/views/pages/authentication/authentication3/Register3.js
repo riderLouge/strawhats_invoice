@@ -42,7 +42,7 @@ const Register = () => {
                   justifyContent="center"
                 >
                   <Grid item sx={{ mb: 3 }}>
-                    <Typography>Strawhat Invoice</Typography>
+                    <Typography>SriKrishanAgencies</Typography>
                   </Grid>
                   <Grid item xs={12}>
                     <Grid

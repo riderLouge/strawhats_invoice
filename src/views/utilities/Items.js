@@ -219,8 +219,10 @@ const Items = () => {
           FREE: document.getElementById("free").value,
           DISCP: document.getElementById("discription").value,
         };
-        const response = await axios
-          .post("https://api-skainvoice.top/api/items/add", newData)        
+        const response = await axios.post(
+          "https://api-skainvoice.top/api/items/add",
+          newData
+        );
         if (response.status === 200) {
           setSuccess(true);
           setOpenErrorAlert(true);
@@ -250,7 +252,7 @@ const Items = () => {
         };
 
         // Make API call to edit the item
-  
+
         const response = await axios.put(
           `https://api-skainvoice.top/api/items/edit/${selectedItem.ID}`,
           editedData
@@ -410,7 +412,7 @@ const Items = () => {
       >
         Add Items
       </Button>
-      {/* <Button
+      <Button
         variant="contained"
         color="primary"
         style={{
@@ -423,8 +425,8 @@ const Items = () => {
         onClick={() => handleOpenDialog("Import")}
       >
         Import
-      </Button> */}
-      <Button
+      </Button>
+      {/* <Button
         variant="contained"
         color="primary"
         style={{
@@ -437,7 +439,7 @@ const Items = () => {
         onClick={handleExportToExcel}
       >
         Export to Excel
-      </Button>
+      </Button> */}
       <DialogTemplate
         open={openDialog}
         title={buttonClicked}

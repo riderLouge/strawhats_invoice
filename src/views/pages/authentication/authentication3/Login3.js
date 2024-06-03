@@ -59,8 +59,8 @@ const Login = () => {
                 >
                   <Grid item sx={{ mb: 3 }}>
                     <Typography style={softwareNameStyle}>
-                      <span className="strawhat">Straw</span>
-                      <span className="hat">hat</span> Invoice
+                      <span className="strawhat">SriKrishanAgencies</span>
+                      <span className="hat"></span>
                     </Typography>{" "}
                   </Grid>
                   <Grid item xs={12}>

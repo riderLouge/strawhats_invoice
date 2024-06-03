@@ -33,20 +33,23 @@ export default function ResetPassword() {
   const matchDownSM = useMediaQuery(theme.breakpoints.down("md"));
   const [newPassword, setNewPassword] = useState("");
   const [userOtp, setUserOtp] = useState("");
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const verifyPassword = async () => {
     try {
-      const response = await axios.post('https://api-skainvoice.top/api/reset-password', { email: 'd.b.dhanush007@gmail.com', otp: userOtp, newPassword })
-      if (response.data.status === 'success') {
-        navigate('/')
+      const response = await axios.post(
+        "https://api-skainvoice.top/api/reset-password",
+        { email: "d.b.dhanush007@gmail.com", otp: userOtp, newPassword }
+      );
+      if (response.data.status === "success") {
+        navigate("/");
       }
       console.log(response);
     } catch (error) {
-      console.error('Error sending email OTP:', error);
+      console.error("Error sending email OTP:", error);
     }
-  }
+  };
   const handleSubmit = (event) => {
     event.preventDefault();
     verifyPassword();
@@ -75,8 +78,8 @@ export default function ResetPassword() {
               >
                 <Grid item sx={{ mb: 3 }}>
                   <Typography style={softwareNameStyle}>
-                    <span className="strawhat">Straw</span>
-                    <span className="hat">hat</span> Invoice
+                    <span className="strawhat">SriKrishanAgencies</span>
+                    <span className="hat"></span>
                   </Typography>{" "}
                 </Grid>
                 <Grid item xs={12}>
@@ -139,7 +142,7 @@ export default function ResetPassword() {
                         label="New Password"
                         inputProps={{}}
                       />
-                      <FormHelperText error>{ errorMessage}</FormHelperText>
+                      <FormHelperText error>{errorMessage}</FormHelperText>
                     </FormControl>
                     <Box sx={{ mt: 2 }}>
                       <AnimateButton>
