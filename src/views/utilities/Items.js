@@ -221,7 +221,7 @@ const Items = () => {
         };
         console.log(newData);
         const response = await axios
-          .post("https://api-skainvoice.top/api/products/add", newData)
+          .post("https://api-skainvoice.top/api/items/add", newData)
           .then(() => {
             fetchProduct();
           });
@@ -246,6 +246,7 @@ const Items = () => {
         };
 
         // Make API call to edit the item
+        console.log(selectedItem.ID, "===", editedData);
         const response = await axios.put(
           `https://api-skainvoice.top/api/items/edit/${selectedItem.ID}`,
           editedData

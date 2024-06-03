@@ -30,7 +30,11 @@ export default function InvoiceTemplate({ data, type }) {
   console.log(invoiceProducts);
   const fetchInvoiceProducts = async (products) => {
     try {
-      const response = await axios.post("https://api-skainvoice.top/api/invoice/products", { products });
+      const response = await axios.post(
+        "https://api-skainvoice.top/api/invoice/products",
+        { products }
+      );
+      console.log(response);
       setInvoiceProducts(response.data.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -40,7 +44,7 @@ export default function InvoiceTemplate({ data, type }) {
 
   const totalProductAmount = (data) => {
     const total = data.reduce((acc, cur) => {
-      return acc + Number(cur.productCurrentPrice) * Number(cur.quantity);
+      return acc + Number(cur.totalWithGST);
     }, 0);
     return total;
   };
@@ -260,8 +264,11 @@ export default function InvoiceTemplate({ data, type }) {
               <TableRow>
                 <TableCell>S.No</TableCell>
                 <TableCell>Product</TableCell>
+                <TableCell align="center">HSN</TableCell>
                 <TableCell align="center">Quantity</TableCell>
-                <TableCell align="right">Price</TableCell>
+                <TableCell align="center">Gst</TableCell>
+
+                <TableCell align="right">Rate</TableCell>
                 <TableCell align="right">Total</TableCell>
               </TableRow>
             </TableHead>
@@ -272,12 +279,12 @@ export default function InvoiceTemplate({ data, type }) {
                   <TableRow key={data.productId}>
                     <TableCell>{sNo}</TableCell>
                     <TableCell>{data.productName}</TableCell>
+                    <TableCell align="center">{data.hsnNumber}</TableCell>
                     <TableCell align="center">{data.quantity}</TableCell>
-                    <TableCell align="right">{data.productCurrentPrice}</TableCell>
+                    <TableCell align="center">{data.gst}</TableCell>
+                    <TableCell align="right">{data.rate}</TableCell>
                     <TableCell align="right">
-                      {parseFloat(
-                        Number(data.productCurrentPrice) * Number(data.quantity)
-                      ).toFixed(2)}
+                      {parseFloat(Number(data.totalWithGST)).toFixed(2)}
                     </TableCell>
                   </TableRow>
                 );

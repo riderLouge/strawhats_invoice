@@ -231,8 +231,9 @@ app.put("/api/items/edit/:id", async (req, res) => {
   try {
     const { id } = req.params.id;
     const updatedItemData = req.body;
+    console.log(req, "===", updatedItemData);
     const updatedItem = await prisma.product.update({
-      where: { ID: id },
+      where: { ID: updatedItemData.ID },
       data: updatedItemData,
     });
     res.json(updatedItem);
@@ -858,9 +859,10 @@ app.delete("/api/supplier-bill/delete/:id", async (req, res) => {
       data: { isDeleted: true },
     });
 
-    res
-      .status(200)
-      .json({ status: "success", message: "Supplier Bill deleted successfully" });
+    res.status(200).json({
+      status: "success",
+      message: "Supplier Bill deleted successfully",
+    });
   } catch (err) {
     console.error("Error deleting invoice:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -869,7 +871,7 @@ app.delete("/api/supplier-bill/delete/:id", async (req, res) => {
 app.get("/api/supplier-bills", async (req, res) => {
   try {
     const supplierBills = await prisma.supplierBill.findMany({
-      where:{
+      where: {
         isDeleted: false,
       },
       include: {

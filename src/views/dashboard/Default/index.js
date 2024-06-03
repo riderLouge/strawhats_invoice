@@ -202,7 +202,7 @@ const Dashboard = () => {
   async function fetchProductsBasedOnArea(data) {
     try {
       const response = await axios.get(
-        "https://api-skainvoice.top//api/get-products/based-on-area",
+        "https://api-skainvoice.top/api/get-products/based-on-area",
         {
           params: {
             invoiceDate: data.date,
