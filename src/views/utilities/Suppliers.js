@@ -5,9 +5,14 @@ import * as ExcelJS from "exceljs";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogTemplate from "../../ui-component/Dialog";
 import axios from "axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
 
 const Suppliers = () => {
   const [companyName, setCompanyName] = useState([]);
+  const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -31,6 +36,11 @@ const Suppliers = () => {
     fetchCompany();
   }, []);
 
+  const handleEdit = (row) => {
+    setSelectedItem(row.original);
+    handleOpenDialog("Edit Items");
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -38,8 +48,50 @@ const Suppliers = () => {
         header: "Supplier",
       },
       {
-        accessorKey: "cShort",
-        header: "Short form",
+        accessorKey: "address",
+        header: "Address",
+      },
+      {
+        accessorKey: "email",
+        header: "E-mail",
+      },
+      {
+        accessorKey: "phoneNumber",
+        header: "Phone Number",
+      },
+      {
+        accessorKey: "gstin",
+        header: "Gstin",
+      },
+      {
+        accessorKey: "stateCode",
+        header: "State Code",
+      },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        Cell: ({ row }) => (
+          <div>
+            <EditIcon
+              style={{
+                cursor: "pointer",
+                color: hoveredRowEdit === row.id ? "blue" : "inherit",
+              }}
+              onMouseEnter={() => setHoveredRowEdit(row.id)}
+              onMouseLeave={() => setHoveredRowEdit(null)}
+              onClick={() => handleEdit(row)}
+            />
+            <VisibilityIcon
+              style={{
+                cursor: "pointer",
+                color: hoveredRow === row.id ? "blue" : "inherit",
+                marginLeft: "20px",
+              }}
+              onMouseEnter={() => setHoveredRow(row.id)}
+              onMouseLeave={() => setHoveredRow(null)}
+            />
+          </div>
+        ),
       },
     ],
     []

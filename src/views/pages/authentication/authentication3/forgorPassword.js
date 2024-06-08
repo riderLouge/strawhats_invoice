@@ -84,7 +84,7 @@ export default function ForgorPassword() {
               >
                 <Box>
                   <Typography style={softwareNameStyle}>
-                    <span className="strawhat">SriKrishanAgencies</span>
+                    <span className="strawhat">SriKrishnaAgencies</span>
                     <span className="hat"></span>
                   </Typography>{" "}
                   <Typography

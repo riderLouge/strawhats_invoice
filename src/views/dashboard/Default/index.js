@@ -92,6 +92,7 @@ const Dashboard = () => {
     }
   };
 
+  
   const handleWarehousePdf = () => {
     setPdfType("Warehouse");
     setOpenDialog(true);

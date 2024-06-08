@@ -78,7 +78,7 @@ export default function ResetPassword() {
               >
                 <Grid item sx={{ mb: 3 }}>
                   <Typography style={softwareNameStyle}>
-                    <span className="strawhat">SriKrishanAgencies</span>
+                    <span className="strawhat">SriKrishnaAgencies</span>
                     <span className="hat"></span>
                   </Typography>{" "}
                 </Grid>
