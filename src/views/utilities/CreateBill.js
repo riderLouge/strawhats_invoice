@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, TextField, Button, Autocomplete, Tooltip } from "@mui/material";
+import { Grid, TextField, Button, Autocomplete, Tooltip, FormControl, InputLabel, Select, MenuItem, InputAdornment } from "@mui/material";
 import SubCard from "../../ui-component/cards/SubCard";
 import MainCard from "../../ui-component/cards/MainCard";
 import { MaterialReactTable } from "material-react-table";
@@ -20,6 +20,7 @@ const UtilitiesCreateBill = () => {
     quantity: "",
     rate: "",
     hsnNumber: "",
+    discountType: "",
     discount: "",
     gst: "",
     mrp: "",
@@ -36,8 +37,10 @@ const UtilitiesCreateBill = () => {
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [availableProducts, setAvailableProducts] = useState([]);
+  const [discountType, setDiscountType] = useState('');
+  const numberRegx = /^[0-9]*$/;
 
-    const clearCustomerDetails = () => {
+  const clearCustomerDetails = () => {
     setSelectedCustomer(null);
     setFormData({
       ...formData,
@@ -102,11 +105,31 @@ const UtilitiesCreateBill = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    const handleDiscountChange = () => {
+      if (!numberRegx.test(value)) return;
+      const numericValue = parseFloat(value);
+      const numericRate = parseFloat(formData.rate);
+      if (formData.discountType === 'cash' && numericValue > numericRate) {
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo('Cash discount must be less than product price');
+      } else if (formData.discountType !== 'cash' && numericValue > 100) {
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo('Percentage discount must be less than 100%');
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
+    };
+
+    if (name === 'discount') {
+      handleDiscountChange();
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
+
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
@@ -117,7 +140,8 @@ const UtilitiesCreateBill = () => {
       mrp: product.MRP, // Populate MRP
       purchasePrice: product.PPRICE, // Populate Purchase Price
       hsnNumber: product.HSN,
-      discount: product.DISCOUNT,
+      discount: formData.discount,
+      discountType: formData.discountType,
       gst: product.GST,
       productId: product.ID,
       productCurrentPrice: product.MRP,
@@ -129,9 +153,8 @@ const UtilitiesCreateBill = () => {
     setSelectedCustomer(customer);
 
     // Concatenate address fields for billing address
-    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${
-      customer.ADRTHR || ""
-    }`;
+    const billingAddress = `${customer.ADRONE || ""} ${customer.ADRTWO || ""} ${customer.ADRTHR || ""
+      }`;
 
     setFormData({
       ...formData,
@@ -155,21 +178,34 @@ const UtilitiesCreateBill = () => {
           },
         }
       );
-      console.log(response);
-      if (response.data.isAvailable) {
-        const totalWithoutGST = formData.quantity * formData.rate;
-        const totalWithGST =
-          totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
-        const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
-        const totalWithDiscount = totalWithGST - discountAmount;
 
+      if (response.data.isAvailable) {
+        if (formData.discountType === '') {
+          setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo('Please select the discount type');
+          return;
+        }
+
+        const totalWithoutGST = formData.quantity * formData.rate;
+        
+        const totalWithGST = totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
+        let discountAmount = 0;
+
+        if (formData.discountType === 'cash') {
+          discountAmount = formData.discount ?? 0;
+        } else {
+          discountAmount = (totalWithGST * (formData.discount ?? 0)) / 100;
+        }
+
+        const totalWithDiscount = totalWithGST - discountAmount;
         setTableData([
           ...tableData,
           {
             ...formData,
             totalWithoutGST,
             totalWithGST,
-            totalWithDiscount,
+            totalWithDiscount: totalWithDiscount.toFixed(2),
           },
         ]);
 
@@ -183,10 +219,13 @@ const UtilitiesCreateBill = () => {
           gst: "",
           mrp: "",
           purchasePrice: "",
+          discountType: "",
         });
 
         // Clear the Autocomplete component
+        setDiscountType('');
         setSelectedProduct(null);
+
       } else {
         setSuccess(false);
         setOpenErrorAlert(true);
@@ -220,7 +259,7 @@ const UtilitiesCreateBill = () => {
       setErrorInfo("please add a product to create invoice");
     } else {
       const invoiceData = {
-        invoiceNumber:Number(invoiceNumber),
+        invoiceNumber: Number(invoiceNumber),
         products: tableData,
         invoiceDate: new Date(formData.invoiceDate).toISOString(),
         shopId: selectedCustomer.shopId,
@@ -275,6 +314,10 @@ const UtilitiesCreateBill = () => {
     //   accessorKey: "hsnNumber",
     //   header: "HSN Number",
     // },
+    {
+      accessorKey: "discountType",
+      header: "Discount Type",
+    },
     {
       accessorKey: "discount",
       header: "Discount",
@@ -457,7 +500,6 @@ const UtilitiesCreateBill = () => {
         container
         spacing={2}
         alignItems="center"
-        justifyContent="space-between"
         sx={{
           marginTop: 2,
           paddingBottom: 4,
@@ -536,14 +578,36 @@ const UtilitiesCreateBill = () => {
           />
         </Grid>
         <Grid item xs={12} sm={2} md={2}>
+          <FormControl sx={{ m: 1, minWidth: 120 }} disabled={!formData.productName}>
+            <InputLabel id="demo-select-small-label">Discount Type</InputLabel>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              value={discountType}
+              label="Discount Type"
+              name="discountType"
+              onChange={(e) => { setDiscountType(e.target.value); handleChange(e); }}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              <MenuItem value="percentage">Percentage</MenuItem>
+              <MenuItem value="cash">Cash</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={2} md={2}>
           <TextField
             fullWidth
             label="Discount"
             variant="outlined"
-            type="number"
             name="discount"
+            disabled={!discountType}
             value={formData.discount}
             onChange={handleChange}
+            InputProps={{
+              startAdornment: <InputAdornment position="start">{discountType === 'cash' ? '₹' : '%'}</InputAdornment>,
+            }}
           />
         </Grid>
         <Grid item xs={12} sm={2} md={2}>
