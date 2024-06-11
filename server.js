@@ -1029,7 +1029,7 @@ app.get("/api/get-products/based-on-area", async (req, res) => {
         shop: {
           ZONNAM: area,
         },
-        
+
       },
       include: {
         shop: true,
@@ -1149,6 +1149,42 @@ app.get("/api/product/availability-check", async (req, res) => {
   }
 });
 
+//* Get products based on companyName and date
+app.post("/api/products/by-company-date", async (req, res) => {
+  const { companyName, month, year } = req.body;
+
+  if (!companyName || !month || !year) {
+    return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
+  }
+
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0);
+  console.log(startDate, endDate);
+
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lt: new Date(year, month, 1) // Start of the next month
+        },
+      },
+      select: {
+        products: true,
+      }
+    });
+    const newArray = invoices.map((invoice) => {
+      return invoice.products;
+    });
+    const updatedArray = newArray.flat();
+
+    const filteredInvoices = updatedArray.filter(product => product.companyName === companyName);
+    return res.json(filteredInvoices);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
 // Get all zone name values
 app.get("/api/get-all-zone-name", async (req, res) => {
   try {

@@ -146,6 +146,7 @@ const UtilitiesCreateBill = () => {
       productId: product.ID,
       productCurrentPrice: product.MRP,
       quantity: 1,
+      companyName: product.CNAME,
     });
   };
 
