@@ -1158,15 +1158,14 @@ app.post("/api/products/by-company-date", async (req, res) => {
   }
 
   const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0);
-  console.log(startDate, endDate);
+  const endDate = new Date(year, month, 1);
 
   try {
     const invoices = await prisma.invoice.findMany({
       where: {
         createdAt: {
           gte: startDate,
-          lt: new Date(year, month, 1) // Start of the next month
+          lt: endDate // Start of the next month
         },
       },
       select: {
@@ -1178,8 +1177,77 @@ app.post("/api/products/by-company-date", async (req, res) => {
     });
     const updatedArray = newArray.flat();
 
-    const filteredInvoices = updatedArray.filter(product => product.companyName === companyName);
-    return res.json(filteredInvoices);
+    const filteredProducts = updatedArray.filter(product => product.companyName === companyName);
+    const productMap = new Map();
+    for (let product of filteredProducts) {
+      const productId = product.productId;
+      if (productMap.has(productId)) {
+        const existingProduct = productMap.get(productId);
+        existingProduct.quantity += product.quantity;
+        existingProduct.totalWithGST += product.totalWithGST;
+      } else {
+        productMap.set(productId, product)
+      }
+    }
+    const mergedProducts = Array.from(productMap.values());
+    const totalProductAmount = mergedProducts.reduce((acc, curr) => {
+      return acc += curr.totalWithGST;
+    }, 0);
+    const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
+    return res.json({ status: 'success', data: mergedProducts, totalAmount: parsedAmount, totalCount: filteredProducts.length });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
+//* Get products based on ZoneName and date
+app.post("/api/products/by-zoneName-date", async (req, res) => {
+  const { zoneName, month, year } = req.body;
+
+  if (!zoneName || !month || !year) {
+    return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
+  }
+
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
+
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lt: endDate // Start of the next month
+        },
+        shop: {
+          ZONNAM: zoneName,
+        },
+      },
+      select: {
+        products: true,
+      }
+    });
+    const newArray = invoices.map((invoice) => {
+      return invoice.products;
+    });
+    const updatedArray = newArray.flat();
+
+    const productMap = new Map();
+    for (let product of updatedArray) {
+      const productId = product.productId;
+      if (productMap.has(productId)) {
+        const existingProduct = productMap.get(productId);
+        existingProduct.quantity += product.quantity;
+        existingProduct.totalWithGST += product.totalWithGST;
+      } else {
+        productMap.set(productId, product)
+      }
+    }
+    const mergedProducts = Array.from(productMap.values());
+    const totalProductAmount = mergedProducts.reduce((acc, curr) => {
+      return acc += curr.totalWithGST;
+    }, 0);
+    const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
+    return res.json({ status: 'success', data: mergedProducts, totalAmount: parsedAmount, totalCount: updatedArray.length });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });
