@@ -1253,6 +1253,59 @@ app.post("/api/products/by-zoneName-date", async (req, res) => {
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });
   }
 });
+//* Get products based on shop and date
+app.post("/api/products/by-shop-and-date", async (req, res) => {
+  const { shopName, month, year } = req.body;
+
+  if (!shopName || !month || !year) {
+    return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
+  }
+
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
+
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lt: endDate // Start of the next month
+        },
+        shop: {
+          CUSNAM: shopName,
+        },
+      },
+      select: {
+        products: true,
+      }
+    });
+    const newArray = invoices.map((invoice) => {
+      return invoice.products;
+    });
+    const updatedArray = newArray.flat();
+
+    const productMap = new Map();
+    updatedArray.forEach((product) => {
+      const productId = product.productId;
+      if (productMap.has(productId)) {
+        const existingProduct = productMap.get(productId);
+        existingProduct.quantity += product.quantity;
+        existingProduct.totalWithGST += product.totalWithGST;
+      } else {
+        productMap.set(productId, product)
+      }
+    })
+    const mergedProducts = Array.from(productMap.values());
+    const totalProductAmount = mergedProducts.reduce((acc, curr) => {
+      return acc += curr.totalWithGST;
+    }, 0);
+    const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
+    return res.json({ status: 'success', data: mergedProducts, totalAmount: parsedAmount, totalCount: updatedArray.length });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
 // Get all zone name values
 app.get("/api/get-all-zone-name", async (req, res) => {
   try {
