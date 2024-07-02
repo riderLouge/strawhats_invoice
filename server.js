@@ -1341,3 +1341,15 @@ const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+app.get("/api/fetch/deliveryAgents", async (req, res) => {
+  try {
+    const shops = await prisma.staff.findMany({ where: { role: "delivery" } });
+    res.json(shops);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the delivery guys" });
+  }
+});

@@ -96,6 +96,17 @@ const Header = ({ handleLeftDrawerToggle }) => {
     }
   };
 
+  const fetchSupplierReport = async () => {
+    try {
+      const response = await axios.post(
+        "/api/products/by-company-date"
+      );
+      console.log(response)
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
+
 
   const handleSearch = () => {
     setSelectedCustomer()
