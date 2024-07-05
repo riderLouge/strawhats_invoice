@@ -1300,7 +1300,7 @@ app.post("/api/products/by-shop-and-date", async (req, res) => {
       return acc += curr.totalWithGST;
     }, 0);
     const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
-    return res.json({ status: 'success', data: mergedProducts, totalAmount: parsedAmount, totalCount: updatedArray.length });
+    return res.json({ status: 'success', message: 'Data fetched successfully', data: mergedProducts, totalAmount: parsedAmount, totalCount: updatedArray.length });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });

@@ -12,18 +12,22 @@ import {
   Grid,
   TextField,
   Autocomplete,
-} from "@mui/material";import { IconMenu2 } from "@tabler/icons";
+} from "@mui/material"; import { IconMenu2 } from "@tabler/icons";
 import "./Header.css";
 import SearchSection from "./SearchSection";
 import ProfileSection from "./ProfileSection";
 import NotificationSection from "./NotificationSection";
 import DialogTemplate from "../../../ui-component/Dialog"
 import axios from "axios";
+import MonthYearPicker from "../../../ui-component/MonthYearSelector";
+import MonthYearSelector from "../../../ui-component/MonthYearSelector";
+import { useOverAllContext } from "../../../context/overAllContext";
 
 const Header = ({ handleLeftDrawerToggle }) => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const theme = useTheme();
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState("");
+  const [supplierName, setSupplierName] = useState("");
   const [selectedShopId, setSelectedShopId] = useState("");
   const [searchBy, setSearchBy] = useState("Supplier"); // 'invoice' or 'shop'
   const [selectedZoneName, setSelectedZoneName] = useState(null);
@@ -32,6 +36,8 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
   const supplierNames = [
     "ASIA CANDY",
     "BEIERSDORF INDIA PVT LTD",
@@ -57,6 +63,11 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [selectedZone, setSelectedZone] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState([]);
 
+  const supplierProductParams = {
+    shopName: supplierName,
+    month,
+    year,
+  }
 
   useEffect(() => {
     fetchCustomers();
@@ -73,7 +84,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
       setFilteredCustomers(shopsData);
     }
   }, [selectedZone, shopsData]);
-  
+
   const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
 
@@ -106,15 +117,35 @@ const Header = ({ handleLeftDrawerToggle }) => {
       console.error("Error fetching company:", error);
     }
   };
-
+  const handleSubmit = async (params) => {
+    const apiUrl = searchBy === "Supplier" ? '/api/products/by-shop-and-date' : '/api/products/by-zoneName-date';
+    try {
+      const response = await axios.post(apiUrl, params);
+      if (response.status === 200) {
+        setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
+      } else {
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
+      }
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching data', error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+    }
+  };
 
   const handleSearch = () => {
     setSelectedCustomer()
     let newData = [];
 
-    if (searchBy === "invoice" && selectedInvoiceNumber) {
+    if (searchBy === "invoice" && supplierName) {
       newData = newData.filter(
-        (item) => item.invoiceNumber === selectedInvoiceNumber
+        (item) => item.invoiceNumber === supplierName
       );
     } else if (searchBy === "shop" && selectedZoneName && selectedShopId) {
       newData = newData.filter(
@@ -141,7 +172,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   };
 
   const handleSubmitDialog = async () => {
-   
+
   };
 
   const handleToggle = (event, newSearchBy) => {
@@ -205,126 +236,145 @@ const Header = ({ handleLeftDrawerToggle }) => {
           margin: "8px",
           zIndex: 1,
         }}
-        onClick={() => {setOpenDialog(true)}}
+        onClick={() => { setOpenDialog(true) }}
       >
         Report
       </Button>
       <DialogTemplate
+        width="lg"
         open={openDialog}
         title={"REPORT"}
         body={
-         <><ToggleButtonGroup
-         value={searchBy}
-         exclusive
-         onChange={handleToggle}
-         aria-label="search by"
-         style={{ marginBottom: "16px" }}
-       >
-         <ToggleButton
-           value="Supplier"
-           aria-label="Supplier Name"
-           style={{
-             padding: "8px 16px",
-             textAlign: "center",
-             border: "1px solid #ccc",
-             backgroundColor:
-               searchBy === "Supplier"
-                 ? theme.palette.primary.main
-                 : "#f0f0f0",
-             color: searchBy === "Supplier" ? "white" : "#333",
-             transition: "background-color 0.3s, color 0.3s",
-           }}
-         >
-           Supplier
-         </ToggleButton>
-         <ToggleButton
-           value="Customer"
-           aria-label="Customer"
-           style={{
-             padding: "8px 16px",
-             textAlign: "center",
-             border: "1px solid #ccc",
-             backgroundColor:
-               searchBy === "Customer" ? theme.palette.primary.main : "#f0f0f0",
-             color: searchBy === "Customer" ? "white" : "#333",
-             transition: "background-color 0.3s, color 0.3s",
-           }}
-         >
-           Customer
-         </ToggleButton>
-       </ToggleButtonGroup>
-       <Grid container spacing={2} alignItems="center">
-            {searchBy === "Supplier" && (
-              <Grid item xs={6}>
-                <Autocomplete
-                  options={supplierNames}
-                  getOptionLabel={(option) => option.toString()}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Invoice Number"
-                      variant="outlined"
+          <><ToggleButtonGroup
+            value={searchBy}
+            exclusive
+            onChange={handleToggle}
+            aria-label="search by"
+            style={{ marginBottom: "16px" }}
+          >
+            <ToggleButton
+              value="Supplier"
+              aria-label="Supplier Name"
+              style={{
+                padding: "8px 16px",
+                textAlign: "center",
+                border: "1px solid #ccc",
+                backgroundColor:
+                  searchBy === "Supplier"
+                    ? theme.palette.primary.main
+                    : "#f0f0f0",
+                color: searchBy === "Supplier" ? "white" : "#333",
+                transition: "background-color 0.3s, color 0.3s",
+              }}
+            >
+              Supplier
+            </ToggleButton>
+            <ToggleButton
+              value="Customer"
+              aria-label="Customer"
+              style={{
+                padding: "8px 16px",
+                textAlign: "center",
+                border: "1px solid #ccc",
+                backgroundColor:
+                  searchBy === "Customer" ? theme.palette.primary.main : "#f0f0f0",
+                color: searchBy === "Customer" ? "white" : "#333",
+                transition: "background-color 0.3s, color 0.3s",
+              }}
+            >
+              Customer
+            </ToggleButton>
+          </ToggleButtonGroup>
+            <Grid container spacing={2} alignItems="center">
+              {searchBy === "Supplier" && (
+                <>
+                  <Grid item xs={4}>
+                    <Autocomplete
+                      options={supplierNames}
+                      getOptionLabel={(option) => option.toString()}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Supplier Name"
+                          variant="outlined"
+                        />
+                      )}
+                      value={supplierName}
+                      onChange={(event, newValue) =>
+                        setSupplierName(newValue)
+                      }
+                      fullWidth
                     />
-                  )}
-                  value={selectedInvoiceNumber}
-                  onChange={(event, newValue) =>
-                    setSelectedInvoiceNumber(newValue)
-                  }
-                  fullWidth
-                />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <MonthYearSelector
+                      year={year}
+                      setYear={setYear}
+                      month={month}
+                      setMonth={setMonth}
+                    />
+                  </Grid>
+                </>
+              )}
+              {searchBy === "Customer" && (
+                <>
+                  <Grid item xs={3}>
+                    <Autocomplete
+                      options={zoneNames}
+                      getOptionLabel={(option) => option}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option}>
+                          {option}
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Zone Name" variant="outlined" />
+                      )}
+                      onChange={(event, value) => setSelectedZone(value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Autocomplete
+                      options={filteredCustomers}
+                      getOptionLabel={(option) => option.CUSNAM}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.shopId}>
+                          {option.CUSNAM}
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Shop Name"
+                          variant="outlined"
+                        />
+                      )}
+                      onChange={(event, value) => handleCustomerSelect(value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <MonthYearSelector
+                      year={year}
+                      setYear={setYear}
+                      month={month}
+                      setMonth={setMonth}
+                    />
+                  </Grid>
+                </>
+              )}
+              <Grid item xs={2}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ backgroundColor: theme.palette.primary.main }}
+                  onClick={() => handleSubmit(searchBy === "Supplier" ? supplierProductParams : supplierProductParams)}
+                >
+                  Search
+                </Button>
               </Grid>
-            )}
-            {searchBy === "Customer" && (
-              <>
-                <Grid item xs={4}>
-                  <Autocomplete
-                    options={zoneNames}
-                    getOptionLabel={(option) => option}
-                    renderOption={(props, option) => (
-                      <li {...props} key={option}>
-                        {option}
-                      </li>
-                    )}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Zone Name" variant="outlined" />
-                    )}
-                    onChange={(event, value) => setSelectedZone(value)}
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <Autocomplete
-                    options={filteredCustomers}
-                    getOptionLabel={(option) => option.CUSNAM}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option.shopId}>
-                      {option.CUSNAM}
-                    </li>
-                  )}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Shop Name"
-                      variant="outlined"
-                    />
-                  )}
-                  onChange={(event, value) => handleCustomerSelect(value)}
-                    fullWidth
-                  />
-                </Grid>
-              </>
-            )}
-            <Grid item xs={4}>
-              <Button
-                variant="contained"
-                color="primary"
-                style={{ backgroundColor: theme.palette.primary.main }}
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
-            </Grid>
-          </Grid></>
+            </Grid></>
         }
         handleCloseDialog={handleCloseDialog}
         handleSave={handleSubmitDialog}
