@@ -62,13 +62,18 @@ const Header = ({ handleLeftDrawerToggle }) => {
   ];
   const [selectedZone, setSelectedZone] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState([]);
-
+  console.log(selectedZone, selectedCustomer)
   const supplierProductParams = {
-    shopName: supplierName,
+    companyName: supplierName,
     month,
     year,
   }
-
+  const customerProductParams = {
+    zoneName: selectedZone,
+    shopName: selectedCustomer.CUSNAM,
+    month,
+    year,
+  }
   useEffect(() => {
     fetchCustomers();
     setLoading(false);
@@ -87,8 +92,6 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
   const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
-
-
   };
 
   const fetchCustomers = async () => {
@@ -118,7 +121,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
     }
   };
   const handleSubmit = async (params) => {
-    const apiUrl = searchBy === "Supplier" ? '/api/products/by-shop-and-date' : '/api/products/by-zoneName-date';
+    const apiUrl = searchBy === "Supplier" ? '/api/products/by-company-date' : '/api/products/by-zone-shop-date';
     try {
       const response = await axios.post(apiUrl, params);
       if (response.status === 200) {
@@ -369,7 +372,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
                   variant="contained"
                   color="primary"
                   style={{ backgroundColor: theme.palette.primary.main }}
-                  onClick={() => handleSubmit(searchBy === "Supplier" ? supplierProductParams : supplierProductParams)}
+                  onClick={() => handleSubmit(searchBy === "Supplier" ? supplierProductParams : customerProductParams)}
                 >
                   Search
                 </Button>
