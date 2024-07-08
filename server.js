@@ -1172,6 +1172,7 @@ app.post("/api/products/by-company-date", async (req, res) => {
         products: true,
       }
     });
+
     const newArray = invoices.map((invoice) => {
       return invoice.products;
     });
@@ -1183,15 +1184,15 @@ app.post("/api/products/by-company-date", async (req, res) => {
       const productId = product.productId;
       if (productMap.has(productId)) {
         const existingProduct = productMap.get(productId);
-        existingProduct.quantity += product.quantity;
-        existingProduct.totalWithGST += product.totalWithGST;
+        existingProduct.quantity += Number(product.quantity);
+        existingProduct.totalWithGST += Number(product.totalWithGST);
       } else {
         productMap.set(productId, product)
       }
     }
     const mergedProducts = Array.from(productMap.values());
     const totalProductAmount = mergedProducts.reduce((acc, curr) => {
-      return acc += curr.totalWithGST;
+      return acc += Number(curr.totalWithGST);
     }, 0);
     const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
     return res.json({ status: 'success', message: 'Data fetched successfully', data: mergedProducts, totalAmount: parsedAmount, totalCount: filteredProducts.length });
@@ -1241,15 +1242,15 @@ app.post("/api/products/by-zone-shop-date", async (req, res) => {
       const productId = product.productId;
       if (productMap.has(productId)) {
         const existingProduct = productMap.get(productId);
-        existingProduct.quantity += product.quantity;
-        existingProduct.totalWithGST += product.totalWithGST;
+        existingProduct.quantity += Number(product.quantity);
+        existingProduct.totalWithGST += Number(product.totalWithGST);
       } else {
         productMap.set(productId, product);
       }
     });
 
     const mergedProducts = Array.from(productMap.values());
-    const totalProductAmount = mergedProducts.reduce((acc, curr) => acc += curr.totalWithGST, 0);
+    const totalProductAmount = mergedProducts.reduce((acc, curr) => acc += Number(curr.totalWithGST), 0);
     const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
 
     return res.json({
