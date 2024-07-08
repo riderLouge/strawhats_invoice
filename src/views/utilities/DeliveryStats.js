@@ -1,65 +1,63 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button, TextField, Grid, Autocomplete } from "@mui/material";
+import { Card, Button, TextField, Grid, Autocomplete , CardContent , Typography , Divider , List , ListItem , ListItemText} from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
+import axios from "axios";
 
-const agentDetails = [
-  {
-    id: 1,
-    agentName: "Sam",
-    address: "123 Main Street, City",
-    phoneNumber: "123-456-7890",
-    status: "Out For Delivery",
-  },
-  {
-    id: 2,
-    agentName: "Vishal",
-    address: "456 Elm Street, Town",
-    phoneNumber: "987-654-3210",
-    status: "Active",
-  },
-  {
-    id: 3,
-    agentName: "Gautham",
-    address: "789 Oak Street, Village",
-    phoneNumber: "111-222-3333",
-    status: "In Active",
-  },
-];
+
 
 const DeliveryStats = () => {
-  const [selectedAgent, setSelectedAgent] = useState("");
   const [filteredAgentDetails, setFilteredAgentDetails] = useState([]);
   const [isTableVisible, setIsTableVisible] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
+  const [zoneNames, setZoneNames] = useState([]);
+  const [deliveryGuys, setDeliveryGuys] = useState([])
+  const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState([])
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: "agentName",
-        header: "Agent",
-      },
-      {
-        accessorKey: "address",
-        header: "Address",
-      },
-      {
-        accessorKey: "phoneNumber",
-        header: "Phone Number",
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-      },
-    ],
-    []
-  );
+  const deliveryPersonData = {
+    name: "John Doe",
+    contactNumber: "123-456-7890",
+    deliveryArea: "Downtown",
+    deliveries: [
+      { customerName: "Alice", billValue: "$30" },
+      { customerName: "Bob", billValue: "$45" },
+      { customerName: "Charlie", billValue: "$20" }
+    ]
+  };
+
+  const fetchDeliveryGuys = async () => {
+    try {
+      const response = await axios.get(
+        "/api/fetch/deliveryAgents"
+      );
+      setDeliveryGuys(response.data);
+      console.log(response)
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
+
+  const fetchZones = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/shops/fetchItems"
+      );
+      setZoneNames(response);
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
 
   useEffect(() => {
-    if (!selectedAgent) {
+    fetchDeliveryGuys();
+    fetchZones();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDeliveryGuys) {
       setIsTableVisible(false);
     }
-  }, [selectedAgent]);
+  }, [selectedDeliveryGuys]);
 
   useEffect(() => {
     // Handle row selection changes here...
@@ -67,9 +65,9 @@ const DeliveryStats = () => {
   }, [rowSelection]);
 
   const handleSearch = () => {
-    if (selectedAgent) {
-      const filteredData = agentDetails.filter(
-        (agent) => agent.agentName.toLowerCase() === selectedAgent.toLowerCase()
+    if (deliveryGuys) {
+      const filteredData = deliveryGuys.filter(
+        (agent) => agent.name.toLowerCase() === selectedDeliveryGuys.toLowerCase()
       );
       setFilteredAgentDetails(filteredData);
       setIsTableVisible(true);
@@ -81,11 +79,12 @@ const DeliveryStats = () => {
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={8} md={3}>
           <Autocomplete
-            options={agentDetails.map((option) => option.agentName)}
+            options={deliveryGuys.map((option) => option.name)}
             fullWidth
-            value={selectedAgent}
+            value={selectedDeliveryGuys}
             onChange={(event, newValue) => {
-              setSelectedAgent(newValue);
+              setSelectedDeliveryGuys(newValue);
+              console.log(newValue,"===")
             }}
             renderInput={(params) => (
               <TextField {...params} label="Search Agent" variant="outlined" />
@@ -97,23 +96,40 @@ const DeliveryStats = () => {
             variant="contained"
             color="primary"
             onClick={handleSearch}
-            disabled={!selectedAgent}
+            disabled={!selectedDeliveryGuys}
           >
             Search
           </Button>
         </Grid>
       </Grid>
       {isTableVisible && (
-        <Card sx={{ overflow: "hidden", marginTop: "16px" }}>
-          <MaterialReactTable
-            columns={columns}
-            data={filteredAgentDetails}
-            enableRowSelection
-            getRowId={(row) => row.id}
-            onRowSelectionChange={setRowSelection}
-            state={{ rowSelection }}
-          />
-        </Card>
+       <Card sx={{ overflow: 'hidden', marginTop: '16px' }}>
+        <CardContent>
+          <Typography variant="h6" component="div">
+            {selectedDeliveryGuys}
+          </Typography>
+          <Typography color="text.secondary">
+            Contact: {deliveryPersonData.contactNumber}
+          </Typography>
+          <Typography color="text.secondary">
+            Delivery Area: {deliveryPersonData.deliveryArea}
+          </Typography>
+          <Divider sx={{ margin: '16px 0' }} />
+          <Typography variant="subtitle1" component="div">
+            List of Deliveries:
+          </Typography>
+          <List>
+            {deliveryPersonData.deliveries.map((delivery, index) => (
+              <ListItem key={index}>
+                <ListItemText 
+                  primary={delivery.customerName}
+                  secondary={`Bill Value: ${delivery.billValue}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </CardContent>
+      </Card>
       )}
     </MainCard>
   );

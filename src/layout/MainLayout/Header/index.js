@@ -70,7 +70,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   }
   const customerProductParams = {
     zoneName: selectedZone,
-    shopName: selectedCustomer.CUSNAM,
+    shopName: selectedCustomer?.CUSNAM,
     month,
     year,
   }

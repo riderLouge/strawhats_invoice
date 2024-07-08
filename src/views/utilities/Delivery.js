@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
 import { Card, Button ,Grid ,Autocomplete ,TextField} from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 // project imports
 import MainCard from "../../ui-component/cards/MainCard";
@@ -14,10 +15,13 @@ const DeliveryAgent = () => {
   const [deliveryGuys, setDeliveryGuys] = useState([])
   const [rowSelection, setRowSelection] = useState({});
   const [hoveredRow, setHoveredRow] = useState({});
+  const [hoveredRowIcon, setHoveredRowIcon] = useState({});
   const [open, setOpen] = useState(false);
   const [zoneNames, setZoneNames] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [selectedZone, setSelectedZone] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedRowData, setSelectedRowData] = useState(null);
 
   useEffect(() => {
     fetchDeliveryGuys();
@@ -80,27 +84,44 @@ const DeliveryAgent = () => {
         accessorKey: "actions",
         header: "Actions",
         Cell: ({ row }) => (
-          <DeliveryDiningIcon
-            style={{
-              cursor: "pointer",
-              color: hoveredRow === row.id ? "blue" : "inherit",
-            }}
-            onMouseEnter={() => setHoveredRow(row.id)}
-            onMouseLeave={() => setHoveredRow(null)}
-            onClick={() => handleClickDeliveryGuy(row)}
-          />
+          <div>
+            <DeliveryDiningIcon
+              style={{
+                cursor: "pointer",
+                color: hoveredRowIcon === row.id ? "blue" : "inherit",
+              }}
+              onMouseEnter={() => setHoveredRowIcon(row.id)}
+              onMouseLeave={() => setHoveredRowIcon(null)}
+              onClick={() => handleClickDeliveryGuy(row)}
+            />
+            <VisibilityIcon
+              style={{
+                cursor: "pointer",
+                color: hoveredRow === row.id ? "blue" : "inherit",
+                marginLeft: "20px",
+              }}
+              onMouseEnter={() => setHoveredRow(row.id)}
+              onMouseLeave={() => setHoveredRow(null)}
+            />
+          </div>
+          
         ),
       },
     ],
     [hoveredRow]
   );
 
-  const handleClickDeliveryGuy = () => {
-    setOpen(true)
-  }
+  const handleClickDeliveryGuy = (row) => {
+    setSelectedRowData(row.original);
+    setOpen(true);
+  };
 
   const handleSubmitDialog = () => {
-    setOpen(true)
+    console.log("Selected Zone:", selectedZone);
+    console.log("Selected Date:", selectedDate);
+    console.log("Selected Row Data:", selectedRowData);
+
+    setOpen(false);
   }
 
 
@@ -113,7 +134,7 @@ const DeliveryAgent = () => {
           data={deliveryGuys}
         />
       </Card>
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         style={{
@@ -126,28 +147,42 @@ const DeliveryAgent = () => {
         onClick={() => {}}
       >
         Set Delivery
-      </Button>
+      </Button> */}
       <DialogTemplate
        open={open}
        title={'Set Delivery'}
        body={
-          <><Grid item xs={6}>
-          <Autocomplete
-            fullWidth
-            options={zoneNames}
-            getOptionLabel={(option) => option}
-            value={selectedZone}
-            renderOption={(props, option) => (
-              <li {...props} key={option}>
-                {option}
-              </li>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label="Zone Name" variant="outlined" />
-            )}
-            onChange={(event, value) => setSelectedZone(value)}
-          />
-        </Grid></>
+          <>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Autocomplete
+                  fullWidth
+                  options={zoneNames}
+                  getOptionLabel={(option) => option}
+                  value={selectedZone}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option}>
+                      {option}
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Zone Name" variant="outlined" />
+                  )}
+                  onChange={(event, value) => setSelectedZone(value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  variant="outlined"
+                  name="invoiceDate"
+                  value={selectedDate}
+                  onChange={(event) => setSelectedDate(event.target.value)}
+                />
+              </Grid>
+            </Grid>
+          </>
        }
        handleCloseDialog={() => setOpen(false)}
        handleSave={handleSubmitDialog}/>

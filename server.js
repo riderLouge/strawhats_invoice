@@ -1163,9 +1163,9 @@ app.post("/api/products/by-company-date", async (req, res) => {
   try {
     const invoices = await prisma.invoice.findMany({
       where: {
-        createdAt: {
+        invoiceDate: {
           gte: startDate,
-          lt: endDate // Start of the next month
+          lt: endDate 
         },
       },
       select: {
@@ -1213,7 +1213,7 @@ app.post("/api/products/by-zone-shop-date", async (req, res) => {
 
   try {
     const whereClause = {
-      createdAt: {
+      invoiceDate: {
         gte: startDate,
         lt: endDate
       },
