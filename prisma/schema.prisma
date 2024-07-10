@@ -11,16 +11,17 @@ datasource db {
 }
 
 model Staff {
-  userid      Int       @id @default(autoincrement())
+  userid      Int        @id @default(autoincrement())
   name        String
-  email       String    @unique
+  email       String     @unique
   joinDate    DateTime?
   phoneNumber String
   address     String
   designation String
   role        String
   photo       String
-  isActive    Boolean   @default(false)
+  isActive    Boolean    @default(false)
+  Delivery    Delivery[]
 }
 
 model Shop {
@@ -149,10 +150,14 @@ model SupplierBill {
 }
 
 model Delivery {
-  id          Int      @id
-  billNumbers Int[]
-  date        DateTime
-  staffId     Int
-  area        String
-  status      String
+  id           String   @id @default(uuid())
+  assignedDate DateTime @map("assigned_date")
+  shops        Json[]
+  staffId      Int      @map("staff_id")
+  staff        Staff    @relation(fields: [staffId], references: [userid])
+  areas        String[]
+  status       String   @default("NOT_COMPLETED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
 }

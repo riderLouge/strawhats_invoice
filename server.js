@@ -1297,9 +1297,69 @@ app.get("/api/invoice/overall-count", async (req, res) => {
     });
   }
 });
-const PORT = process.env.PORT || 9000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
+//* Assign delivery agent
+app.post("/api/shop/assign-delivery-guy", async (req, res) => {
+  
+  try {
+    const { areas, date, staffId } = req.body;
+
+    if (!areas || !date || !staffId) {
+      return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
+    }
+  
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        invoiceDate: {
+          gte: startDate,
+          lt: endDate,
+        },
+        shop: {
+          ZONNAM: {
+            in: areas,
+          },
+        }
+      },
+      select: {
+        shop: true,
+      }
+    });
+    if (invoices.length === 0) {
+      return res.status(400).json({
+        status: 'failure',
+        message: 'There is no invoices for this zone name and date',
+      });
+    }
+
+    const unmatchedAreas = areas.filter((area) => {
+      return !invoices.some((invoice) => invoice.shop.ZONNAM === area);
+    })
+    if (unmatchedAreas.length > 0) {
+      return res.status(400).json({
+        status: 'failure',
+        message: `The following areas do not match any shop names: ${unmatchedAreas.join(', ')}`,
+      });
+    }
+    const shopDetails = invoices.map((invoice) => invoice.shop);
+    await prisma.delivery.create({
+      data: {
+        staffId,
+        shops: shopDetails,
+        assignedDate: new Date(date),
+        areas,
+      }
+    })
+    return res.json({
+      status: 'success',
+      message: 'Delivery agent assigned successfully',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
 });
 
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
@@ -1313,3 +1373,8 @@ app.get("/api/fetch/deliveryAgents", async (req, res) => {
       .json({ error: "An error occurred while fetching the delivery guys" });
   }
 });
+const PORT = process.env.PORT || 9000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+

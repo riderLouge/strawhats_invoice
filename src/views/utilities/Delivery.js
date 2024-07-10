@@ -19,7 +19,7 @@ const DeliveryAgent = () => {
   const [open, setOpen] = useState(false);
   const [zoneNames, setZoneNames] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [selectedZone, setSelectedZone] = useState("");
+  const [selectedZones, setSelectedZones] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedRowData, setSelectedRowData] = useState(null);
 
@@ -117,7 +117,7 @@ const DeliveryAgent = () => {
   };
 
   const handleSubmitDialog = () => {
-    console.log("Selected Zone:", selectedZone);
+    console.log("Selected Zone:", selectedZones);
     console.log("Selected Date:", selectedDate);
     console.log("Selected Row Data:", selectedRowData);
 
@@ -156,10 +156,11 @@ const DeliveryAgent = () => {
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <Autocomplete
+                  multiple
                   fullWidth
                   options={zoneNames}
                   getOptionLabel={(option) => option}
-                  value={selectedZone}
+                  value={selectedZones}
                   renderOption={(props, option) => (
                     <li {...props} key={option}>
                       {option}
@@ -168,7 +169,7 @@ const DeliveryAgent = () => {
                   renderInput={(params) => (
                     <TextField {...params} label="Zone Name" variant="outlined" />
                   )}
-                  onChange={(event, value) => setSelectedZone(value)}
+                  onChange={(event, value) => setSelectedZones(value)}
                 />
               </Grid>
               <Grid item xs={6}>
