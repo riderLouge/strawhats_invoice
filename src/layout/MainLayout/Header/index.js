@@ -12,6 +12,14 @@ import {
   Grid,
   TextField,
   Autocomplete,
+  Table,
+  TableContainer,
+  TableRow,
+  TableCell,
+  TableHead,
+  TableBody,
+  Paper,
+  TablePagination
 } from "@mui/material"; import { IconMenu2 } from "@tabler/icons";
 import "./Header.css";
 import SearchSection from "./SearchSection";
@@ -22,6 +30,7 @@ import axios from "axios";
 import MonthYearPicker from "../../../ui-component/MonthYearSelector";
 import MonthYearSelector from "../../../ui-component/MonthYearSelector";
 import { useOverAllContext } from "../../../context/overAllContext";
+import MaterialReactTable from "material-react-table";
 
 const Header = ({ handleLeftDrawerToggle }) => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
@@ -38,6 +47,11 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [year, setYear] = useState('');
   const [month, setMonth] = useState('');
+  const [productData, setProductData] = useState([]); 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); 
+
+
   const supplierNames = [
     "ASIA CANDY",
     "BEIERSDORF INDIA PVT LTD",
@@ -121,6 +135,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
     }
   };
   const handleSubmit = async (params) => {
+
     const apiUrl = searchBy === "Supplier" ? '/api/products/by-company-date' : '/api/products/by-zone-shop-date';
     try {
       const response = await axios.post(apiUrl, params);
@@ -128,12 +143,13 @@ const Header = ({ handleLeftDrawerToggle }) => {
         setSuccess(true);
         setOpenErrorAlert(true);
         setErrorInfo(response.data.message);
+        setProductData(response.data.data); 
       } else {
         setSuccess(false);
         setOpenErrorAlert(true);
         setErrorInfo(response.data.message);
       }
-      console.log(response.data);
+      console.log(response.data.data);
     } catch (error) {
       console.error('Error fetching data', error);
       setSuccess(false);
@@ -164,6 +180,18 @@ const Header = ({ handleLeftDrawerToggle }) => {
     setFilteredData(newData);
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const emptyRows = rowsPerPage - Math.min(rowsPerPage, productData.length - page * rowsPerPage);
+
+
   const softwareNameStyle = {
     fontSize: "26px",
     fontWeight: "bold",
@@ -180,6 +208,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
   const handleToggle = (event, newSearchBy) => {
     if (newSearchBy !== null) {
+      setProductData([])
       setSearchBy(newSearchBy);
     }
   };
@@ -377,7 +406,42 @@ const Header = ({ handleLeftDrawerToggle }) => {
                   Search
                 </Button>
               </Grid>
-            </Grid></>
+              <Grid item xs={12}>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Product Name</TableCell>
+                        <TableCell>Quantity</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {productData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
+                        <TableRow key={product.productId}>
+                          <TableCell>{product.productName}</TableCell>
+                          <TableCell>{product.quantity}</TableCell>
+                        </TableRow>
+                      ))}
+                      {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                          <TableCell colSpan={2} />
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={productData.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </Grid>
+            </Grid>
+          </>
         }
         handleCloseDialog={handleCloseDialog}
         handleSave={handleSubmitDialog}
