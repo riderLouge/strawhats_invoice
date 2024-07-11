@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button, TextField, Grid, Autocomplete , CardContent , Typography , Divider , List , ListItem , ListItemText} from "@mui/material";
+import { Card, Button, TextField, Grid, Autocomplete, CardContent, Typography, Divider, List, ListItem, ListItemText } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 
@@ -74,6 +74,17 @@ const DeliveryStats = () => {
     }
   };
 
+  const fetchDeliveryAgent = async () => {
+    try {
+      const response = await axios.get('/api/fetch/assigned-delivery-agent');
+      console.log(response);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  useEffect(() => {
+    fetchDeliveryAgent()
+  }, [])
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative" }}>
       <Grid container spacing={2} alignItems="center">
@@ -84,7 +95,7 @@ const DeliveryStats = () => {
             value={selectedDeliveryGuys}
             onChange={(event, newValue) => {
               setSelectedDeliveryGuys(newValue);
-              console.log(newValue,"===")
+              console.log(newValue, "===")
             }}
             renderInput={(params) => (
               <TextField {...params} label="Search Agent" variant="outlined" />
@@ -103,33 +114,33 @@ const DeliveryStats = () => {
         </Grid>
       </Grid>
       {isTableVisible && (
-       <Card sx={{ overflow: 'hidden', marginTop: '16px' }}>
-        <CardContent>
-          <Typography variant="h6" component="div">
-            {selectedDeliveryGuys}
-          </Typography>
-          <Typography color="text.secondary">
-            Contact: {deliveryPersonData.contactNumber}
-          </Typography>
-          <Typography color="text.secondary">
-            Delivery Area: {deliveryPersonData.deliveryArea}
-          </Typography>
-          <Divider sx={{ margin: '16px 0' }} />
-          <Typography variant="subtitle1" component="div">
-            List of Deliveries:
-          </Typography>
-          <List>
-            {deliveryPersonData.deliveries.map((delivery, index) => (
-              <ListItem key={index}>
-                <ListItemText 
-                  primary={delivery.customerName}
-                  secondary={`Bill Value: ${delivery.billValue}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </CardContent>
-      </Card>
+        <Card sx={{ overflow: 'hidden', marginTop: '16px' }}>
+          <CardContent>
+            <Typography variant="h6" component="div">
+              {selectedDeliveryGuys}
+            </Typography>
+            <Typography color="text.secondary">
+              Contact: {deliveryPersonData.contactNumber}
+            </Typography>
+            <Typography color="text.secondary">
+              Delivery Area: {deliveryPersonData.deliveryArea}
+            </Typography>
+            <Divider sx={{ margin: '16px 0' }} />
+            <Typography variant="subtitle1" component="div">
+              List of Deliveries:
+            </Typography>
+            <List>
+              {deliveryPersonData.deliveries.map((delivery, index) => (
+                <ListItem key={index}>
+                  <ListItemText
+                    primary={delivery.customerName}
+                    secondary={`Bill Value: ${delivery.billValue}`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
       )}
     </MainCard>
   );

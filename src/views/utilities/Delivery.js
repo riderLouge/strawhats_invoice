@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button ,Grid ,Autocomplete ,TextField} from "@mui/material";
+import { Card, Button, Grid, Autocomplete, TextField } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 // project imports
@@ -104,7 +104,7 @@ const DeliveryAgent = () => {
               onMouseLeave={() => setHoveredRow(null)}
             />
           </div>
-          
+
         ),
       },
     ],
@@ -115,13 +115,26 @@ const DeliveryAgent = () => {
     setSelectedRowData(row.original);
     setOpen(true);
   };
-
+  const assignDeliveryAgent = async (params) => {
+    try {
+      const response = await axios.post('/api/shop/assign-delivery-agent', params);
+      console.log(response);
+      setOpen(false);
+    } catch (error) {
+      console.log(error, 'error while assinging a agent')
+    }
+  }
   const handleSubmitDialog = () => {
     console.log("Selected Zone:", selectedZones);
     console.log("Selected Date:", selectedDate);
     console.log("Selected Row Data:", selectedRowData);
+    const params = {
+      areas: selectedZones,
+      date: selectedDate,
+      staffId: selectedRowData.userid,
+    }
+    assignDeliveryAgent(params);
 
-    setOpen(false);
   }
 
 
@@ -149,9 +162,9 @@ const DeliveryAgent = () => {
         Set Delivery
       </Button> */}
       <DialogTemplate
-       open={open}
-       title={'Set Delivery'}
-       body={
+        open={open}
+        title={'Set Delivery'}
+        body={
           <>
             <Grid container spacing={2}>
               <Grid item xs={6}>
@@ -184,9 +197,9 @@ const DeliveryAgent = () => {
               </Grid>
             </Grid>
           </>
-       }
-       handleCloseDialog={() => setOpen(false)}
-       handleSave={handleSubmitDialog}/>
+        }
+        handleCloseDialog={() => setOpen(false)}
+        handleSave={handleSubmitDialog} />
     </MainCard>
   );
 };

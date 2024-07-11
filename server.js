@@ -1165,7 +1165,7 @@ app.post("/api/products/by-company-date", async (req, res) => {
       where: {
         invoiceDate: {
           gte: startDate,
-          lt: endDate 
+          lt: endDate
         },
       },
       select: {
@@ -1299,18 +1299,30 @@ app.get("/api/invoice/overall-count", async (req, res) => {
 });
 
 //* Assign delivery agent
-app.post("/api/shop/assign-delivery-guy", async (req, res) => {
-  
+app.post("/api/shop/assign-delivery-agent", async (req, res) => {
   try {
     const { areas, date, staffId } = req.body;
 
     if (!areas || !date || !staffId) {
       return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
     }
-  
+
+    const deliveryAgent = await prisma.staff.findUnique({
+      where: { userid: staffId },
+    });
+
+    if (!deliveryAgent) {
+      return res.status(400).json({ status: 'failure', message: 'Delivery agent not found!' });
+    }
+
+    if (deliveryAgent.isActive) {
+      return res.status(400).json({ status: 'failure', message: 'Delivery agent already assigned' });
+    }
+
     const startDate = new Date(date);
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+
     const invoices = await prisma.invoice.findMany({
       where: {
         invoiceDate: {
@@ -1318,50 +1330,63 @@ app.post("/api/shop/assign-delivery-guy", async (req, res) => {
           lt: endDate,
         },
         shop: {
-          ZONNAM: {
-            in: areas,
-          },
-        }
+          ZONNAM: { in: areas },
+        },
       },
       select: {
         shop: true,
-      }
+      },
     });
+
     if (invoices.length === 0) {
-      return res.status(400).json({
-        status: 'failure',
-        message: 'There is no invoices for this zone name and date',
-      });
+      return res.status(400).json({ status: 'failure', message: 'No invoices found for the specified areas and date' });
     }
 
-    const unmatchedAreas = areas.filter((area) => {
-      return !invoices.some((invoice) => invoice.shop.ZONNAM === area);
-    })
+    const unmatchedAreas = areas.filter(area => !invoices.some(invoice => invoice.shop.ZONNAM === area));
+
     if (unmatchedAreas.length > 0) {
       return res.status(400).json({
         status: 'failure',
         message: `The following areas do not match any shop names: ${unmatchedAreas.join(', ')}`,
       });
     }
-    const shopDetails = invoices.map((invoice) => invoice.shop);
+
+    const shopDetails = invoices.map(invoice => ({ ...invoice.shop, status: 'NOT_COMPLETED' }));
+
     await prisma.delivery.create({
       data: {
         staffId,
         shops: shopDetails,
-        assignedDate: new Date(date),
+        assignedDate: new Date(),
         areas,
+      },
+    });
+    await prisma.staff.update({
+      where: {
+        userid: staffId,
+      },
+      data: {
+        isActive: true,
       }
     })
-    return res.json({
-      status: 'success',
-      message: 'Delivery agent assigned successfully',
-    });
+    return res.json({ status: 'success', message: 'Delivery agent assigned successfully' });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });
   }
 });
 
+// fetch delivery assigned agent
+app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
+  try {
+    const data = await prisma.delivery.findMany();
+    res.status(200).json({ status: 'success', data })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+})
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
   try {
     const shops = await prisma.staff.findMany({ where: { role: "delivery" } });
