@@ -18,6 +18,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Typography,
+  TablePagination
 } from "@mui/material";
 import EarningCard from "./EarningCard";
 import PopularCard from "./PopularCard";
@@ -50,6 +51,8 @@ const Dashboard = () => {
   const [selectedZoneName, setSelectedZoneName] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
   const theme = useTheme();
+  const [page, setPage] = useState(0); // Add state for page
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Add state for rows per page
 
   const fetchZonNames = async () => {
     try {
@@ -82,7 +85,7 @@ const Dashboard = () => {
         }
         return creditItem; // Return original credit item if no match found
       });
-
+      console.log("updatedCredit =",updatedCredit)
       setCredit(updatedCredit);
       setDebit(debitData);
       setFilteredData(creditData);
@@ -364,6 +367,18 @@ const Dashboard = () => {
       setSearchBy(newSearchBy);
     }
   };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const rowsToDisplay = credit.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -595,7 +610,7 @@ const Dashboard = () => {
               </Button>
             </Grid>
           </Grid>
-          <TableContainer component={Paper} style={{ marginTop: "16px" }}>
+          <TableContainer component={Paper} style={{ marginTop: '16px' }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -605,7 +620,7 @@ const Dashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {credit.map((item, index) => (
+                {rowsToDisplay.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell>{item.invoiceNumber}</TableCell>
                     <TableCell>{item.shopName}</TableCell>
@@ -614,6 +629,15 @@ const Dashboard = () => {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={credit.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </TableContainer>
         </DialogContent>
         <DialogActions>
