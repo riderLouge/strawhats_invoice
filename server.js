@@ -1347,46 +1347,61 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
     if (unmatchedAreas.length > 0) {
       return res.status(400).json({
         status: 'failure',
-        message: `The following areas do not match any shop names: ${unmatchedAreas.join(', ')}`,
+        message: "The following areas do not match any shop names: ${unmatchedAreas.join(', ')}",
       });
     }
+      const getTotalCount = (products) => {
 
-    const shopDetails = invoices.map(invoice => ({ ...invoice.shop, status: 'NOT_COMPLETED' }));
-
-    await prisma.delivery.create({
-      data: {
-        staffId,
-        shops: shopDetails,
-        assignedDate: new Date(),
-        areas,
-      },
-    });
-    await prisma.staff.update({
-      where: {
-        userid: staffId,
-      },
-      data: {
-        isActive: true,
+      return products.reduce((acc, curr) => {
+      return acc + Number(curr.totalWithGst);
+      }, 0);
       }
-    })
-    return res.json({ status: 'success', message: 'Delivery agent assigned successfully' });
 
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
-  }
-});
+      const shopDetails = invoices.map(invoice => ({ ...invoice.shop, status: 'NOT_COMPLETED', totalAmount: getTotalCount(invoice.produts) }));
+
+      await prisma.delivery.create({
+        data: {
+          staffId,
+          shops: shopDetails,
+          assignedDate: new Date(),
+          areas,
+        },
+      });
+      await prisma.staff.update({
+        where: {
+          userid: staffId,
+        },
+        data: {
+          isActive: true,
+        }
+      })
+      return res.json({ status: 'success', message: 'Delivery agent assigned successfully' });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+    }
+  });
 
 // fetch delivery assigned agent
 app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
-  try {
-    const data = await prisma.delivery.findMany();
-    res.status(200).json({ status: 'success', data })
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  const {userId, date} = req.query;
+    try {
+  if(!userId, !date) return res.status(400).json({ status: 'failure', message: 'missing required fields' });
+      const data = await prisma.delivery.findMany({
+  where:{
+  userid: userId,
+  assignedDate: date,
   }
-})
+  });
+  if(data.length === 0) return res.status(404).json({ status: 'failure', message: 'Delivery details not found on this date or delivery agent' });
+  
+      res.status(200).json({ status: 'success', data })
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+    }
+  })
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
   try {
     const shops = await prisma.staff.findMany({ where: { role: "delivery" } });

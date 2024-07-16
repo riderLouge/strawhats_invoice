@@ -102,6 +102,15 @@ const DeliveryStats = () => {
             )}
           />
         </Grid>
+        <Grid item xs={8} md={3}>
+        <TextField
+            fullWidth
+            type="date"
+            variant="outlined"
+            id="date"
+            name="date"
+          />
+        </Grid>
         <Grid item xs={4}>
           <Button
             variant="contained"
