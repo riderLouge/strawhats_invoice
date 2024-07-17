@@ -12,8 +12,9 @@ const DeliveryStats = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [zoneNames, setZoneNames] = useState([]);
   const [deliveryGuys, setDeliveryGuys] = useState([])
-  const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState([])
-
+  const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('');
+  console.log(selectedDeliveryGuys, selectedDate);
   const deliveryPersonData = {
     name: "John Doe",
     contactNumber: "123-456-7890",
@@ -64,39 +65,37 @@ const DeliveryStats = () => {
     console.info({ rowSelection });
   }, [rowSelection]);
 
-  const handleSearch = () => {
-    if (deliveryGuys) {
-      const filteredData = deliveryGuys.filter(
-        (agent) => agent.name.toLowerCase() === selectedDeliveryGuys.toLowerCase()
-      );
-      setFilteredAgentDetails(filteredData);
-      setIsTableVisible(true);
-    }
-  };
-
-  const fetchDeliveryAgent = async () => {
+  const fetchDeliveryAgent = async (data) => {
     try {
-      const response = await axios.get('/api/fetch/assigned-delivery-agent');
+      const response = await axios.get('/api/fetch/assigned-delivery-agent', {
+        params: {
+          userId: data.userId,
+          date: data.date,
+        }
+      });
       console.log(response);
     } catch (error) {
       console.log(error)
     }
   }
-  useEffect(() => {
-    fetchDeliveryAgent()
-  }, [])
+  const handleSearch = () => {
+    console.log('in');
+    fetchDeliveryAgent({userId: selectedDeliveryGuys.userid, date: selectedDate})
+  };
+
+
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative" }}>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={8} md={3}>
           <Autocomplete
-            options={deliveryGuys.map((option) => option.name)}
+            options={deliveryGuys}
             fullWidth
             value={selectedDeliveryGuys}
             onChange={(event, newValue) => {
               setSelectedDeliveryGuys(newValue);
-              console.log(newValue, "===")
             }}
+            getOptionLabel={(option) => option.name}
             renderInput={(params) => (
               <TextField {...params} label="Search Agent" variant="outlined" />
             )}
@@ -109,6 +108,8 @@ const DeliveryStats = () => {
             variant="outlined"
             id="date"
             name="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
           />
         </Grid>
         <Grid item xs={4}>
