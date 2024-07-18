@@ -114,6 +114,7 @@ model Invoice {
   shop          Shop      @relation(fields: [shopId], references: [shopId])
   userId        Int
   user          LoginAuth @relation(fields: [userId], references: [Id])
+  status        String    @default("NOT_DELIVERED")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   isDeleted     Boolean   @default(false)
@@ -151,12 +152,13 @@ model SupplierBill {
 
 model Delivery {
   id           String   @id @default(uuid())
-  assignedDate DateTime @map("assigned_date")
+  assignedDate DateTime @default(now()) @map("assigned_date")
+  invoiceDate  DateTime @map("invoice_date")
   shops        Json[]
   staffId      Int      @map("staff_id")
   staff        Staff    @relation(fields: [staffId], references: [userid])
   areas        String[]
-  status       String   @default("NOT_COMPLETED")
+  status       String   @default("NOT_ASSIGNED")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   isDeleted    Boolean  @default(false)
