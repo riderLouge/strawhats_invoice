@@ -1419,8 +1419,30 @@ app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
     if (data.length === 0) {
       return res.status(404).json({ status: 'failure', message: 'Delivery details not found on this date or delivery agent' });
     }
+    const deliveryDetails = data.map((delivery) => {
+      const details = delivery.areas.map((area) => {
+        const filteredShopDetails = delivery.shops.filter((shop) => {
+          return area === shop.shop.ZONNAM
+        });
+        return {
+          zoneName: area,
+          shops: filteredShopDetails,
+        };
+      });
+      return {
+        id: delivery.id,
+        assignedDate: delivery.assignedDate,
+        invoiceDate: delivery.invoiceDate,
+        staffId: delivery.staffId,
+        status: delivery.status,
+        createdAt: delivery.createdAt,
+        updatedAt: delivery.updatedAt,
+        isDeleted: delivery.isDeleted,
+        details,
+      };
+    });
 
-    res.status(200).json({ status: 'success', data });
+    res.status(200).json({ status: 'success', data: deliveryDetails[0] });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });

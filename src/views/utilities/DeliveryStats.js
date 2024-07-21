@@ -1,23 +1,31 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button, TextField, Grid, Autocomplete, CardContent, Typography, Divider, List, ListItem, ListItemText } from "@mui/material";
+import { Card, Button, TextField, Grid, Autocomplete, CardContent, Typography, Divider, List, ListItem, ListItemText, Box, TableContainer, Table, TableBody, Paper, TableRow, TableCell, Stack, TableHead, styled, Chip, Checkbox } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import { useOverAllContext } from "../../context/overAllContext";
+import DeliveryGuyImage from '../../assets/images/deliveryAgent.jpg'
+import moment from "moment";
+import capitalizeText from "../../utils/capitalizeText";
+import currencyFormatter from "../../utils/currencyFormatter";
 
-
+const StyledTableCell = styled(TableCell)({
+  padding: '1px 16px',
+  color: '#5E6D82',
+  height: '3rem',
+});
 
 const DeliveryStats = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [filteredAgentDetails, setFilteredAgentDetails] = useState([]);
-  const [isTableVisible, setIsTableVisible] = useState(false);
+  const [isTableVisible, setIsTableVisible] = useState(true);
   const [rowSelection, setRowSelection] = useState({});
   const [zoneNames, setZoneNames] = useState([]);
   const [deliveryGuys, setDeliveryGuys] = useState([])
   const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [deliveryDetails, setDeliveryDetails] = useState(null);
-
+  console.log(deliveryDetails)
   const deliveryPersonData = {
     name: "John Doe",
     contactNumber: "123-456-7890",
@@ -68,31 +76,28 @@ const DeliveryStats = () => {
     console.info({ rowSelection });
   }, [rowSelection]);
 
-  const handleSearch = () => {
-    if (deliveryGuys) {
-      const filteredData = deliveryGuys.filter(
-        (agent) => agent.name.toLowerCase() === selectedDeliveryGuys.toLowerCase()
-      );
-      setFilteredAgentDetails(filteredData);
-      setIsTableVisible(true);
-    }
-  };
-
-  const fetchDeliveryAgent = async () => {
+  const fetchDeliveryAgent = async (data) => {
     try {
-      const response = await axios.get('/api/fetch/assigned-delivery-agent');
-      console.log(response);
+      const response = await axios.get('/api/fetch/assigned-delivery-agent', {
+        params: {
+          userId: data.userId,
+          date: data.date,
+        }
+      });
+      setDeliveryDetails(response.data.data)
     } catch (error) {
       setSuccess(false);
       setOpenErrorAlert(true);
       setErrorInfo(error.response.data.message);
     }
   }
-  useEffect(() => {
-    fetchDeliveryAgent()
-  }, [])
+  const handleSearch = () => {
+    fetchDeliveryAgent({ userId: selectedDeliveryGuys.userid, date: selectedDate })
+  };
+
+
   return (
-    <MainCard title="Delivery Stats" sx={{ position: "relative" }}>
+    <MainCard title="Delivery Stats" sx={{ position: "relative", height: '82vh', overflow: 'auto' }}>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={8} md={3}>
           <Autocomplete
@@ -109,7 +114,7 @@ const DeliveryStats = () => {
           />
         </Grid>
         <Grid item xs={8} md={3}>
-        <TextField
+          <TextField
             fullWidth
             type="date"
             variant="outlined"
@@ -130,34 +135,66 @@ const DeliveryStats = () => {
           </Button>
         </Grid>
       </Grid>
-      {isTableVisible && (
-        <Card sx={{ overflow: 'hidden', marginTop: '16px' }}>
-          <CardContent>
-            <Typography variant="h6" component="div">
-              {selectedDeliveryGuys}
-            </Typography>
-            <Typography color="text.secondary">
-              Contact: {deliveryPersonData.contactNumber}
-            </Typography>
-            <Typography color="text.secondary">
-              Delivery Area: {deliveryPersonData.deliveryArea}
-            </Typography>
-            <Divider sx={{ margin: '16px 0' }} />
-            <Typography variant="subtitle1" component="div">
-              List of Deliveries:
-            </Typography>
-            <List>
-              {deliveryPersonData.deliveries.map((delivery, index) => (
-                <ListItem key={index}>
-                  <ListItemText
-                    primary={delivery.customerName}
-                    secondary={`Bill Value: ${delivery.billValue}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
+      {deliveryDetails === null ? (
+        <Stack direction="row" alignItems="center" width="100%" height="100%">
+          <img src={DeliveryGuyImage} style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: '60%' }} alt="deliveryguy" />
+          <Typography variant="h1">Search Your Delivery partner Details</Typography>
+        </Stack>
+      ) : (
+        <Box>
+          {
+            deliveryDetails.details.map((data) => {
+
+              return (
+                <Box sx={{ mt: 4 }}>
+                  <Stack>
+                    <Typography variant="h4">{`Zone ${capitalizeText(data.zoneName)} - Delivery`}</Typography>
+                    <Typography variant="body2" color="gray">{`Assigned on ${moment(deliveryDetails.assignedDate).format('MMM DD, YYYY')}`}</Typography>
+                  </Stack>
+                  <TableContainer component={Paper} sx={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', mt: 4 }}>
+                    <Box p={2}>
+                      <Typography variant="h4">Shops to Deliver</Typography>
+                    </Box>
+                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                      <TableHead>
+                        <TableRow>
+                          <StyledTableCell align="left">Shop Name</StyledTableCell>
+                          <StyledTableCell align="left">Total Amount</StyledTableCell>
+                          <StyledTableCell align="left">Status</StyledTableCell>
+                          <StyledTableCell align="left"></StyledTableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {data.shops.map((row) => {
+                          return (
+                            <TableRow
+                              key={row.shop.CUSNAM}
+                              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                            >
+                              <StyledTableCell align="left">
+                                {capitalizeText(row.shop.CUSNAM)}
+                              </StyledTableCell>
+                              <StyledTableCell align="left">
+                                {currencyFormatter(row.totalAmount, 'INR')}
+                              </StyledTableCell>
+                              <StyledTableCell align="left">
+                                <Chip sx={{height: '24px'}}
+                                  label={capitalizeText(row.shop.status)} />
+                              </StyledTableCell>
+                              <StyledTableCell align="left">
+                                <Checkbox />
+                              </StyledTableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              )
+            })
+          }
+        </Box>
       )}
     </MainCard>
   );
