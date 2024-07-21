@@ -3,10 +3,12 @@ import { MaterialReactTable } from "material-react-table";
 import { Card, Button, TextField, Grid, Autocomplete, CardContent, Typography, Divider, List, ListItem, ListItemText } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
+import { useOverAllContext } from "../../context/overAllContext";
 
 
 
 const DeliveryStats = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [filteredAgentDetails, setFilteredAgentDetails] = useState([]);
   const [isTableVisible, setIsTableVisible] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
@@ -14,7 +16,8 @@ const DeliveryStats = () => {
   const [deliveryGuys, setDeliveryGuys] = useState([])
   const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
-  console.log(selectedDeliveryGuys, selectedDate);
+  const [deliveryDetails, setDeliveryDetails] = useState(null);
+
   const deliveryPersonData = {
     name: "John Doe",
     contactNumber: "123-456-7890",
@@ -65,25 +68,29 @@ const DeliveryStats = () => {
     console.info({ rowSelection });
   }, [rowSelection]);
 
-  const fetchDeliveryAgent = async (data) => {
-    try {
-      const response = await axios.get('/api/fetch/assigned-delivery-agent', {
-        params: {
-          userId: data.userId,
-          date: data.date,
-        }
-      });
-      console.log(response);
-    } catch (error) {
-      console.log(error)
-    }
-  }
   const handleSearch = () => {
-    console.log('in');
-    fetchDeliveryAgent({userId: selectedDeliveryGuys.userid, date: selectedDate})
+    if (deliveryGuys) {
+      const filteredData = deliveryGuys.filter(
+        (agent) => agent.name.toLowerCase() === selectedDeliveryGuys.toLowerCase()
+      );
+      setFilteredAgentDetails(filteredData);
+      setIsTableVisible(true);
+    }
   };
 
-
+  const fetchDeliveryAgent = async () => {
+    try {
+      const response = await axios.get('/api/fetch/assigned-delivery-agent');
+      console.log(response);
+    } catch (error) {
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+    }
+  }
+  useEffect(() => {
+    fetchDeliveryAgent()
+  }, [])
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative" }}>
       <Grid container spacing={2} alignItems="center">

@@ -158,7 +158,7 @@ model Delivery {
   staffId      Int      @map("staff_id")
   staff        Staff    @relation(fields: [staffId], references: [userid])
   areas        String[]
-  status       String   @default("NOT_ASSIGNED")
+  status       String   @default("ASSIGNED")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   isDeleted    Boolean  @default(false)

@@ -1406,7 +1406,6 @@ app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
 
     const startDate = new Date(parsedDate.setUTCHours(0, 0, 0, 0));
     const endDate = new Date(parsedDate.setUTCHours(23, 59, 59, 999));
-    console.log(startDate, endDate);
     const data = await prisma.delivery.findMany({
       where: {
         staffId: parsedUserId,
