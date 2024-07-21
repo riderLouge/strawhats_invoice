@@ -1335,6 +1335,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
       },
       select: {
         shop: true,
+        products: true,
       },
     });
 
@@ -1350,14 +1351,22 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         message: `The following areas do not match any shop names: ${unmatchedAreas.join(', ')}`,
       });
     }
-
-    const shopDetails = invoices.map(invoice => ({ ...invoice.shop, status: 'NOT_COMPLETED' }));
+    const getTotalCount = (products) => {
+      return products.reduce((acc, curr) => {
+        return acc + Number(curr.totalWithGST);
+      }, 0);
+    }
+    const shopDetails = invoices.map(invoice => ({
+      ...invoice,
+      shop: { ...invoice.shop, status: 'NOT_COMPLETED' },
+      totalAmount: getTotalCount(invoice.products)
+    }));
 
     await prisma.delivery.create({
       data: {
         staffId,
         shops: shopDetails,
-        assignedDate: new Date(),
+        invoiceDate: new Date(date),
         areas,
       },
     });
@@ -1379,14 +1388,47 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
 
 // fetch delivery assigned agent
 app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
+  const { userId, date } = req.query;
   try {
-    const data = await prisma.delivery.findMany();
-    res.status(200).json({ status: 'success', data })
+    if (!userId || !date) {
+      return res.status(400).json({ status: 'failure', message: 'missing required fields' });
+    }
+
+    const parsedUserId = Number(userId);
+    if (isNaN(parsedUserId)) {
+      return res.status(400).json({ status: 'failure', message: 'Invalid userId format' });
+    }
+
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ status: 'failure', message: 'Invalid date format' });
+    }
+
+    const startDate = new Date(parsedDate.setUTCHours(0, 0, 0, 0));
+    const endDate = new Date(parsedDate.setUTCHours(23, 59, 59, 999));
+
+    const data = await prisma.delivery.findMany({
+      where: {
+        staffId: parsedUserId,
+        invoiceDate: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ status: 'failure', message: 'Delivery details not found on this date or delivery agent' });
+    }
+
+    res.status(200).json({ status: 'success', data });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });
   }
-})
+});
+
+
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
   try {
     const shops = await prisma.staff.findMany({ where: { role: "delivery" } });

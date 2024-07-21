@@ -3,16 +3,20 @@ import { MaterialReactTable } from "material-react-table";
 import { Card, Button, TextField, Grid, Autocomplete, CardContent, Typography, Divider, List, ListItem, ListItemText } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
+import { useOverAllContext } from "../../context/overAllContext";
 
 
 
 const DeliveryStats = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [filteredAgentDetails, setFilteredAgentDetails] = useState([]);
   const [isTableVisible, setIsTableVisible] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
   const [zoneNames, setZoneNames] = useState([]);
   const [deliveryGuys, setDeliveryGuys] = useState([])
-  const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState([])
+  const [selectedDeliveryGuys, setSelectedDeliveryGuys] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [deliveryDetails, setDeliveryDetails] = useState(null);
 
   const deliveryPersonData = {
     name: "John Doe",
@@ -64,42 +68,52 @@ const DeliveryStats = () => {
     console.info({ rowSelection });
   }, [rowSelection]);
 
-  const handleSearch = () => {
-    if (deliveryGuys) {
-      const filteredData = deliveryGuys.filter(
-        (agent) => agent.name.toLowerCase() === selectedDeliveryGuys.toLowerCase()
-      );
-      setFilteredAgentDetails(filteredData);
-      setIsTableVisible(true);
-    }
-  };
-
-  const fetchDeliveryAgent = async () => {
+  const fetchDeliveryAgent = async (data) => {
     try {
-      const response = await axios.get('/api/fetch/assigned-delivery-agent');
-      console.log(response);
+      const response = await axios.get('/api/fetch/assigned-delivery-agent', {
+        params: {
+          userId: data.userId,
+          date: data.date,
+        }
+      });
+      setDeliveryDetails(response.data.data[0])
     } catch (error) {
-      console.log(error)
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
     }
   }
-  useEffect(() => {
-    fetchDeliveryAgent()
-  }, [])
+  const handleSearch = () => {
+    fetchDeliveryAgent({userId: selectedDeliveryGuys.userid, date: selectedDate})
+  };
+
+
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative" }}>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={8} md={3}>
           <Autocomplete
-            options={deliveryGuys.map((option) => option.name)}
+            options={deliveryGuys}
             fullWidth
             value={selectedDeliveryGuys}
             onChange={(event, newValue) => {
               setSelectedDeliveryGuys(newValue);
-              console.log(newValue, "===")
             }}
+            getOptionLabel={(option) => option.name}
             renderInput={(params) => (
               <TextField {...params} label="Search Agent" variant="outlined" />
             )}
+          />
+        </Grid>
+        <Grid item xs={8} md={3}>
+        <TextField
+            fullWidth
+            type="date"
+            variant="outlined"
+            id="date"
+            name="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
           />
         </Grid>
         <Grid item xs={4}>
