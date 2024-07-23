@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Grid, Autocomplete, Typography, Box, TableContainer, Table, TableBody, Paper, TableRow, TableCell, Stack, TableHead, styled, Chip, Checkbox, IconButton } from "@mui/material";
+import { Button, TextField, Grid, Autocomplete, Typography, Box, TableContainer, Table, TableBody, Paper, TableRow, TableCell, Stack, TableHead, styled, Chip, Checkbox, IconButton, DialogActions, Dialog, DialogTitle, DialogContent } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import { useOverAllContext } from "../../context/overAllContext";
@@ -87,6 +87,7 @@ const DeliveryStats = () => {
 
   const handleCompleteDelivery = (shopDetails, deliveryDetails) => {
     console.log(shopDetails, deliveryDetails)
+    setUpDateShopPopup(true);
   };
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative", height: '82vh', overflow: 'auto' }}>
@@ -202,6 +203,18 @@ const DeliveryStats = () => {
           }
         </Box>
       )}
+      <Dialog open={updateShopPopup} onClose={() => setUpDateShopPopup(false)}>
+        <DialogTitle>
+          Update Delivery
+        </DialogTitle>
+        <DialogContent>
+          <TextField label="Enter paid amount" />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined">Cancel</Button>
+          <Button variant="contained">Update</Button>
+        </DialogActions>
+      </Dialog>
     </MainCard>
   );
 };

@@ -1368,6 +1368,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         shops: shopDetails,
         invoiceDate: new Date(date),
         areas,
+        userId: staffId,
       },
     });
     await prisma.staff.update({
@@ -1450,59 +1451,78 @@ app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
 });
 
 app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
-  try {
-    const { shopId, deliveryId, paidAmount } = req.body;
-    if (!shopId) {
-      return res.status(400).json({ status: 'failed', message: 'ShopId shouldn\'t be empty' })
-    }
-    if (!deliveryId) {
-      return res.status(400).json({ status: 'failed', message: 'deliveryId shouldn\'t be empty' })
-    }
-    if (!paidAmount) {
-      return res.status(400).json({ status: 'failed', message: 'paidAmount shouldn\'t be empty' })
-    }
-    const delivery = await prisma.delivery.findUnique({ where: { id: deliveryId } });
-    if (!delivery) {
-      return res.status(404).json({ status: 'failure', message: 'Delivery details not found' });
-    }
-    const shopDetail = delivery.shops.find((shop) => {
+  const { shopId, deliveryId, paidAmount, userId } = req.body;
 
-      return shop.shop.shopId === shopId;
+  if (!shopId || !deliveryId || !paidAmount || !userId) {
+    return res.status(400).json({
+      status: 'failed',
+      message: 'shopId, deliveryId, paidAmount, and userId are required'
+    });
+  }
+
+  try {
+
+    const delivery = await prisma.delivery.findUnique({
+      where: { id: deliveryId, userId: userId }
     });
 
-    if (shopDetail.totalAmount < paidAmount) {
-      return res.status(400).json({ status: 'failed', message: 'paidAmount shouldn\'t be grater than the shop amount' });
+    if (!delivery) {
+      return res.status(404).json({
+        status: 'failure',
+        message: 'Delivery details not found for the specified user'
+      });
     }
 
-    const updatedShopDetail = delivery.shops.map((shop) => {
-      if (shop.shop.shopId === shopId) {
-        return {
+    // Find the shop detail within the delivery
+    const shopDetail = delivery.shops.find(shop => shop.shop.shopId === shopId);
+    if (!shopDetail) {
+      return res.status(404).json({
+        status: 'failure',
+        message: 'Shop details not found in the delivery'
+      });
+    }
+
+    if (shopDetail.totalAmount < paidAmount) {
+      return res.status(400).json({
+        status: 'failed',
+        message: 'paidAmount shouldn\'t be greater than the shop amount'
+      });
+    }
+
+    const updatedShops = delivery.shops.map(shop =>
+      shop.shop.shopId === shopId
+        ? {
           ...shop,
           shop: {
             ...shop.shop,
             paidAmount,
             status: 'COMPLETED',
+            paidAt: new Date(),
           }
-
         }
-      } else {
-        return shop;
-      }
-    });
+        : shop
+    );
 
     await prisma.delivery.update({
-      where: {
-        id: deliveryId,
-      },
-      data: {
-        shops: updatedShopDetail,
-      }
+      where: { id: deliveryId },
+      data: { shops: updatedShops },
     });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Shop details updated successfully'
+    });
+
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+    res.status(500).json({
+      status: 'failure',
+      message: 'Internal server error'
+    });
   }
-})
+});
+
+
 
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
   try {
