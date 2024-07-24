@@ -46,17 +46,18 @@ const getMenuItems = () => {
 const pages = {
   id: "pages",
   title: `${localStorage.getItem('role')} Section`,
-  caption: "Empty",
+  // caption: "Empty",
   type: "group",
-  children: [
-    {
-      id: "authentication",
-      title: "Admin Access",
-      type: "collapse",
-      icon: icons.IconKey,
-      children: getMenuItems(),
-    },
-  ],
+  children: getMenuItems(),
+  // children: [
+  //   {
+  //     id: "authentication",
+  //     title: "Admin Access",
+  //     type: "collapse",
+  //     icon: icons.IconKey,
+  //     children: getMenuItems(),
+  //   },
+  // ],
 };
 
 export default pages;
