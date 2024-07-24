@@ -8,8 +8,9 @@ import menuItem from "../../../../menu-items";
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
+
   let menus = menuItem;
-  if (localStorage.getItem('role') !== "admin") {
+  if (localStorage.getItem('role') !== "admin" && localStorage.getItem('role') !== "delivery") {
    menus = menuItem.items.filter((item) => item.id !== 'pages')
   }else{
     menus = menuItem.items;
