@@ -1368,7 +1368,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
           ZONNAM: { in: areas },
         },
       },
-      select: {
+      include: {
         shop: true,
         products: true,
       },
@@ -1393,8 +1393,9 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
     }
     const shopDetails = invoices.map(invoice => ({
       ...invoice,
-      shop: { ...invoice.shop, status: 'NOT_COMPLETED', invoiceId: invoice.id },
-      totalAmount: getTotalCount(invoice.products)
+      shop: { ...invoice.shop, status: 'NOT_COMPLETED' },
+      totalAmount: getTotalCount(invoice.products),
+      invoiceId: invoice.id,
     }));
 
     await prisma.delivery.create({
