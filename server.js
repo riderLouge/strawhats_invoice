@@ -1580,3 +1580,50 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+app.post("/api/products/by-date-report", async (req, res) => {
+  const { typeName , month, year } = req.body;
+
+
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
+  let invoices;
+  try {
+    if(typeName === "Sales Data"){
+      invoices = await prisma.invoice.findMany({
+        where: {
+          invoiceDate: {
+          gte: startDate,
+          lt: endDate
+          },
+        },
+        select: {
+          products: true,
+        }
+      });
+    }
+    else if (typeName === "Purchase Data"){
+      invoices = await prisma.supplierBill.findMany({
+        where: {
+          billDate: {
+          gte: startDate,
+          lt: endDate
+          },
+        },
+        select: {
+          products: true,
+        }
+      }); 
+    }
+    
+
+    return res.json({
+      status: 'success',
+      message: 'Data fetched successfully',
+      data: invoices,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
+
