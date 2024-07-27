@@ -145,7 +145,7 @@ if(localStorage.getItem('role') === UserRoles.DELIVERY){
   }, [])
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative", height: '82vh', overflow: 'auto' }}>
-      {localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER && (
+      {(localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER) && (
       <Grid container spacing={2} alignItems="center">
       <Grid item xs={8} md={3}>
         <Autocomplete
