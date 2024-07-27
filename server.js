@@ -1445,7 +1445,7 @@ app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
     const data = await prisma.delivery.findMany({
       where: {
         staffId: parsedUserId,
-        invoiceDate: {
+        deliveryDate: {
           gte: startDate,
           lte: endDate
         }
