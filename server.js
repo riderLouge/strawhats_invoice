@@ -25,6 +25,16 @@ function generateOtp() {
   return OTP;
 }
 
+function generatedPassword(name, phoneNumber){
+  let splitedName = '';
+  if(name.length > 4){
+    splitedName = name.splice(0, 4);
+  }else{
+    splitedName = name;
+  }
+  const splitedNumber = phoneNumber.splice(0, 4);
+  return splitedName + splitedNumber;
+}
 // Send the forgot password OTP to the user Email
 function sendOtpEmail(email, otp) {
   const transporter = nodemailer.createTransport({
@@ -198,12 +208,29 @@ app.get("/api/staff/staffDetails", async (req, res) => {
 // create a new staff
 app.post("/api/staff/add", async (req, res) => {
   try {
-    const newItem = req.body;
-
+    const {email, name, joinDate, role, phoneNumber} = req.body;
+if(name === ""){
+  return res.status(400).json({ error: "Name should not be empty" });
+}
+if(email === ""){
+  return res.status(400).json({ error: "Email should not be empty" });
+}
+if(role === ""){
+  return res.status(400).json({ error: "Role should not be empty" });
+}
+if(joinDate === null){
+  return res.status(400).json({ error: "Join Date should not be empty" });
+}
+if(phoneNumber === ""){
+  return res.status(400).json({ error: "PhoneNumber should not be empty" });
+}
+if(phoneNumber.length > 10 || phoneNumber.length < 10){
+  return res.status(400).json({ error: "Please enter valid mobile number" });
+}
     // Check if email already exists
     const existingStaff = await prisma.staff.findUnique({
       where: {
-        email: newItem.email,
+        email,
       },
     });
 
@@ -213,9 +240,16 @@ app.post("/api/staff/add", async (req, res) => {
 
     // Create new staff member
     const createdItem = await prisma.staff.create({
-      data: newItem,
+      data: req.body,
     });
-
+await prisma.loginAuth.create({
+  data:{
+    name,
+    role,
+    email,
+    password: generatedPassword(name, phoneNumber),
+  }
+})
     // Send success status to the frontend
     return res
       .status(201)

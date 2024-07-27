@@ -161,14 +161,23 @@ const ManageEmployees = () => {
         photo: selectedFile === null ? "" : selectedFile.imageUrl,
         joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
-      const response = await axios.post("https://api-skainvoice.top/api/staff/add", newData)
+      try{
+        const response = await axios.post("/api/staff/add", newData)
         if (response.status === 200) {
           setSuccess(true);
           setOpenErrorAlert(true);
           setErrorInfo('Employee Created Successfully');
           fetchStaffDetails();
+          handleCloseDialog();
         }
-      console.log(response, "========");
+        console.log(response, "========");
+      }catch(error){
+        console.log(error)
+        setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo(error.response.data.error);
+      }
+
     } else if (dialogMode === "edit") {
       const updatedData = {
         name: document.getElementById("staffName").value,
@@ -187,11 +196,12 @@ const ManageEmployees = () => {
         setOpenErrorAlert(true);
         setErrorInfo('Details updated Successfully');
         fetchStaffDetails();
+        handleCloseDialog();
       }
 
       console.log(response, "========");
     }
-    handleCloseDialog();
+
   };
   function getFileBase64Url(file) {
     return new Promise((resolve, reject) => {

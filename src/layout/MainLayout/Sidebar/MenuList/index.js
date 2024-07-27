@@ -10,6 +10,7 @@ import menuItem from "../../../../menu-items";
 const MenuList = () => {
 
   let menus = menuItem;
+  console.log(menuItem);
   if (localStorage.getItem('role') !== "admin" && localStorage.getItem('role') !== "delivery") {
    menus = menuItem.items.filter((item) => item.id !== 'pages')
   }else{

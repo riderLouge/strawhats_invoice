@@ -10,7 +10,7 @@ const icons = {
 
 const getMenuItems = () => {
 
-  
+  console.log(localStorage.getItem('role') )
   if (localStorage.getItem('role') === 'admin') {
     return [
       {

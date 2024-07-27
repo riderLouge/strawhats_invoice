@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRoles {
+    OWNER
+    ADMIN
+    DELIVERY
+    STAFF
+}
+
 model Staff {
   userid      Int        @id @default(autoincrement())
   name        String
@@ -18,7 +25,7 @@ model Staff {
   phoneNumber String
   address     String
   designation String
-  role        String
+  role        UserRoles @map("user_role")
   photo       String
   isActive    Boolean    @default(false)
   Delivery    Delivery[]
@@ -45,7 +52,7 @@ model Shop {
 model LoginAuth {
   Id                     Int            @id @default(autoincrement())
   name                   String
-  role                   String
+  role                   UserRoles @map("user_role")
   email                  String         @unique
   password               String
   passwordResetOTP       String?
@@ -91,6 +98,11 @@ model Company {
   id           Int            @id @default(autoincrement())
   cName        String
   cShort       String
+  address String
+  email String
+  phoneNumber String
+  gstin String
+  stateCode String
   SupplierBill SupplierBill[]
 }
 
