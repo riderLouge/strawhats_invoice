@@ -165,6 +165,7 @@ model SupplierBill {
 model Delivery {
   id           String   @id @default(uuid())
   assignedDate DateTime @default(now()) @map("assigned_date")
+  deliveryDate DateTime @map("delivery_date")
   invoiceDate  DateTime @map("invoice_date")
   shops        Json[]
   staffId      Int      @map("staff_id")

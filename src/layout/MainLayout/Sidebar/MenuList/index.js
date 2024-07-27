@@ -4,19 +4,18 @@ import { Typography } from "@mui/material";
 // project imports
 import NavGroup from "./NavGroup";
 import menuItem from "../../../../menu-items";
+import { UserRoles } from "@prisma/client";
 
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-
+const currentUserRole = localStorage.getItem('role');
   let menus = menuItem;
-  console.log(menuItem);
-  if (localStorage.getItem('role') !== "admin" && localStorage.getItem('role') !== "delivery") {
-   menus = menuItem.items.filter((item) => item.id !== 'pages')
-  }else{
-    menus = menuItem.items;
-  }
-
+if(currentUserRole === UserRoles.ADMIN || currentUserRole === UserRoles.OWNER || currentUserRole === UserRoles.DELIVERY){
+  menus = menuItem.items;
+}else{
+  menus = menuItem.items.filter((item) => item.id !== 'pages')
+}
   const navItems = menus.map((item) => {
     switch (item.type) {
       case "group":

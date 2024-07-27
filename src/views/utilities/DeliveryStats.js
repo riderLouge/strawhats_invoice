@@ -8,6 +8,7 @@ import DeliveryGuyImage from '../../assets/images/deliveryAgent.jpg'
 import moment from "moment";
 import capitalizeText from "../../utils/capitalizeText";
 import currencyFormatter from "../../utils/currencyFormatter";
+import { UserRoles } from "@prisma/client";
 
 const StyledTableCell = styled(TableCell)({
   padding: '1px 16px',
@@ -160,7 +161,9 @@ const DeliveryStats = () => {
                           <StyledTableCell align="left" sx={{ p: 2 }}>Status</StyledTableCell>
                           <StyledTableCell align="left" sx={{ p: 2 }}>Paid Amount</StyledTableCell>
                           <StyledTableCell align="left" sx={{ p: 2 }}>Paid At</StyledTableCell>
+                          {localStorage.getItem('role') === UserRoles.DELIVERY && (
                           <StyledTableCell align="left" sx={{ p: 2 }}></StyledTableCell>
+                          )}
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -188,13 +191,15 @@ const DeliveryStats = () => {
                                 {currencyFormatter((row.paidAmount || 0), 'INR')}
                               </StyledTableCell>
                               <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
-                                {moment(row?.shop?.paidAt).format('MMM DD, YYYY hh:mm a') || '-'}
+                                {row?.shop?.paidAt ? moment(row?.shop?.paidAt).format('MMM DD, YYYY hh:mm a') : '-'}
                               </StyledTableCell>
+                              {localStorage.getItem('role') === UserRoles.DELIVERY && (
                               <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
-                                <IconButton sx={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} onClick={() => handleCompleteDelivery(row, deliveryDetails)}>
-                                  <DoneRoundedIcon />
-                                </IconButton>
-                              </StyledTableCell>
+                              <IconButton sx={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} onClick={() => handleCompleteDelivery(row, deliveryDetails)}>
+                                <DoneRoundedIcon />
+                              </IconButton>
+                            </StyledTableCell>
+                              )}
                             </TableRow>
                           )
                         })}

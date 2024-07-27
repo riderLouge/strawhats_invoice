@@ -1,4 +1,5 @@
 // assets
+import { UserRoles } from "@prisma/client";
 import { IconKey } from "@tabler/icons";
 
 // constant
@@ -11,7 +12,7 @@ const icons = {
 const getMenuItems = () => {
 
   console.log(localStorage.getItem('role') )
-  if (localStorage.getItem('role') === 'admin') {
+  if (localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER) {
     return [
       {
         id: 'util-create-Bill',
@@ -28,7 +29,7 @@ const getMenuItems = () => {
         breadcrumbs: false,
       }
     ];
-  } else if (localStorage.getItem('role') === 'delivery') {
+  } else if (localStorage.getItem('role') === UserRoles.DELIVERY) {
     return [
       {
         id: 'util-create-Bill',

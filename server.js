@@ -3,6 +3,7 @@ const prisma = require("./prisma/prismaClient");
 const nodemailer = require("nodemailer");
 const app = express();
 const cors = require("cors");
+const { UserRoles } = require("@prisma/client");
 
 app.use(express.json());
 app.use(cors());
@@ -25,14 +26,14 @@ function generateOtp() {
   return OTP;
 }
 
-function generatedPassword(name, phoneNumber){
+function generatedPassword(name, phoneNumber) {
   let splitedName = '';
-  if(name.length > 4){
-    splitedName = name.splice(0, 4);
-  }else{
+  if (name.length > 4) {
+    splitedName = name.substring(0, 4);
+  } else {
     splitedName = name;
   }
-  const splitedNumber = phoneNumber.splice(0, 4);
+  const splitedNumber = phoneNumber.substring(0, 4);
   return splitedName + splitedNumber;
 }
 // Send the forgot password OTP to the user Email
@@ -1335,9 +1336,9 @@ app.get("/api/invoice/overall-count", async (req, res) => {
 //* Assign delivery agent
 app.post("/api/shop/assign-delivery-agent", async (req, res) => {
   try {
-    const { areas, date, staffId } = req.body;
+    const { areas, date, staffId, deliveryDate } = req.body;
 
-    if (!areas || !date || !staffId) {
+    if (!areas || !date || !staffId || !deliveryDate) {
       return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
     }
 
@@ -1401,6 +1402,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         staffId,
         shops: shopDetails,
         invoiceDate: new Date(date),
+        deliveryDate,
         areas,
       },
     });
@@ -1564,7 +1566,7 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
 
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
   try {
-    const shops = await prisma.staff.findMany({ where: { role: "delivery" } });
+    const shops = await prisma.staff.findMany({ where: { role: UserRoles.DELIVERY } });
     res.json(shops);
   } catch (error) {
     console.error(error);

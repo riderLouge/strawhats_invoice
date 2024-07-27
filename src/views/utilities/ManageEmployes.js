@@ -17,12 +17,15 @@ import {
   IconButton,
   Tooltip,
   Backdrop,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import emptyProfile from "../../assets/images/profileImage.jpg";
 import { useOverAllContext } from "../../context/overAllContext";
+import { UserRoles } from "@prisma/client";
 
 const ManageEmployees = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
@@ -35,6 +38,7 @@ const ManageEmployees = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
+  const [role, setRole] = useState('');
 
   // fetching staff details
   const fetchStaffDetails = async () => {
@@ -151,19 +155,20 @@ const ManageEmployees = () => {
 
   const handleSave = async () => {
     if (dialogMode === "add") {
+      console.log(role);
       const newData = {
         name: document.getElementById("staffName").value,
         email: document.getElementById("staffEmail").value,
         phoneNumber: document.getElementById("staffPhoneNumber").value,
         address: document.getElementById("staffAddress").value,
         designation: document.getElementById("staffDesignation").value,
-        role: document.getElementById("staffRole").value,
+        role: role,
         photo: selectedFile === null ? "" : selectedFile.imageUrl,
         joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
       try{
         const response = await axios.post("/api/staff/add", newData)
-        if (response.status === 200) {
+        if (response.status === 201) {
           setSuccess(true);
           setOpenErrorAlert(true);
           setErrorInfo('Employee Created Successfully');
@@ -326,7 +331,7 @@ const ManageEmployees = () => {
                   : ""
               }
             />
-            <TextField
+            {/* <TextField
               id="staffRole"
               label="Role"
               fullWidth
@@ -336,7 +341,22 @@ const ManageEmployees = () => {
                   ? selectedUserDetails.role
                   : ""
               }
-            />
+            /> */}
+              <Select
+              id="staffRole"
+    label="Role"
+    fullWidth
+    defaultValue={dialogMode === "edit" && selectedUserDetails
+      ? selectedUserDetails.role
+      : ""}
+      onChange={(e) => setRole(e.target.value)}
+  >
+    {localStorage.getItem('role') === UserRoles.OWNER && (
+      <MenuItem value={UserRoles.ADMIN}>{UserRoles.ADMIN}</MenuItem>
+    )}
+    <MenuItem value={UserRoles.DELIVERY}>{UserRoles.DELIVERY}</MenuItem>
+    <MenuItem value={UserRoles.STAFF}>{UserRoles.STAFF}</MenuItem>
+  </Select>
             <TextField
               id="staffEmail"
               label="Email"
