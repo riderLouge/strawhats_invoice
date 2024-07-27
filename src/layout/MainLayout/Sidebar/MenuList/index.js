@@ -10,9 +10,23 @@ import { UserRoles } from "@prisma/client";
 
 const MenuList = () => {
 const currentUserRole = localStorage.getItem('role');
+
   let menus = menuItem;
-if(currentUserRole === UserRoles.ADMIN || currentUserRole === UserRoles.OWNER || currentUserRole === UserRoles.DELIVERY){
+if(currentUserRole === UserRoles.ADMIN || currentUserRole === UserRoles.OWNER){
+  console.log('in')
   menus = menuItem.items;
+}else if(currentUserRole === UserRoles.DELIVERY){
+  const filteredMenu = menuItem.items.map((menu) => {
+    if(menu.id === 'utilities'){
+      return{
+        ...menu,
+        children: menu.children.filter((child) => child.title !== 'Delivery'),
+      }
+  }else{
+    return menu;
+  }
+});
+menus = filteredMenu;
 }else{
   menus = menuItem.items.filter((item) => item.id !== 'pages')
 }

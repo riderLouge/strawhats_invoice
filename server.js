@@ -1402,7 +1402,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         staffId,
         shops: shopDetails,
         invoiceDate: new Date(date),
-        deliveryDate,
+        deliveryDate: new Date(deliveryDate),
         areas,
       },
     });

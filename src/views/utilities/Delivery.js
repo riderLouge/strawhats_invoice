@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button, Grid, Autocomplete, TextField } from "@mui/material";
+import { Card, Button, Grid, Autocomplete, TextField, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 // project imports
@@ -21,6 +21,7 @@ const DeliveryAgent = () => {
   const [customers, setCustomers] = useState([]);
   const [selectedZones, setSelectedZones] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
   const [selectedRowData, setSelectedRowData] = useState(null);
 
   useEffect(() => {
@@ -125,13 +126,11 @@ const DeliveryAgent = () => {
     }
   }
   const handleSubmitDialog = () => {
-    console.log("Selected Zone:", selectedZones);
-    console.log("Selected Date:", selectedDate);
-    console.log("Selected Row Data:", selectedRowData);
     const params = {
       areas: selectedZones,
       date: selectedDate,
       staffId: selectedRowData.userid,
+      deliveryDate,
     }
     assignDeliveryAgent(params);
 
@@ -168,6 +167,7 @@ const DeliveryAgent = () => {
           <>
             <Grid container spacing={2}>
               <Grid item xs={6}>
+              <Typography mb={1} ml={0.5}>Select Zone</Typography>
                 <Autocomplete
                   multiple
                   fullWidth
@@ -186,13 +186,27 @@ const DeliveryAgent = () => {
                 />
               </Grid>
               <Grid item xs={6}>
+              <Typography mb={1} ml={0.5}>Select InvoiceDate</Typography>
                 <TextField
+                lable="Invoice date"
                   fullWidth
                   type="date"
                   variant="outlined"
                   name="invoiceDate"
                   value={selectedDate}
                   onChange={(event) => setSelectedDate(event.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Typography mb={1} ml={0.5}>Select DeliveryDate</Typography>
+                <TextField
+                lable="Delivery date"
+                  fullWidth
+                  type="date"
+                  variant="outlined"
+                  name="DeliveryDate"
+                  value={deliveryDate}
+                  onChange={(event) => setDeliveryDate(event.target.value)}
                 />
               </Grid>
             </Grid>
