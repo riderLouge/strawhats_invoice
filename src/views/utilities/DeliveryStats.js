@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Grid, Autocomplete, Typography, Box, TableContainer, Table, TableBody, Paper, TableRow, TableCell, Stack, TableHead, styled, Chip, Checkbox, IconButton, DialogActions, Dialog, DialogTitle, DialogContent } from "@mui/material";
+import { Button, TextField, Grid, Autocomplete, Typography, Box, TableContainer, Table, TableBody, Paper, TableRow, TableCell, Stack, TableHead, styled, Chip, Checkbox, IconButton, DialogActions, Dialog, DialogTitle, DialogContent, InputAdornment } from "@mui/material";
 import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import { useOverAllContext } from "../../context/overAllContext";
@@ -27,7 +27,10 @@ const DeliveryStats = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [deliveryDetails, setDeliveryDetails] = useState(null);
   const [updateShopPopup, setUpDateShopPopup] = useState(false);
-
+  const [paidAmount, setPaidAmount] = useState('');
+  const [selectedShopId, setSelectedShopId] = useState('');
+  const [selectedDeliveryId, setSeletedDeliveryId] = useState('');
+const numberRegex = /^[0-9]*$/;
   const fetchDeliveryGuys = async () => {
     try {
       const response = await axios.get(
@@ -50,6 +53,13 @@ const DeliveryStats = () => {
       console.error("Error fetching company:", error);
     }
   };
+
+const handlePaidAmount = (e) =>{
+  const {value} = e.target;
+  if(numberRegex.test(value)){
+    setPaidAmount(value);
+  }
+}
 
   useEffect(() => {
     fetchDeliveryGuys();
@@ -89,46 +99,89 @@ const DeliveryStats = () => {
   const handleCompleteDelivery = (shopDetails, deliveryDetails) => {
     console.log(shopDetails, deliveryDetails)
     setUpDateShopPopup(true);
+    setSelectedShopId(shopDetails.shop.shopId);
+    setSeletedDeliveryId(deliveryDetails.id);
   };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.patch('/api/update/assigned-delivery-agent/shop', {
+        shopId: selectedShopId,
+        deliveryId: selectedDeliveryId,
+        paidAmount,
+      });
+
+      if (response.status === 200) {
+        setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(response.data.message);
+      }
+    } catch (error) {
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+    }
+  };
+  const fetchDeliveryDetails = async () => {
+    try {
+      const response = await axios.get('/api/fetch/assigned-delivery', {
+        params: { email: localStorage.getItem('email'), date: new Date().toISOString().split('T')[0] },
+      });
+      setDeliveryDetails(response.data.data);
+    } catch (error) {
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+    }
+  };
+
+  useEffect(() => {
+if(localStorage.getItem('role') === UserRoles.DELIVERY){
+  fetchDeliveryDetails();
+}
+  }, [])
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative", height: '82vh', overflow: 'auto' }}>
+      {localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER && (
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={8} md={3}>
-          <Autocomplete
-            options={deliveryGuys}
-            fullWidth
-            value={selectedDeliveryGuys}
-            onChange={(event, newValue) => {
-              setSelectedDeliveryGuys(newValue);
-            }}
-            getOptionLabel={(option) => option.name}
-            renderInput={(params) => (
-              <TextField {...params} label="Search Agent" variant="outlined" />
-            )}
-          />
-        </Grid>
-        <Grid item xs={8} md={3}>
-          <TextField
-            fullWidth
-            type="date"
-            variant="outlined"
-            id="date"
-            name="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSearch}
-            disabled={!selectedDeliveryGuys}
-          >
-            Search
-          </Button>
-        </Grid>
+      <Grid item xs={8} md={3}>
+        <Autocomplete
+          options={deliveryGuys}
+          fullWidth
+          value={selectedDeliveryGuys}
+          onChange={(event, newValue) => {
+            setSelectedDeliveryGuys(newValue);
+          }}
+          getOptionLabel={(option) => option.name}
+          renderInput={(params) => (
+            <TextField {...params} label="Search Agent" variant="outlined" />
+          )}
+        />
       </Grid>
+      <Grid item xs={8} md={3}>
+        <TextField
+          fullWidth
+          type="date"
+          variant="outlined"
+          id="date"
+          name="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+      </Grid>
+      <Grid item xs={4}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSearch}
+          disabled={!selectedDeliveryGuys}
+        >
+          Search
+        </Button>
+      </Grid>
+    </Grid>
+      )}
+
       {deliveryDetails === null ? (
         <Stack alignItems="center" width="100%" height="100%">
           <img src={DeliveryGuyImage} style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: '40%' }} alt="deliveryguy" />
@@ -212,16 +265,20 @@ const DeliveryStats = () => {
           }
         </Box>
       )}
-      <Dialog open={updateShopPopup} onClose={() => setUpDateShopPopup(false)}>
+      <Dialog open={updateShopPopup} onClose={() => setUpDateShopPopup(false)} fullWidth maxWidth="xs">
         <DialogTitle>
           Update Delivery
         </DialogTitle>
-        <DialogContent>
-          <TextField label="Enter paid amount" />
+        <DialogContent sx={{ p: '8px !important'}}>
+          <TextField label="Enter paid amount"
+          InputProps={{
+            startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+          }}
+          fullWidth value={paidAmount} onChange={(e) => handlePaidAmount(e)} />
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined">Cancel</Button>
-          <Button variant="contained">Update</Button>
+          <Button onClick={() => setUpDateShopPopup(false)} variant="outlined">Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit}>Update</Button>
         </DialogActions>
       </Dialog>
     </MainCard>

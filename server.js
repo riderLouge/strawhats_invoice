@@ -1524,25 +1524,18 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
     }
 
     const updatedShops = delivery.shops.map(({ shop }) => {
-      if (shop.shopId === shopId) {
-        const totalPaidAmount = (shop.paidAmount ?? 0) + paidAmount;
-        console.log(totalPaidAmount, shop);
-        const status = shopDetail.totalAmount > totalPaidAmount 
-          ? 'PARTIALLY_PAID' 
-          : shopDetail.totalAmount === totalPaidAmount 
-          ? 'COMPLETED' 
-          : shop.status;
-    
+      if (shop.shopId === shopId) {    
         return {
           ...shop,
-          paidAmount: totalPaidAmount,
-          status,
+          paidAmount: paidAmount,
+          status: 'COMPLETED',
           paidAt: new Date(),
         };
+      }else{
+        return shop;
       }
-      return shop;
     });    
-    console.log(updatedShops);
+
         await prisma.delivery.update({
           where: { id: deliveryId },
           data: { shops: updatedShops },
@@ -1562,6 +1555,71 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
   }
 });
 
+
+// fetch assigned delivery for delivery agent
+app.get("/api/fetch/assigned-delivery", async (req, res) => {
+  const { email, date } = req.query;
+  try {
+    if (!email || !date) {
+      return res.status(400).json({ status: 'failure', message: 'missing required fields' });
+    }
+
+const deliveryAgent = await prisma.staff.findUnique({
+  where: {
+    email,
+  }
+});
+if (!deliveryAgent) {
+  return res.status(404).json({ status: 'failure', message: 'Delivery agent not found' });
+}
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ status: 'failure', message: 'Invalid date format' });
+    }
+
+    const startDate = new Date(parsedDate.setUTCHours(0, 0, 0, 0));
+    const endDate = new Date(parsedDate.setUTCHours(23, 59, 59, 999));
+    const data = await prisma.delivery.findMany({
+      where: {
+        staffId: deliveryAgent.userid,
+        deliveryDate: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+if(data.length === 0){
+  return res.status(404).json({ status: 'success', message: 'data fetched successfully', data});
+}
+    const deliveryDetails = data.map((delivery) => {
+      const details = delivery.areas.map((area) => {
+        const filteredShopDetails = delivery.shops.filter((shop) => {
+          return area === shop.shop.ZONNAM
+        });
+        return {
+          zoneName: area,
+          shops: filteredShopDetails,
+        };
+      });
+      return {
+        id: delivery.id,
+        assignedDate: delivery.assignedDate,
+        invoiceDate: delivery.invoiceDate,
+        staffId: delivery.staffId,
+        status: delivery.status,
+        createdAt: delivery.createdAt,
+        updatedAt: delivery.updatedAt,
+        isDeleted: delivery.isDeleted,
+        details,
+      };
+    });
+
+    res.status(200).json({ status: 'success', data: deliveryDetails[0] });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
 
 
 app.get("/api/fetch/deliveryAgents", async (req, res) => {
@@ -1653,36 +1711,18 @@ app.get("/api/fetch/current-day-delivery", async (req, res) => {
           gte: startDate,
           lte: endDate
         }
+      },
+      include:{
+        staff: true
       }
     });
 
     if (data.length === 0) {
       return res.status(404).json({ status: 'failure', message: 'Delivery details not found on this date or delivery agent' });
     }
-    const deliveryDetails = data.map((delivery) => {
-      const details = delivery.areas.map((area) => {
-        const filteredShopDetails = delivery.shops.filter((shop) => {
-          return area === shop.shop.ZONNAM
-        });
-        return {
-          zoneName: area,
-          shops: filteredShopDetails,
-        };
-      });
-      return {
-        id: delivery.id,
-        assignedDate: delivery.assignedDate,
-        invoiceDate: delivery.invoiceDate,
-        staffId: delivery.staffId,
-        status: delivery.status,
-        createdAt: delivery.createdAt,
-        updatedAt: delivery.updatedAt,
-        isDeleted: delivery.isDeleted,
-        details,
-      };
-    });
 
-    res.status(200).json({ status: 'success', data: deliveryDetails[0] });
+
+    res.status(200).json({ status: 'success', data });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });
