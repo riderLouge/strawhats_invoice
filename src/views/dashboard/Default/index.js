@@ -53,7 +53,15 @@ const Dashboard = () => {
   const theme = useTheme();
   const [page, setPage] = useState(0); // Add state for page
   const [rowsPerPage, setRowsPerPage] = useState(5); // Add state for rows per page
+  const [openEarningCard, setOpenEarningCard] = useState(false);
 
+  const handleClickOpenEarningCard = () => {
+    setOpenEarningCard(true);
+  };
+
+  const handleCloseEarningCard = () => {
+    setOpenEarningCard(false);
+  };
   const fetchZonNames = async () => {
     try {
       const response = await axios.get(
@@ -383,9 +391,18 @@ const Dashboard = () => {
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
-          <Grid item lg={4} md={6} sm={6} xs={12}>
-            <EarningCard isLoading={isLoading} count={debit.length} />
+          <Grid item lg={4} md={6} sm={6} xs={12} onClick={handleClickOpenEarningCard}>
+            <EarningCard isLoading={isLoading} />
           </Grid>
+          <Dialog open={openEarningCard} onClose={handleCloseEarningCard}>
+            <DialogTitle>Earning Details</DialogTitle>
+            <DialogContent>
+                Here are the details of your earnings.
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseEarningCard}>Close</Button>
+            </DialogActions>
+          </Dialog>
           <Grid item lg={4} md={6} sm={6} xs={12} onClick={handleCreditClick}>
             <TotalOrderLineChartCard
               isLoading={isLoading}
