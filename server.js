@@ -1393,7 +1393,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
     }
     const shopDetails = invoices.map(invoice => ({
       ...invoice,
-      shop: { ...invoice.shop, status: 'NOT_COMPLETED' },
+      shop: { ...invoice.shop, status: 'NOT_COMPLETED', invoiceId: invoice.id },
       totalAmount: getTotalCount(invoice.products)
     }));
 
@@ -1486,12 +1486,12 @@ app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
 });
 
 app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
-  const { shopId, deliveryId, paidAmount } = req.body;
-  console.log(shopId);
-  if (!shopId || !deliveryId || !paidAmount) {
+  const { shopId, deliveryId, paidAmount, email } = req.body;
+
+  if (!shopId || !deliveryId || !paidAmount || !email) {
     return res.status(400).json({
       status: 'failed',
-      message: 'shopId, deliveryId and paidAmount are required'
+      message: 'shopId, deliveryId, paidAmount, and email are required'
     });
   }
 
@@ -1506,9 +1506,10 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
         message: 'Delivery details not found for the specified user'
       });
     }
-    console.log(delivery.shops);
+
     // Find the shop detail within the delivery
-    const shopDetail = delivery.shops.find(shop => shop.shopId === shopId);
+    const shopDetail = delivery.shops.find(shop => shop.shop.shopId === shopId);
+
     if (!shopDetail) {
       return res.status(404).json({
         status: 'failure',
@@ -1523,23 +1524,46 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
       });
     }
 
-    const updatedShops = delivery.shops.map(({ shop }) => {
-      if (shop.shopId === shopId) {    
+    const updatedShops = delivery.shops.map((shop) => {
+      if (shop.shop.shopId === shopId) {    
         return {
           ...shop,
-          paidAmount: paidAmount,
-          status: 'COMPLETED',
-          paidAt: new Date(),
+          shop:{
+            ...shop.shop,
+            paidAmount: paidAmount,
+            status: 'COMPLETED',
+            paidAt: new Date(),
+          }
         };
-      }else{
+      } else {
         return shop;
       }
-    });    
+    });
 
-        await prisma.delivery.update({
-          where: { id: deliveryId },
-          data: { shops: updatedShops },
+    const isDeliveryCompleted = updatedShops.every((shop) => shop.shop.status === 'COMPLETED');
+
+    await prisma.delivery.update({
+      where: { id: deliveryId },
+      data: { shops: updatedShops, status: isDeliveryCompleted ? 'COMPLETED' : 'ASSIGNED' },
+    });
+
+    if (isDeliveryCompleted) {
+      const staffMember = await prisma.staff.findUnique({
+        where: { email }
+      });
+
+      if (!staffMember) {
+        return res.status(404).json({
+          status: 'failure',
+          message: 'Staff member not found'
         });
+      }
+
+      await prisma.staff.update({
+        where: { email },
+        data: { isActive: false }
+      });
+    }
 
     res.status(200).json({
       status: 'success',
@@ -1554,6 +1578,7 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
     });
   }
 });
+
 
 
 // fetch assigned delivery for delivery agent
@@ -1589,7 +1614,7 @@ if (!deliveryAgent) {
       }
     });
 if(data.length === 0){
-  return res.status(404).json({ status: 'success', message: 'data fetched successfully', data});
+  return res.status(200).json({ status: 'success', message: 'data fetched successfully', data});
 }
     const deliveryDetails = data.map((delivery) => {
       const details = delivery.areas.map((area) => {

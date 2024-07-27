@@ -103,31 +103,34 @@ const handlePaidAmount = (e) =>{
     setSeletedDeliveryId(deliveryDetails.id);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const response = await axios.patch('/api/update/assigned-delivery-agent/shop', {
-        shopId: selectedShopId,
-        deliveryId: selectedDeliveryId,
-        paidAmount,
-      });
-
-      if (response.status === 200) {
-        setSuccess(false);
-      setOpenErrorAlert(true);
-      setErrorInfo(response.data.message);
-      }
-    } catch (error) {
-      setSuccess(false);
-      setOpenErrorAlert(true);
-      setErrorInfo(error.response.data.message);
-    }
-  };
   const fetchDeliveryDetails = async () => {
     try {
       const response = await axios.get('/api/fetch/assigned-delivery', {
         params: { email: localStorage.getItem('email'), date: new Date().toISOString().split('T')[0] },
       });
       setDeliveryDetails(response.data.data);
+    } catch (error) {
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+    }
+  };
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.patch('/api/update/assigned-delivery-agent/shop', {
+        shopId: selectedShopId,
+        deliveryId: selectedDeliveryId,
+        paidAmount,
+        email: localStorage.getItem('email'),
+      });
+
+      if (response.status === 200) {
+        setSuccess(true);
+      setOpenErrorAlert(true);
+      setErrorInfo(response.data.message);
+      setUpDateShopPopup(false)
+      fetchDeliveryDetails();
+      }
     } catch (error) {
       setSuccess(false);
       setOpenErrorAlert(true);
@@ -182,7 +185,12 @@ if(localStorage.getItem('role') === UserRoles.DELIVERY){
     </Grid>
       )}
 
-      {deliveryDetails === null ? (
+      {deliveryDetails?.length === 0 ? (
+        <Stack alignItems="center" width="100%" height="100%">
+          <Typography variant="body1">No delivery assinged yet</Typography>
+        </Stack>
+      ) : 
+      deliveryDetails === null ? (
         <Stack alignItems="center" width="100%" height="100%">
           <img src={DeliveryGuyImage} style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: '40%' }} alt="deliveryguy" />
           <Typography variant="h1">Search Your Delivery partner Details</Typography>
@@ -210,12 +218,12 @@ if(localStorage.getItem('role') === UserRoles.DELIVERY){
                           }
                         }}>
                           <StyledTableCell align="left" sx={{ p: 2 }}>Shop Name</StyledTableCell>
-                          <StyledTableCell align="left" sx={{ p: 2 }}>Total Amount</StyledTableCell>
-                          <StyledTableCell align="left" sx={{ p: 2 }}>Status</StyledTableCell>
-                          <StyledTableCell align="left" sx={{ p: 2 }}>Paid Amount</StyledTableCell>
-                          <StyledTableCell align="left" sx={{ p: 2 }}>Paid At</StyledTableCell>
+                          <StyledTableCell align="center" sx={{ p: 2 }}>Total Amount</StyledTableCell>
+                          <StyledTableCell align="center" sx={{ p: 2 }}>Status</StyledTableCell>
+                          <StyledTableCell align="center" sx={{ p: 2 }}>Paid Amount</StyledTableCell>
+                          <StyledTableCell align="center" sx={{ p: 2 }}>Paid At</StyledTableCell>
                           {localStorage.getItem('role') === UserRoles.DELIVERY && (
-                          <StyledTableCell align="left" sx={{ p: 2 }}></StyledTableCell>
+                          <StyledTableCell align="center" sx={{ p: 2 }}></StyledTableCell>
                           )}
                         </TableRow>
                       </TableHead>
@@ -233,21 +241,21 @@ if(localStorage.getItem('role') === UserRoles.DELIVERY){
                               <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
                                 {capitalizeText(row.shop.CUSNAM)}
                               </StyledTableCell>
-                              <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
+                              <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
                                 {currencyFormatter(row.totalAmount, 'INR')}
                               </StyledTableCell>
-                              <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
+                              <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
                                 <Chip sx={{ height: '24px' }}
                                   label={capitalizeText(row.shop.status === 'NOT_COMPLETED' ? 'Yet to deliver' : row.shop.status)} />
                               </StyledTableCell>
-                              <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
-                                {currencyFormatter((row.paidAmount || 0), 'INR')}
+                              <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
+                                {currencyFormatter((Number(row?.shop?.paidAmount) || 0), 'INR')}
                               </StyledTableCell>
-                              <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
+                              <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
                                 {row?.shop?.paidAt ? moment(row?.shop?.paidAt).format('MMM DD, YYYY hh:mm a') : '-'}
                               </StyledTableCell>
-                              {localStorage.getItem('role') === UserRoles.DELIVERY && (
-                              <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
+                              {(localStorage.getItem('role') === UserRoles.DELIVERY && row?.shop?.status !== 'COMPLETED') && (
+                              <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
                               <IconButton sx={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} onClick={() => handleCompleteDelivery(row, deliveryDetails)}>
                                 <DoneRoundedIcon />
                               </IconButton>
