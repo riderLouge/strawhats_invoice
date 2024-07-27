@@ -129,7 +129,7 @@ const DeliveryStats = () => {
         </Grid>
       </Grid>
       {deliveryDetails === null ? (
-        <Stack direction="row" alignItems="center" width="100%" height="100%">
+        <Stack alignItems="center" width="100%" height="100%">
           <img src={DeliveryGuyImage} style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: '40%' }} alt="deliveryguy" />
           <Typography variant="h1">Search Your Delivery partner Details</Typography>
         </Stack>
