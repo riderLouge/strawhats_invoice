@@ -18,7 +18,9 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Typography,
-  TablePagination
+  TablePagination,
+  MenuItem,
+  Stack
 } from "@mui/material";
 import EarningCard from "./EarningCard";
 import PopularCard from "./PopularCard";
@@ -35,6 +37,7 @@ import moment from "moment";
 import { useOverAllContext } from "../../../context/overAllContext";
 import { CreditCard } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
+import MonthYearSelector from "../../../ui-component/MonthYearSelector";
 
 const Dashboard = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
@@ -47,13 +50,17 @@ const Dashboard = () => {
   const [debit, setDebit] = useState([]);
   const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState("");
   const [selectedShopId, setSelectedShopId] = useState("");
-  const [searchBy, setSearchBy] = useState("invoice"); // 'invoice' or 'shop'
+  const [searchBy, setSearchBy] = useState("invoice"); 
   const [selectedZoneName, setSelectedZoneName] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
   const theme = useTheme();
-  const [page, setPage] = useState(0); // Add state for page
-  const [rowsPerPage, setRowsPerPage] = useState(5); // Add state for rows per page
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); 
   const [openEarningCard, setOpenEarningCard] = useState(false);
+  const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
+  const [typeName, setTypeName] = useState('');
+  const [excelData, setExcelData] = useState('');
 
   const handleClickOpenEarningCard = () => {
     setOpenEarningCard(true);
@@ -387,6 +394,48 @@ const Dashboard = () => {
 
   const rowsToDisplay = credit.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  const handleSubmit = async (params) => {
+
+    const apiUrl = '/api/products/by-date-report';
+    try {
+      const response = await axios.post(apiUrl, params);
+      if (response.status === 200) {
+        setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
+        setExcelData(response.data.data); 
+        console.log(response.data.data)
+      } else {
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
+      }
+      console.log(response.data.data);
+    } catch (error) {
+      console.error('Error fetching data', error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+    }
+  };
+  
+  const type = [
+    { value: 1, label: 'Purchase Data' },
+    { value: 2, label: 'Sales Data' },
+    { value: 3, label: 'Sales Worksheet' },
+
+  ];
+
+  const handleTypeChange = (event) => {
+    setTypeName(event.target.value);
+  };
+
+  const Params = {
+    typeName,
+    month,
+    year,
+  }
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -394,10 +443,49 @@ const Dashboard = () => {
           <Grid item lg={4} md={6} sm={6} xs={12} onClick={handleClickOpenEarningCard}>
             <EarningCard isLoading={isLoading} />
           </Grid>
-          <Dialog open={openEarningCard} onClose={handleCloseEarningCard}>
-            <DialogTitle>Earning Details</DialogTitle>
+          <Dialog open={openEarningCard} onClose={handleCloseEarningCard} maxWidth="md" fullWidth>
+            <DialogTitle>Purchase / Sales Report Download</DialogTitle>
             <DialogContent>
-                Here are the details of your earnings.
+              <>
+              <Grid container spacing={4} alignItems="center">
+                  <>
+                    <Grid item xs={4} lg={8}>
+                      <Stack direction="row">
+                      <TextField
+                        select
+                        label="Type"
+                        value={typeName}
+                        onChange={handleTypeChange}
+                        fullWidth
+                        margin="normal"
+                      >
+                        {type.map((month) => (
+                          <MenuItem key={month.value} value={month.value}>
+                            {month.label}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      <MonthYearSelector
+                        year={year}
+                        setYear={setYear}
+                        month={month}
+                        setMonth={setMonth}
+                      />
+                      </Stack>
+                    </Grid>
+                  </>
+                <Grid item xs={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    style={{ backgroundColor: theme.palette.primary.main }}
+                    onClick={() => handleSubmit(Params)}
+                  >
+                    Download
+                  </Button>
+                </Grid>
+              </Grid>
+            </>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseEarningCard}>Close</Button>

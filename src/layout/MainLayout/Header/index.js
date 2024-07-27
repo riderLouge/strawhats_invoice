@@ -19,8 +19,10 @@ import {
   TableHead,
   TableBody,
   Paper,
-  TablePagination
+  TablePagination,
+  Card
 } from "@mui/material"; import { IconMenu2 } from "@tabler/icons";
+import moment from "moment";
 import "./Header.css";
 import SearchSection from "./SearchSection";
 import ProfileSection from "./ProfileSection";
@@ -31,11 +33,13 @@ import MonthYearPicker from "../../../ui-component/MonthYearSelector";
 import MonthYearSelector from "../../../ui-component/MonthYearSelector";
 import { useOverAllContext } from "../../../context/overAllContext";
 import MaterialReactTable from "material-react-table";
+import SubCard from "../../../ui-component/cards/SubCard";
 
 const Header = ({ handleLeftDrawerToggle }) => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const theme = useTheme();
   const [openDialog, setOpenDialog] = useState(false);
+  const [openPendingDelivery, setOpenPendingDelivery] = useState(false);
   const [supplierName, setSupplierName] = useState("");
   const [selectedShopId, setSelectedShopId] = useState("");
   const [searchBy, setSearchBy] = useState("Supplier"); // 'invoice' or 'shop'
@@ -50,6 +54,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [productData, setProductData] = useState([]); 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
+  const [data, setData] = useState(false);
 
 
   const supplierNames = [
@@ -202,6 +207,10 @@ const Header = ({ handleLeftDrawerToggle }) => {
     setOpenDialog(false);
   };
 
+  const handleClosePendingDelivery = () => {
+    setOpenPendingDelivery(false);
+  };
+
   const handleSubmitDialog = async () => {
 
   };
@@ -212,6 +221,41 @@ const Header = ({ handleLeftDrawerToggle }) => {
       setSearchBy(newSearchBy);
     }
   };
+
+  const columns = [
+    {
+      accessorKey: "invoiceNumber",
+      header: "Invoice Number",
+    },
+    {
+      accessorKey: "shop.CUSNAM",
+      header: "Shop Name",
+    },
+    {
+      accessorKey: "invoiceDate",
+      header: "Invoice Date",
+      Cell: ({ row }) => moment(row.original.invoiceDate).format("DD/MM/YYYY"),
+    },
+    {
+      accessorKey:"shop.ZONNAM",
+      header: " Zone"
+    }
+  ];
+
+  const fetchInvoices = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-skainvoice.top/api/invoices"
+      );
+      console.log("response.data =",response.data)
+      const notDeliveredInvoices = response?.data.filter(invoice => invoice.status === "NOT_DELIVERED");
+      setData(response.data);   
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      throw error;
+    }
+  };
+
   return (
     <>
       <Box
@@ -260,6 +304,20 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
       {/* notification & profile */}
       {/* <NotificationSection /> */}
+      <Button
+        variant="contained"
+        color="primary"
+        style={{
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={() => { 
+          setOpenPendingDelivery(true)
+          fetchInvoices() }}
+      >
+        Pending Delivery
+      </Button>
       <Button
         variant="contained"
         color="secondary"
@@ -444,6 +502,33 @@ const Header = ({ handleLeftDrawerToggle }) => {
           </>
         }
         handleCloseDialog={handleCloseDialog}
+        handleSave={handleSubmitDialog}
+      />
+      <DialogTemplate
+        width="lg"
+        open={openPendingDelivery}
+        title={"PENDING INVOICES"}
+        body={
+          <>
+            <Card sx={{ overflow: "hidden" }}>
+              <MaterialReactTable columns={columns} data={data.data ?? {}} getRowId={(row) => row.id} enableRowSelection />
+            </Card>
+            <Button
+              variant="contained"
+              color="secondary"
+              style={{
+                top: "10px",
+                right: "10px",
+                margin: "8px",
+                zIndex: 1,
+              }}
+              onClick={() => {}}
+            >
+              Assign
+            </Button>
+         </>
+        }
+        handleCloseDialog={handleClosePendingDelivery}
         handleSave={handleSubmitDialog}
       />
       <ProfileSection />

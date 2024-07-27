@@ -114,72 +114,41 @@ const UtilitiesCreateSupplierBill = () => {
     });
   };
 
-  const checkProductAvailability = async () => {
-    try {
-      const response = await axios.get('https://api-skainvoice.top/api/product/availability-check', {
-        params: { productId: formData.productId, requestedQuantity: formData.quantity },
-      });
-      console.log(response);
-      if (response.data.isAvailable) {
-        const totalWithoutGST = formData.quantity * formData.rate;
-        const totalWithGST =
-          totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
-        const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
-        const totalWithDiscount = totalWithGST - discountAmount;
+  const handleAdd = () => {
+
+    const totalWithoutGST = formData.quantity * formData.rate;
+    const totalWithGST =
+      totalWithoutGST + (totalWithoutGST * formData.gst) / 100;
+    const discountAmount = (totalWithGST * (formData.discount || 0)) / 100;
+    const totalWithDiscount = totalWithGST - discountAmount;
+
+    setTableData([
+      ...tableData,
+      {
+        ...formData,
+        totalWithoutGST,
+        totalWithGST,
+        totalWithDiscount,
+      },
+    ]);
+
+    setFormData({
+      ...formData, 
+      productName: "",
+      quantity: "",
+      rate: "",
+      hsnNumber: "",
+      discount: "",
+      gst: "",
+      mrp: "",
+      purchasePrice: "",
+    });
+
+    setSelectedProduct(null);
     
-        setTableData([
-          ...tableData,
-          {
-            ...formData,
-            totalWithoutGST,
-            totalWithGST,
-            totalWithDiscount,
-          },
-        ]);
-    
-        setFormData({
-          ...formData, // Keep other form data fields
-          productName: "", // Clear product name
-          quantity: "",
-          rate: "",
-          hsnNumber: "",
-          discount: "",
-          gst: "",
-          mrp: "",
-          purchasePrice: "",
-        });
-    
-        // Clear the Autocomplete component
-        setSelectedProduct(null);
-      } else {
-        setSuccess(false);
-        setOpenErrorAlert(true);
-        setErrorInfo(response.data.availableQuantity === 0 
-          ? 'Product out of stock' 
-          : `Only ${response.data.availableQuantity} items available. Please adjust your quantity.`);
-      }
-      // setAvailability(response.data);
-    } catch (err) {
-      // setAvailability(null);
-      console.log(err.response?.data?.error || 'An error occurred');
-    }
+
   };
 
-  const handleAdd = () => {
-    checkProductAvailability();
-  };
-  const clearCustomerDetails = () => {
-    setSelectedCustomer(null);
-    setFormData({
-      ...formData,
-      customerName: "",
-      billingAddress: "",
-      phoneNumber: "",
-      gstin: "",
-      city: "",
-      state: "",
-    });
-  };
 
   const billTotal = (data) => {
     console.log(data);

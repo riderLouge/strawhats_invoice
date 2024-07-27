@@ -35,7 +35,7 @@ const MonthYearSelector = ({year, setYear, month,setMonth}) => {
   ];
 
   return (
-    <Stack direction="row" alignItems="center" gap={1}>
+    <Stack direction="row" alignItems="center" gap={1} width="100%">
       <TextField
         select
         label="Year"
