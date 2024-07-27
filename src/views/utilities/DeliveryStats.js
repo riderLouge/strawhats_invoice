@@ -159,6 +159,7 @@ const DeliveryStats = () => {
                           <StyledTableCell align="left" sx={{ p: 2 }}>Total Amount</StyledTableCell>
                           <StyledTableCell align="left" sx={{ p: 2 }}>Status</StyledTableCell>
                           <StyledTableCell align="left" sx={{ p: 2 }}>Paid Amount</StyledTableCell>
+                          <StyledTableCell align="left" sx={{ p: 2 }}>Paid At</StyledTableCell>
                           <StyledTableCell align="left" sx={{ p: 2 }}></StyledTableCell>
                         </TableRow>
                       </TableHead>
@@ -185,6 +186,9 @@ const DeliveryStats = () => {
                               </StyledTableCell>
                               <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
                                 {currencyFormatter((row.paidAmount || 0), 'INR')}
+                              </StyledTableCell>
+                              <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
+                                {moment(row?.shop?.paidAt).format('MMM DD, YYYY hh:mm a') || '-'}
                               </StyledTableCell>
                               <StyledTableCell align="left" sx={{ color: '#09090B', p: 2 }}>
                                 <IconButton sx={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} onClick={() => handleCompleteDelivery(row, deliveryDetails)}>

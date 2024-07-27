@@ -53,7 +53,6 @@ model LoginAuth {
   invoice                Invoice[]
   SupplierBill           SupplierBill[]
   StockAdjust            StockAdjust[]
-  Delivery               Delivery[]
 }
 
 model Product {
@@ -152,17 +151,15 @@ model SupplierBill {
 }
 
 model Delivery {
-  id           String    @id @default(uuid())
-  assignedDate DateTime  @default(now()) @map("assigned_date")
-  invoiceDate  DateTime  @map("invoice_date")
+  id           String   @id @default(uuid())
+  assignedDate DateTime @default(now()) @map("assigned_date")
+  invoiceDate  DateTime @map("invoice_date")
   shops        Json[]
-  staffId      Int       @map("staff_id")
-  staff        Staff     @relation(fields: [staffId], references: [userid])
-  userId       Int       @map("user_id")
-  user         LoginAuth @relation(fields: [userId], references: [Id])
+  staffId      Int      @map("staff_id")
+  staff        Staff    @relation(fields: [staffId], references: [userid])
   areas        String[]
-  status       String    @default("ASSIGNED")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  isDeleted    Boolean   @default(false)
+  status       String   @default("ASSIGNED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
 }

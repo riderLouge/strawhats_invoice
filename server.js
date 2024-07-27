@@ -1368,7 +1368,6 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         shops: shopDetails,
         invoiceDate: new Date(date),
         areas,
-        userId: staffId,
       },
     });
     await prisma.staff.update({
@@ -1451,19 +1450,18 @@ app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
 });
 
 app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
-  const { shopId, deliveryId, paidAmount, userId } = req.body;
-
-  if (!shopId || !deliveryId || !paidAmount || !userId) {
+  const { shopId, deliveryId, paidAmount } = req.body;
+  console.log(shopId);
+  if (!shopId || !deliveryId || !paidAmount) {
     return res.status(400).json({
       status: 'failed',
-      message: 'shopId, deliveryId, paidAmount, and userId are required'
+      message: 'shopId, deliveryId and paidAmount are required'
     });
   }
 
   try {
-
     const delivery = await prisma.delivery.findUnique({
-      where: { id: deliveryId, userId: userId }
+      where: { id: deliveryId }
     });
 
     if (!delivery) {
@@ -1472,9 +1470,9 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
         message: 'Delivery details not found for the specified user'
       });
     }
-
+    console.log(delivery.shops);
     // Find the shop detail within the delivery
-    const shopDetail = delivery.shops.find(shop => shop.shop.shopId === shopId);
+    const shopDetail = delivery.shops.find(shop => shop.shopId === shopId);
     if (!shopDetail) {
       return res.status(404).json({
         status: 'failure',
@@ -1489,24 +1487,30 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
       });
     }
 
-    const updatedShops = delivery.shops.map(shop =>
-      shop.shop.shopId === shopId
-        ? {
+    const updatedShops = delivery.shops.map(({ shop }) => {
+      if (shop.shopId === shopId) {
+        const totalPaidAmount = (shop.paidAmount ?? 0) + paidAmount;
+        console.log(totalPaidAmount, shop);
+        const status = shopDetail.totalAmount > totalPaidAmount 
+          ? 'PARTIALLY_PAID' 
+          : shopDetail.totalAmount === totalPaidAmount 
+          ? 'COMPLETED' 
+          : shop.status;
+    
+        return {
           ...shop,
-          shop: {
-            ...shop.shop,
-            paidAmount,
-            status: 'COMPLETED',
-            paidAt: new Date(),
-          }
-        }
-        : shop
-    );
-
-    await prisma.delivery.update({
-      where: { id: deliveryId },
-      data: { shops: updatedShops },
-    });
+          paidAmount: totalPaidAmount,
+          status,
+          paidAt: new Date(),
+        };
+      }
+      return shop;
+    });    
+    console.log(updatedShops);
+        await prisma.delivery.update({
+          where: { id: deliveryId },
+          data: { shops: updatedShops },
+        });
 
     res.status(200).json({
       status: 'success',
