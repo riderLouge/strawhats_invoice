@@ -19,6 +19,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
 } from "@mui/material";
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import SkeletonTotalGrowthBarChart from "../../../ui-component/cards/Skeleton/TotalGrowthBarChart";
@@ -27,25 +28,25 @@ import { gridSpacing } from "../../../store/constant";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import { useOverAllContext } from "../../../context/overAllContext";
+import capitalizeText from "../../../utils/capitalizeText";
 
 const TotalGrowthBarChart = ({ isLoading }) => {
   const [open, setOpen] = useState(false);
+  const [deliveryDetails , setDeliveryDetails] = useState([]);
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
   const [amountsCollected, setAmountsCollected] = useState({});
   const theme = useTheme(); // Import useTheme from @mui/material/styles
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
 
-  async function fetchDeliveryDetails(data) {
+  async function fetchDeliveryDetails() {
     try {
-      const response = await axios.get(
-        "/api/fetch/current-day-delivery",
-        {
-          params: {
-            date: new Date().toISOString().split('T')[0], 
-          },
-        }
-      );
-      console.log(response)
+      const response = await axios.get("/api/fetch/current-day-delivery", {
+        params: {
+          date: new Date().toISOString().split('T')[0],
+        },
+      });
+      setDeliveryDetails(response.data.data);
     } catch (error) {
       console.error("Error fetching invoices:", error.message);
       setSuccess(false);
@@ -63,6 +64,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   );
 
   const handleClickOpen = (deliveryGuy) => {
+    console.log(deliveryGuy,"===")
     setSelectedDeliveryGuy(deliveryGuy);
     setAmountsCollected({});
     setOpen(true);
@@ -83,74 +85,21 @@ const TotalGrowthBarChart = ({ isLoading }) => {
     return Object.values(amountsCollected).reduce((acc, curr) => acc + curr, 0);
   };
 
-  const handleSave = () => {
-    // Handle save logic here
-    console.log(`Amounts Collected:`, amountsCollected);
-    setOpen(false);
+  const getTotalAmountToBeCollected = () => {
+    return selectedDeliveryGuy?.shops.reduce((acc, shop) => acc + shop.totalAmount, 0);
   };
 
-  const deliveryGuys = [
-    {
-      id: 1, progress: 10, total: 20, amountToBeCollected: 2000, shops: [
-        { id: 1, name: 'Shop 1', amount: 500 },
-        { id: 2, name: 'Shop 2', amount: 400 },
-        { id: 3, name: 'Shop 3', amount: 300 },
-        { id: 4, name: 'Shop 4', amount: 200 },
-        { id: 5, name: 'Shop 5', amount: 300 },
-        { id: 6, name: 'Shop 6', amount: 300 },
-      ]
-    },
-    {
-      id: 2, progress: 15, total: 25, amountToBeCollected: 3245, shops: [
-        { id: 1, name: 'Shop 1', amount: 545 },
-        { id: 2, name: 'Shop 2', amount: 600 },
-        { id: 3, name: 'Shop 3', amount: 700 },
-        { id: 4, name: 'Shop 4', amount: 800 },
-        { id: 5, name: 'Shop 5', amount: 300 },
-        { id: 6, name: 'Shop 6', amount: 300 },
-      ]
-    },
-    {
-      id: 3, progress: 8, total: 15, amountToBeCollected: 456, shops: [
-        { id: 1, name: 'Shop 1', amount: 100 },
-        { id: 2, name: 'Shop 2', amount: 50 },
-        { id: 3, name: 'Shop 3', amount: 70 },
-        { id: 4, name: 'Shop 4', amount: 80 },
-        { id: 5, name: 'Shop 5', amount: 90 },
-        { id: 6, name: 'Shop 6', amount: 66 },
-      ]
-    },
-    {
-      id: 4, progress: 20, total: 20, amountToBeCollected: 1234, shops: [
-        { id: 1, name: 'Shop 1', amount: 200 },
-        { id: 2, name: 'Shop 2', amount: 220 },
-        { id: 3, name: 'Shop 3', amount: 240 },
-        { id: 4, name: 'Shop 4', amount: 260 },
-        { id: 5, name: 'Shop 5', amount: 300 },
-        { id: 6, name: 'Shop 6', amount: 14 },
-      ]
-    },
-    {
-      id: 5, progress: 15, total: 25, amountToBeCollected: 2454, shops: [
-        { id: 1, name: 'Shop 1', amount: 400 },
-        { id: 2, name: 'Shop 2', amount: 500 },
-        { id: 3, name: 'Shop 3', amount: 600 },
-        { id: 4, name: 'Shop 4', amount: 700 },
-        { id: 5, name: 'Shop 5', amount: 100 },
-        { id: 6, name: 'Shop 6', amount: 154 },
-      ]
-    },
-    {
-      id: 6, progress: 8, total: 15, amountToBeCollected: 9876, shops: [
-        { id: 1, name: 'Shop 1', amount: 1000 },
-        { id: 2, name: 'Shop 2', amount: 1500 },
-        { id: 3, name: 'Shop 3', amount: 2000 },
-        { id: 4, name: 'Shop 4', amount: 2500 },
-        { id: 5, name: 'Shop 5', amount: 2876 },
-        { id: 6, name: 'Shop 6', amount: 0 },
-      ]
-    },
-  ];
+  const handleSave = () => {
+    setConfirmationOpen(true);
+  };
+
+
+  const handleConfirmationClose = (confirm) => {
+    if (confirm) {
+    setOpen(false)
+    }
+    setConfirmationOpen(false);
+  };
 
   return (
     <>
@@ -175,61 +124,67 @@ const TotalGrowthBarChart = ({ isLoading }) => {
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              {deliveryGuys.map((deliveryGuy, index) => (
-                <Grid
-                  key={index}
-                  container
-                  alignItems="center"
-                  spacing={2}
-                  sx={{
-                    backgroundColor: "#f9f9f9",
-                    borderRadius: "10px",
-                    padding: "20px",
-                    marginBottom: "10px",
-                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
-                  }}
-                >
-                  <Grid item xs={3}>
-                    <Typography
-                      variant="h6"
-                      sx={{ fontWeight: "bold", color: "#333" }}
-                    >{`Delivery Guy ${index + 1}`}</Typography>
+              {deliveryDetails.map((deliveryGuy, index) => {
+                const notCompletedShops = deliveryGuy.shops.filter(shop => shop.status === "NOT_COMPLETED").length;
+                const progressValue = (notCompletedShops / deliveryGuy.shops.length) * 100;
+
+                return (
+                  <Grid
+                    key={index}
+                    container
+                    alignItems="center"
+                    spacing={2}
+                    sx={{
+                      backgroundColor: "#f9f9f9",
+                      borderRadius: "10px",
+                      padding: "20px",
+                      marginBottom: "10px",
+                      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
+                    }}
+                  >
+                    <Grid item xs={3}>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: "bold", color: "#333", textTransform: "uppercase" }}
+                      >
+                        {deliveryGuy?.staff?.name}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={5}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={progressValue}
+                        sx={{
+                          height: "10px",
+                          borderRadius: "5px",
+                          backgroundColor: "#ddd",
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: '#3f51b5'
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <Typography
+                        variant="body1"
+                        sx={{ color: "#555", textAlign: "center" }}
+                      >
+                        {`${Math.round(progressValue)}%`}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={2} sx={{ textAlign: 'center' }}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleClickOpen(deliveryGuy)}
+                      >
+                        <AttachMoneyIcon />
+                      </IconButton>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={5}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={(deliveryGuy.progress / deliveryGuy.total) * 100}
-                      sx={{
-                        height: "10px",
-                        borderRadius: "5px",
-                        backgroundColor: "#ddd",
-                        '& .MuiLinearProgress-bar': {
-                          backgroundColor: '#3f51b5'
-                        }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Typography
-                      variant="body1"
-                      sx={{ color: "#555", textAlign: "center" }}
-                    >{`${Math.round(
-                      (deliveryGuy.progress / deliveryGuy.total) * 100
-                    )}%`}</Typography>
-                  </Grid>
-                  <Grid item xs={2} sx={{ textAlign: 'center' }}>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleClickOpen(deliveryGuy)}
-                    >
-                      <AttachMoneyIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              ))}
+                );
+              })}
             </Grid>
           </Grid>
-
           <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
             <DialogTitle sx={{ backgroundColor: theme.palette.primary.main, color: '#fff', textAlign: 'center' }}>
               Enter Amounts Collected
@@ -240,19 +195,24 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Shop Name</TableCell>
-                        <TableCell align="right">Amount</TableCell>
-                        <TableCell align="right">Collected</TableCell>
+                        <TableCell align="center">Shop Name</TableCell>
+                        <TableCell align="center">Status</TableCell>
+                        <TableCell align="center">Amount</TableCell>
+                        <TableCell align="center">Collected</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {selectedDeliveryGuy?.shops.map((shop) => (
                         <TableRow key={shop.id}>
-                          <TableCell component="th" scope="row">
-                            {shop.name}
+                          <TableCell component="th" scope="row" align="center">
+                            {shop?.shop?.CUSNAM}
                           </TableCell>
-                          <TableCell align="right">{shop.amount}</TableCell>
-                          <TableCell align="right">
+                          <TableCell align="center">
+                            <Chip sx={{ height: '24px' }}
+                                  label={capitalizeText(shop?.shop?.status === 'NOT_COMPLETED' ? 'Yet to deliver' : shop?.shop?.status)} />
+                          </TableCell>
+                          <TableCell align="center">{shop.totalAmount}</TableCell>
+                          <TableCell align="center">
                             <TextField
                               margin="dense"
                               label="Collected"
@@ -272,11 +232,11 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                         </TableRow>
                       ))}
                       <TableRow>
-                        <TableCell colSpan={2} align="right">Total Amount to Be Collected</TableCell>
-                        <TableCell align="right">{selectedDeliveryGuy?.amountToBeCollected}</TableCell>
+                        <TableCell colSpan={3} align="right">Total Amount to Be Collected</TableCell>
+                        <TableCell align="right">{getTotalAmountToBeCollected()}</TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell colSpan={2} align="right">Total Amount Collected</TableCell>
+                        <TableCell colSpan={3} align="right">Total Amount Collected</TableCell>
                         <TableCell align="right">{getTotalCollected()}</TableCell>
                       </TableRow>
                     </TableBody>
@@ -292,7 +252,63 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                 Save
               </Button>
             </DialogActions>
-          </Dialog>
+            </Dialog>
+            <Dialog open={confirmationOpen} onClose={() => handleConfirmationClose(false)} maxWidth="sm" fullWidth>
+              <DialogTitle
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  color: '#fff',
+                  textAlign: 'center',
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  borderTopLeftRadius: 8,
+                  borderTopRightRadius: 8,
+                }}
+              >
+                Confirm Status Update
+              </DialogTitle>
+              <DialogContent
+                sx={{   
+                  borderBottomLeftRadius: 8,
+                  borderBottomRightRadius: 8,
+                  padding: '20px',
+                }}
+              >
+                <Typography variant="body1" sx={{paddingTop:"40px", textAlign: 'center', fontWeight: 500 }}>
+                  Do you want to convert the status of shops with "Yet to deliver" to "Pending delivery"?
+                </Typography>
+              </DialogContent>
+              <DialogActions
+                sx={{
+                  padding: '10px',
+                  borderBottomLeftRadius: 8,
+                  borderBottomRightRadius: 8,
+                }}
+              >
+                <Button
+                  onClick={() => handleConfirmationClose(false)}
+                  color="secondary"
+                  variant="outlined"
+                  sx={{
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    marginRight: '10px',
+                  }}
+                >
+                  No
+                </Button>
+                <Button
+                  onClick={() => handleConfirmationClose(true)}
+                  color="primary"
+                  variant="contained"
+                  sx={{
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                  }}
+                >
+                  Yes
+                </Button>
+              </DialogActions>
+            </Dialog>
         </MainCard>
       )}
     </>
