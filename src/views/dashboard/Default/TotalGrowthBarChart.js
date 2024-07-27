@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Grid,
   Typography,
@@ -25,12 +25,42 @@ import SkeletonTotalGrowthBarChart from "../../../ui-component/cards/Skeleton/To
 import MainCard from "../../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../../store/constant";
 import { useTheme } from "@mui/material/styles";
+import axios from "axios";
+import { useOverAllContext } from "../../../context/overAllContext";
 
 const TotalGrowthBarChart = ({ isLoading }) => {
   const [open, setOpen] = useState(false);
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
   const [amountsCollected, setAmountsCollected] = useState({});
   const theme = useTheme(); // Import useTheme from @mui/material/styles
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
+
+  async function fetchDeliveryDetails(data) {
+    try {
+      const response = await axios.get(
+        "/api/fetch/current-day-delivery",
+        {
+          params: {
+            date: new Date().toISOString().split('T')[0], 
+          },
+        }
+      );
+      console.log(response)
+    } catch (error) {
+      console.error("Error fetching invoices:", error.message);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+      throw error;
+    }
+  }
+
+  useEffect(
+     () => {
+      fetchDeliveryDetails();
+    },
+    []
+  );
 
   const handleClickOpen = (deliveryGuy) => {
     setSelectedDeliveryGuy(deliveryGuy);

@@ -1627,3 +1627,64 @@ app.post("/api/products/by-date-report", async (req, res) => {
   }
 });
 
+app.get("/api/fetch/current-day-delivery", async (req, res) => {
+  try {
+   
+    const dateStr = req.query.date;
+  
+    // Convert the date string to a Date object
+    const date = new Date(dateStr);
+  
+    if (isNaN(date)) {
+      return res.status(400).send('Invalid date');
+    }
+  
+    // Set the start and end dates
+    const startDate = new Date(date);
+    startDate.setUTCHours(0, 0, 0, 0);
+  
+    const endDate = new Date(date);
+    endDate.setUTCHours(23, 59, 59, 999);
+  
+  
+    const data = await prisma.delivery.findMany({
+      where: {
+        invoiceDate: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ status: 'failure', message: 'Delivery details not found on this date or delivery agent' });
+    }
+    const deliveryDetails = data.map((delivery) => {
+      const details = delivery.areas.map((area) => {
+        const filteredShopDetails = delivery.shops.filter((shop) => {
+          return area === shop.shop.ZONNAM
+        });
+        return {
+          zoneName: area,
+          shops: filteredShopDetails,
+        };
+      });
+      return {
+        id: delivery.id,
+        assignedDate: delivery.assignedDate,
+        invoiceDate: delivery.invoiceDate,
+        staffId: delivery.staffId,
+        status: delivery.status,
+        createdAt: delivery.createdAt,
+        updatedAt: delivery.updatedAt,
+        isDeleted: delivery.isDeleted,
+        details,
+      };
+    });
+
+    res.status(200).json({ status: 'success', data: deliveryDetails[0] });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
