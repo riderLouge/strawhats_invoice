@@ -25,7 +25,8 @@ import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import emptyProfile from "../../assets/images/profileImage.jpg";
 import { useOverAllContext } from "../../context/overAllContext";
-import { UserRoles } from "@prisma/client";
+import { UserRoles } from "../../utils/constants";
+
 
 const ManageEmployees = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();

@@ -1364,6 +1364,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
           gte: startDate,
           lt: endDate,
         },
+        status: 'NOT_DELIVERED',
         shop: {
           ZONNAM: { in: areas },
         },
@@ -1372,7 +1373,6 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         shop: true,
       },
     });
-    console.log(invoices)
     if (invoices.length === 0) {
       return res.status(400).json({ status: 'failure', message: 'No invoices found for the specified areas and date' });
     }
@@ -1414,6 +1414,17 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         isActive: true,
       }
     })
+    const invoiceIds = invoices.map((invoice) => invoice.id);
+    await prisma.invoice.updateMany({
+      where: {
+        id: {
+          in: invoiceIds,
+        },
+      },
+      data: {
+        status: 'ASSIGNED',
+      },
+    });
     return res.json({ status: 'success', message: 'Delivery agent assigned successfully' });
 
   } catch (error) {
@@ -1546,7 +1557,14 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
       where: { id: deliveryId },
       data: { shops: updatedShops, status: isDeliveryCompleted ? 'COMPLETED' : 'ASSIGNED' },
     });
-
+    await prisma.invoice.update({
+      where: {
+        id: shopDetail.invoiceId,
+      },
+      data: {
+        status: 'COMPLETED',
+      }
+    })
     if (isDeliveryCompleted) {
       const staffMember = await prisma.staff.findUnique({
         where: { email }
@@ -1662,11 +1680,16 @@ app.get("/api/fetch/deliveryAgents", async (req, res) => {
 app.post("/api/products/by-date-report", async (req, res) => {
   const { typeName, month, year } = req.body;
 
-
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 1);
   let invoices;
+  let salesArray = [];
+  let salesMap = new Map();
   try {
+    if (!typeName || !month || !year) {
+      return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
+    }
+
     if (typeName === "Sales Data") {
       invoices = await prisma.invoice.findMany({
         where: {
@@ -1675,10 +1698,32 @@ app.post("/api/products/by-date-report", async (req, res) => {
             lt: endDate
           },
         },
-        select: {
-          products: true,
-        }
+        include: {
+          shop: true,
+        },
       });
+
+      for (let invoice of invoices) {
+        const customerName = invoice.shop.CUSNAM;
+        if (salesMap.has(customerName)) {
+          const existingProduct = salesMap.get(customerName);
+          existingProduct.sales.push({
+            invoiceId: invoice.id,
+            invoiceDate: invoice.invoiceDate,
+            products: invoice.products,
+          });
+        } else {
+          salesMap.set(customerName, {
+            Slno: invoice.shop.SLNO,
+            sales: [{
+              invoiceId: invoice.id,
+              invoiceDate: invoice.invoiceDate,
+              products: invoice.products,
+            }]
+          });
+        }
+      }
+
     }
     else if (typeName === "Purchase Data") {
       invoices = await prisma.supplierBill.findMany({
@@ -1688,17 +1733,40 @@ app.post("/api/products/by-date-report", async (req, res) => {
             lt: endDate
           },
         },
-        select: {
-          products: true,
-        }
+        include: {
+          supplier: true,
+        },
       });
+      for (let invoice of invoices) {
+        const customerName = invoice.supplier.cName;
+        if (salesMap.has(customerName)) {
+          const existingProduct = salesMap.get(customerName);
+          existingProduct.sales.push({
+            invoiceId: invoice.id,
+            invoiceDate: invoice.invoiceDate,
+            products: invoice.products,
+          });
+        } else {
+          salesMap.set(customerName, {
+            gstin: invoice.supplier.gstin,
+            sales: [{
+              invoiceId: invoice.id,
+              invoiceDate: invoice.invoiceDate,
+              products: invoice.products,
+            }]
+          });
+        }
+      }
     }
-
+    // Convert salesMap to an array of objects
+    salesArray = Array.from(salesMap.entries()).map(([customerName, details]) => ({
+      [customerName]: details
+    }));
 
     return res.json({
       status: 'success',
       message: 'Data fetched successfully',
-      data: invoices,
+      data: salesArray,
     });
   } catch (error) {
     console.error(error);
@@ -1750,65 +1818,6 @@ app.get("/api/fetch/current-day-delivery", async (req, res) => {
   }
 });
 
-//* Fetch sales list
-app.post("/api/fetch-sales-list", async (req, res) => {
-  const { month, year } = req.body;
-
-  if (!month || !year) {
-    return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
-  }
-
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 1);
-
-  try {
-    const invoices = await prisma.invoice.findMany({
-      where: {
-        invoiceDate: {
-          gte: startDate,
-          lt: endDate
-        },
-      },
-      include: {
-        shop: true,
-      },
-    });
-
-    const salesMap = new Map();
-
-    for (let invoice of invoices) {
-      const customerName = invoice.shop.CUSNAM;
-      if (salesMap.has(customerName)) {
-        const existingProduct = salesMap.get(customerName);
-        existingProduct.sales.push({
-          invoiceId: invoice.id,
-          invoiceDate: invoice.invoiceDate,
-          products: invoice.products,
-        });
-      } else {
-        salesMap.set(customerName, {
-          Slno: invoice.shop.SLNO,
-          sales: [{
-            invoiceId: invoice.id,
-            invoiceDate: invoice.invoiceDate,
-            products: invoice.products,
-          }]
-        });
-      }
-    }
-    
-    // Convert salesMap to an array of objects
-    const salesArray = Array.from(salesMap.entries()).map(([customerName, details]) => ({
-      [customerName]: details
-    }));
-
-    return res.json({ status: 'success', message: 'Data fetched successfully', data: salesArray });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
-  }
-});
-
 app.post("/api/update/invoice-status", async (req, res) => {
   console.log(req.body)
   try {
@@ -1822,7 +1831,7 @@ app.post("/api/update/invoice-status", async (req, res) => {
         status: "PENDING",
       },
     });
-  
+
     res.json({
       success: true,
       message: `${updateResult.count} invoices updated to PENDING status`,
@@ -1833,7 +1842,7 @@ app.post("/api/update/invoice-status", async (req, res) => {
       success: false,
       message: "Error updating invoices",
     });
-  }                                              
+  }
 });
 
 app.post("/api/update/credit-debit", async (req, res) => {
@@ -1875,7 +1884,7 @@ app.post("/api/update/credit-debit", async (req, res) => {
   } catch (error) {
     console.error('Error updating invoices:', error.message);
     res.status(500).json({ error: 'Internal server error' });
-  }                                         
+  }
 });
 
 const PORT = process.env.PORT || 9000;

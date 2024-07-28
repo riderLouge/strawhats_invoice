@@ -32,8 +32,8 @@ import capitalizeText from "../../../utils/capitalizeText";
 
 const TotalGrowthBarChart = ({ isLoading }) => {
   const [open, setOpen] = useState(false);
-  const [deliveryDetails , setDeliveryDetails] = useState([]);
-  const [notDeliveryDetails , setNotDeliveryDetails] = useState([]);
+  const [deliveryDetails, setDeliveryDetails] = useState([]);
+  const [notDeliveryDetails, setNotDeliveryDetails] = useState([]);
 
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
   const [amountsCollected, setAmountsCollected] = useState({});
@@ -62,7 +62,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
     try {
       const invoiceIds = notDeliveryDetails.flatMap(delivery => delivery.shops.map(shop => shop.invoiceId));
 
-      await axios.post("/api/update/invoice-status",invoiceIds );
+      await axios.post("/api/update/invoice-status", invoiceIds);
       setOpen(false)
 
       const completedDetails = deliveryDetails.map(delivery => ({
@@ -79,18 +79,18 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       setErrorInfo(error.response.data.message);
       throw error;
     }
-  } 
+  }
 
   async function updateCreditDebit(data) {
     try {
 
-      const invoiceDetails = data.flatMap(delivery => 
+      const invoiceDetails = data.flatMap(delivery =>
         delivery.shops.map(shop => ({
-            invoiceId: shop.invoiceId,
-            paidAmount: shop.shop.paidAmount
+          invoiceId: shop.invoiceId,
+          paidAmount: shop.shop.paidAmount
         }))
       );
-      await axios.post("/api/update/credit-debit",invoiceDetails );
+      await axios.post("/api/update/credit-debit", invoiceDetails);
       setOpen(false)
 
     } catch (error) {
@@ -100,14 +100,11 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       setErrorInfo(error.response.data.message);
       throw error;
     }
-  } 
+  }
 
-  useEffect(
-     () => {
-      fetchDeliveryDetails();
-    },
-    []
-  );
+  useEffect(() => {
+    fetchDeliveryDetails();
+  }, []);
 
   const handleClickOpen = (deliveryGuy) => {
     setSelectedDeliveryGuy(deliveryGuy);
@@ -140,11 +137,11 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       shops: delivery.shops.filter(shop => shop.shop.status !== "COMPLETED")
     }));
 
-    if(filteredDetails.length > 0){
+    if (filteredDetails.length > 0) {
       setNotDeliveryDetails(filteredDetails);
       setConfirmationOpen(true);
     }
-    else{
+    else {
       updateCreditDebit(deliveryDetails)
     }
   };
@@ -152,7 +149,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   const handleConfirmationClose = (confirm) => {
     if (confirm) {
-    updateInvoiceStatus();
+      updateInvoiceStatus();
     }
     setConfirmationOpen(false);
   };
@@ -181,9 +178,8 @@ const TotalGrowthBarChart = ({ isLoading }) => {
             </Grid>
             <Grid item xs={12}>
               {deliveryDetails.map((deliveryGuy, index) => {
-                const notCompletedShops = deliveryGuy.shops.filter(shop => shop.shop.status === "NOT_COMPLETED").length;
-                console.log(deliveryGuy,"====-----")
-                const progressValue = (notCompletedShops / deliveryGuy.shops.length) * 100;
+                const completedShops = deliveryGuy.shops.filter(shop => shop.shop.status === "COMPLETED").length;
+                const progressValue = (completedShops / deliveryGuy.shops.length) * 100;
 
                 return (
                   <Grid
@@ -266,7 +262,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                           </TableCell>
                           <TableCell align="center">
                             <Chip sx={{ height: '24px' }}
-                                  label={capitalizeText(shop?.shop?.status === 'NOT_COMPLETED' ? 'Yet to deliver' : shop?.shop?.status)} />
+                              label={capitalizeText(shop?.shop?.status === 'NOT_COMPLETED' ? 'Yet to deliver' : shop?.shop?.status)} />
                           </TableCell>
                           <TableCell align="center">{shop.totalAmount}</TableCell>
                           <TableCell align="center">
@@ -309,63 +305,63 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                 Save
               </Button>
             </DialogActions>
-            </Dialog>
-            <Dialog open={confirmationOpen} onClose={() => handleConfirmationClose(false)} maxWidth="sm" fullWidth>
-              <DialogTitle
+          </Dialog>
+          <Dialog open={confirmationOpen} onClose={() => handleConfirmationClose(false)} maxWidth="sm" fullWidth>
+            <DialogTitle
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                color: '#fff',
+                textAlign: 'center',
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                borderTopLeftRadius: 8,
+                borderTopRightRadius: 8,
+              }}
+            >
+              Confirm Status Update
+            </DialogTitle>
+            <DialogContent
+              sx={{
+                borderBottomLeftRadius: 8,
+                borderBottomRightRadius: 8,
+                padding: '20px',
+              }}
+            >
+              <Typography variant="body1" sx={{ paddingTop: "40px", textAlign: 'center', fontWeight: 500 }}>
+                Do you want to convert the status of shops with "Yet to deliver" to "Pending delivery"?
+              </Typography>
+            </DialogContent>
+            <DialogActions
+              sx={{
+                padding: '10px',
+                borderBottomLeftRadius: 8,
+                borderBottomRightRadius: 8,
+              }}
+            >
+              <Button
+                onClick={() => handleConfirmationClose(false)}
+                color="secondary"
+                variant="outlined"
                 sx={{
-                  backgroundColor: theme.palette.primary.main,
-                  color: '#fff',
-                  textAlign: 'center',
-                  borderBottom: `1px solid ${theme.palette.divider}`,
-                  borderTopLeftRadius: 8,
-                  borderTopRightRadius: 8,
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  marginRight: '10px',
                 }}
               >
-                Confirm Status Update
-              </DialogTitle>
-              <DialogContent
-                sx={{   
-                  borderBottomLeftRadius: 8,
-                  borderBottomRightRadius: 8,
-                  padding: '20px',
-                }}
-              >
-                <Typography variant="body1" sx={{paddingTop:"40px", textAlign: 'center', fontWeight: 500 }}>
-                  Do you want to convert the status of shops with "Yet to deliver" to "Pending delivery"?
-                </Typography>
-              </DialogContent>
-              <DialogActions
+                No
+              </Button>
+              <Button
+                onClick={() => handleConfirmationClose(true)}
+                color="primary"
+                variant="contained"
                 sx={{
-                  padding: '10px',
-                  borderBottomLeftRadius: 8,
-                  borderBottomRightRadius: 8,
+                  padding: '8px 16px',
+                  borderRadius: '20px',
                 }}
               >
-                <Button
-                  onClick={() => handleConfirmationClose(false)}
-                  color="secondary"
-                  variant="outlined"
-                  sx={{
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    marginRight: '10px',
-                  }}
-                >
-                  No
-                </Button>
-                <Button
-                  onClick={() => handleConfirmationClose(true)}
-                  color="primary"
-                  variant="contained"
-                  sx={{
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                  }}
-                >
-                  Yes
-                </Button>
-              </DialogActions>
-            </Dialog>
+                Yes
+              </Button>
+            </DialogActions>
+          </Dialog>
         </MainCard>
       )}
     </>

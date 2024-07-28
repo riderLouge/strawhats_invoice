@@ -8,7 +8,8 @@ import DeliveryGuyImage from '../../assets/images/deliveryAgent.jpg'
 import moment from "moment";
 import capitalizeText from "../../utils/capitalizeText";
 import currencyFormatter from "../../utils/currencyFormatter";
-import { UserRoles } from "@prisma/client";
+import { UserRoles } from "../../utils/constants";
+
 
 const StyledTableCell = styled(TableCell)({
   padding: '1px 16px',
@@ -97,7 +98,7 @@ const handlePaidAmount = (e) =>{
   };
 
   const handleCompleteDelivery = (shopDetails, deliveryDetails) => {
-    console.log(shopDetails, deliveryDetails)
+    setPaidAmount('');
     setUpDateShopPopup(true);
     setSelectedShopId(shopDetails.shop.shopId);
     setSeletedDeliveryId(deliveryDetails.id);

@@ -1,6 +1,6 @@
 // assets
-import { UserRoles } from "@prisma/client";
 import { IconKey } from "@tabler/icons";
+import { UserRoles } from "../utils/constants";
 
 // constant
 const icons = {
@@ -10,36 +10,36 @@ const icons = {
 // ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
 
 const getMenuItems = () => {
-
-  console.log(localStorage.getItem('role') )
-  if (localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER) {
-    return [
-      {
-        id: 'util-create-Bill',
-        title: 'Delivery Stats',
-        type: 'item',
-        url: '/DeliveryStats',
-        breadcrumbs: false,
-      },
-      {
-        id: 'util-Manage-Employes',
-        title: 'Manage Employees',
-        type: 'item',
-        url: '/ManageEmployes',
-        breadcrumbs: false,
-      }
-    ];
-  } else if (localStorage.getItem('role') === UserRoles.DELIVERY) {
-    return [
-      {
-        id: 'util-create-Bill',
-        title: 'Delivery Stats',
-        type: 'item',
-        url: '/DeliveryStats',
-        breadcrumbs: false,
-      }
-    ];
-  }
+  if (localStorage.getItem('role') !== null) {
+    if (localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER) {
+      return [
+        {
+          id: 'util-create-Bill',
+          title: 'Delivery Stats',
+          type: 'item',
+          url: '/DeliveryStats',
+          breadcrumbs: false,
+        },
+        {
+          id: 'util-Manage-Employes',
+          title: 'Manage Employees',
+          type: 'item',
+          url: '/ManageEmployes',
+          breadcrumbs: false,
+        }
+      ];
+    } else if (localStorage.getItem('role') === UserRoles.DELIVERY) {
+      return [
+        {
+          id: 'util-create-Bill',
+          title: 'Delivery Stats',
+          type: 'item',
+          url: '/DeliveryStats',
+          breadcrumbs: false,
+        }
+      ];
+    }
+}
 
   return [];
 };
