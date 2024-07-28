@@ -209,25 +209,25 @@ app.get("/api/staff/staffDetails", async (req, res) => {
 // create a new staff
 app.post("/api/staff/add", async (req, res) => {
   try {
-    const {email, name, joinDate, role, phoneNumber} = req.body;
-if(name === ""){
-  return res.status(400).json({ error: "Name should not be empty" });
-}
-if(email === ""){
-  return res.status(400).json({ error: "Email should not be empty" });
-}
-if(role === ""){
-  return res.status(400).json({ error: "Role should not be empty" });
-}
-if(joinDate === null){
-  return res.status(400).json({ error: "Join Date should not be empty" });
-}
-if(phoneNumber === ""){
-  return res.status(400).json({ error: "PhoneNumber should not be empty" });
-}
-if(phoneNumber.length > 10 || phoneNumber.length < 10){
-  return res.status(400).json({ error: "Please enter valid mobile number" });
-}
+    const { email, name, joinDate, role, phoneNumber } = req.body;
+    if (name === "") {
+      return res.status(400).json({ error: "Name should not be empty" });
+    }
+    if (email === "") {
+      return res.status(400).json({ error: "Email should not be empty" });
+    }
+    if (role === "") {
+      return res.status(400).json({ error: "Role should not be empty" });
+    }
+    if (joinDate === null) {
+      return res.status(400).json({ error: "Join Date should not be empty" });
+    }
+    if (phoneNumber === "") {
+      return res.status(400).json({ error: "PhoneNumber should not be empty" });
+    }
+    if (phoneNumber.length > 10 || phoneNumber.length < 10) {
+      return res.status(400).json({ error: "Please enter valid mobile number" });
+    }
     // Check if email already exists
     const existingStaff = await prisma.staff.findUnique({
       where: {
@@ -243,14 +243,14 @@ if(phoneNumber.length > 10 || phoneNumber.length < 10){
     const createdItem = await prisma.staff.create({
       data: req.body,
     });
-await prisma.loginAuth.create({
-  data:{
-    name,
-    role,
-    email,
-    password: generatedPassword(name, phoneNumber),
-  }
-})
+    await prisma.loginAuth.create({
+      data: {
+        name,
+        role,
+        email,
+        password: generatedPassword(name, phoneNumber),
+      }
+    })
     // Send success status to the frontend
     return res
       .status(201)
@@ -1372,7 +1372,7 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
         shop: true,
       },
     });
-console.log(invoices)
+    console.log(invoices)
     if (invoices.length === 0) {
       return res.status(400).json({ status: 'failure', message: 'No invoices found for the specified areas and date' });
     }
@@ -1525,10 +1525,10 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
     }
 
     const updatedShops = delivery.shops.map((shop) => {
-      if (shop.shop.shopId === shopId) {    
+      if (shop.shop.shopId === shopId) {
         return {
           ...shop,
-          shop:{
+          shop: {
             ...shop.shop,
             paidAmount: paidAmount,
             status: 'COMPLETED',
@@ -1589,14 +1589,14 @@ app.get("/api/fetch/assigned-delivery", async (req, res) => {
       return res.status(400).json({ status: 'failure', message: 'missing required fields' });
     }
 
-const deliveryAgent = await prisma.staff.findUnique({
-  where: {
-    email,
-  }
-});
-if (!deliveryAgent) {
-  return res.status(404).json({ status: 'failure', message: 'Delivery agent not found' });
-}
+    const deliveryAgent = await prisma.staff.findUnique({
+      where: {
+        email,
+      }
+    });
+    if (!deliveryAgent) {
+      return res.status(404).json({ status: 'failure', message: 'Delivery agent not found' });
+    }
     const parsedDate = new Date(date);
     if (isNaN(parsedDate.getTime())) {
       return res.status(400).json({ status: 'failure', message: 'Invalid date format' });
@@ -1613,9 +1613,9 @@ if (!deliveryAgent) {
         }
       }
     });
-if(data.length === 0){
-  return res.status(200).json({ status: 'success', message: 'data fetched successfully', data});
-}
+    if (data.length === 0) {
+      return res.status(200).json({ status: 'success', message: 'data fetched successfully', data });
+    }
     const deliveryDetails = data.map((delivery) => {
       const details = delivery.areas.map((area) => {
         const filteredShopDetails = delivery.shops.filter((shop) => {
@@ -1658,25 +1658,21 @@ app.get("/api/fetch/deliveryAgents", async (req, res) => {
       .json({ error: "An error occurred while fetching the delivery guys" });
   }
 });
-const PORT = process.env.PORT || 9000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
 
 app.post("/api/products/by-date-report", async (req, res) => {
-  const { typeName , month, year } = req.body;
+  const { typeName, month, year } = req.body;
 
 
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 1);
   let invoices;
   try {
-    if(typeName === "Sales Data"){
+    if (typeName === "Sales Data") {
       invoices = await prisma.invoice.findMany({
         where: {
           invoiceDate: {
-          gte: startDate,
-          lt: endDate
+            gte: startDate,
+            lt: endDate
           },
         },
         select: {
@@ -1684,20 +1680,20 @@ app.post("/api/products/by-date-report", async (req, res) => {
         }
       });
     }
-    else if (typeName === "Purchase Data"){
+    else if (typeName === "Purchase Data") {
       invoices = await prisma.supplierBill.findMany({
         where: {
           billDate: {
-          gte: startDate,
-          lt: endDate
+            gte: startDate,
+            lt: endDate
           },
         },
         select: {
           products: true,
         }
-      }); 
+      });
     }
-    
+
 
     return res.json({
       status: 'success',
@@ -1712,24 +1708,24 @@ app.post("/api/products/by-date-report", async (req, res) => {
 
 app.get("/api/fetch/current-day-delivery", async (req, res) => {
   try {
-   
+
     const dateStr = req.query.date;
-  
+
     // Convert the date string to a Date object
     const date = new Date(dateStr);
-  
+
     if (isNaN(date)) {
       return res.status(400).send('Invalid date');
     }
-  
+
     // Set the start and end dates
     const startDate = new Date(date);
     startDate.setUTCHours(0, 0, 0, 0);
-  
+
     const endDate = new Date(date);
     endDate.setUTCHours(23, 59, 59, 999);
-  
-  
+
+
     const data = await prisma.delivery.findMany({
       where: {
         invoiceDate: {
@@ -1737,7 +1733,7 @@ app.get("/api/fetch/current-day-delivery", async (req, res) => {
           lte: endDate
         }
       },
-      include:{
+      include: {
         staff: true
       }
     });
@@ -1752,4 +1748,137 @@ app.get("/api/fetch/current-day-delivery", async (req, res) => {
     console.error(error);
     return res.status(500).json({ status: 'failure', message: 'Internal server error' });
   }
+});
+
+//* Fetch sales list
+app.post("/api/fetch-sales-list", async (req, res) => {
+  const { month, year } = req.body;
+
+  if (!month || !year) {
+    return res.status(400).json({ status: 'failure', message: 'Missing required fields' });
+  }
+
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
+
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        invoiceDate: {
+          gte: startDate,
+          lt: endDate
+        },
+      },
+      include: {
+        shop: true,
+      },
+    });
+
+    const salesMap = new Map();
+
+    for (let invoice of invoices) {
+      const customerName = invoice.shop.CUSNAM;
+      if (salesMap.has(customerName)) {
+        const existingProduct = salesMap.get(customerName);
+        existingProduct.sales.push({
+          invoiceId: invoice.id,
+          invoiceDate: invoice.invoiceDate,
+          products: invoice.products,
+        });
+      } else {
+        salesMap.set(customerName, {
+          Slno: invoice.shop.SLNO,
+          sales: [{
+            invoiceId: invoice.id,
+            invoiceDate: invoice.invoiceDate,
+            products: invoice.products,
+          }]
+        });
+      }
+    }
+    
+    // Convert salesMap to an array of objects
+    const salesArray = Array.from(salesMap.entries()).map(([customerName, details]) => ({
+      [customerName]: details
+    }));
+
+    return res.json({ status: 'success', message: 'Data fetched successfully', data: salesArray });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+});
+
+app.post("/api/update/invoice-status", async (req, res) => {
+  console.log(req.body)
+  try {
+    const updateResult = await prisma.invoice.updateMany({
+      where: {
+        id: {
+          in: req.body,
+        },
+      },
+      data: {
+        status: "PENDING",
+      },
+    });
+  
+    res.json({
+      success: true,
+      message: `${updateResult.count} invoices updated to PENDING status`,
+    });
+  } catch (error) {
+    console.error("Error updating invoices:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error updating invoices",
+    });
+  }                                              
+});
+
+app.post("/api/update/credit-debit", async (req, res) => {
+
+  try {
+    for (const { invoiceId, paidAmount } of req.body) {
+      const creditRecord = await prisma.creditDebit.findFirst({
+        where: {
+          invoiceId: invoiceId
+        }
+      });
+
+      if (creditRecord) {
+        let newTotal = creditRecord.total - parseFloat(paidAmount);
+        let newStatus = '';
+
+        if (newTotal === 0) {
+          newStatus = 'Tally';
+        } else if (newTotal > 0) {
+          newStatus = 'Credit';
+        } else {
+          newTotal = Math.abs(newTotal);
+          newStatus = 'Debit';
+        }
+
+        await prisma.creditDebit.update({
+          where: {
+            invoiceId: invoiceId
+          },
+          data: {
+            total: newTotal,
+            status: newStatus
+          }
+        });
+      }
+    }
+
+    res.status(200).json({ message: 'Invoices updated successfully' });
+  } catch (error) {
+    console.error('Error updating invoices:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }                                         
+});
+
+const PORT = process.env.PORT || 9000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
