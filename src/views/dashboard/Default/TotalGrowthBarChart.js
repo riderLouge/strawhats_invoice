@@ -33,6 +33,8 @@ import capitalizeText from "../../../utils/capitalizeText";
 const TotalGrowthBarChart = ({ isLoading }) => {
   const [open, setOpen] = useState(false);
   const [deliveryDetails , setDeliveryDetails] = useState([]);
+  const [notDeliveryDetails , setNotDeliveryDetails] = useState([]);
+
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
   const [amountsCollected, setAmountsCollected] = useState({});
   const theme = useTheme(); // Import useTheme from @mui/material/styles
@@ -46,7 +48,9 @@ const TotalGrowthBarChart = ({ isLoading }) => {
           date: new Date().toISOString().split('T')[0],
         },
       });
+      console.log(response.data.data,"=====")
       setDeliveryDetails(response.data.data);
+      setNotDeliveryDetails(deliveryDetails.filter(delivery => delivery.status === "NOT_COMPLETED"))
     } catch (error) {
       console.error("Error fetching invoices:", error.message);
       setSuccess(false);
@@ -55,6 +59,21 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       throw error;
     }
   }
+
+  async function updateInvoiceStatus() {
+    try {
+
+      const response = await axios.post("/api/update/invoice-status",notDeliveryDetails );
+      setOpen(false)
+
+    } catch (error) {
+      console.error("Error fetching invoices:", error.message);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+      throw error;
+    }
+  } 
 
   useEffect(
      () => {
@@ -90,13 +109,15 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   };
 
   const handleSave = () => {
-    setConfirmationOpen(true);
+    if(notDeliveryDetails.length > 0){
+      setConfirmationOpen(true);
+    }
   };
 
 
   const handleConfirmationClose = (confirm) => {
     if (confirm) {
-    setOpen(false)
+    updateInvoiceStatus();
     }
     setConfirmationOpen(false);
   };
