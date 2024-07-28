@@ -48,9 +48,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
           date: new Date().toISOString().split('T')[0],
         },
       });
-      console.log(response.data.data,"=====")
       setDeliveryDetails(response.data.data);
-      setNotDeliveryDetails(deliveryDetails.filter(delivery => delivery.status === "NOT_COMPLETED"))
     } catch (error) {
       console.error("Error fetching invoices:", error.message);
       setSuccess(false);
@@ -62,8 +60,37 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   async function updateInvoiceStatus() {
     try {
+      const invoiceIds = notDeliveryDetails.flatMap(delivery => delivery.shops.map(shop => shop.invoiceId));
 
-      const response = await axios.post("/api/update/invoice-status",notDeliveryDetails );
+      await axios.post("/api/update/invoice-status",invoiceIds );
+      setOpen(false)
+
+      const completedDetails = deliveryDetails.map(delivery => ({
+        ...delivery,
+        shops: delivery.shops.filter(shop => shop.shop.status === "COMPLETED")
+      }));
+
+      updateCreditDebit(completedDetails)
+
+    } catch (error) {
+      console.error("Error fetching invoices:", error.message);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
+      throw error;
+    }
+  } 
+
+  async function updateCreditDebit(data) {
+    try {
+
+      const invoiceDetails = data.flatMap(delivery => 
+        delivery.shops.map(shop => ({
+            invoiceId: shop.invoiceId,
+            paidAmount: shop.shop.paidAmount
+        }))
+      );
+      await axios.post("/api/update/credit-debit",invoiceDetails );
       setOpen(false)
 
     } catch (error) {
@@ -83,7 +110,6 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   );
 
   const handleClickOpen = (deliveryGuy) => {
-    console.log(deliveryGuy,"===")
     setSelectedDeliveryGuy(deliveryGuy);
     setAmountsCollected({});
     setOpen(true);
@@ -109,8 +135,17 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   };
 
   const handleSave = () => {
-    if(notDeliveryDetails.length > 0){
+    const filteredDetails = deliveryDetails.map(delivery => ({
+      ...delivery,
+      shops: delivery.shops.filter(shop => shop.shop.status !== "COMPLETED")
+    }));
+
+    if(filteredDetails.length > 0){
+      setNotDeliveryDetails(filteredDetails);
       setConfirmationOpen(true);
+    }
+    else{
+      updateCreditDebit(deliveryDetails)
     }
   };
 
@@ -146,7 +181,8 @@ const TotalGrowthBarChart = ({ isLoading }) => {
             </Grid>
             <Grid item xs={12}>
               {deliveryDetails.map((deliveryGuy, index) => {
-                const notCompletedShops = deliveryGuy.shops.filter(shop => shop.status === "NOT_COMPLETED").length;
+                const notCompletedShops = deliveryGuy.shops.filter(shop => shop.shop.status === "NOT_COMPLETED").length;
+                console.log(deliveryGuy,"====-----")
                 const progressValue = (notCompletedShops / deliveryGuy.shops.length) * 100;
 
                 return (
@@ -239,7 +275,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                               label="Collected"
                               type="number"
                               fullWidth
-                              value={amountsCollected[shop.id] || ""}
+                              value={shop?.shop?.paidAmount || ""}
                               onChange={(e) =>
                                 handleAmountChange(shop.id, e.target.value)
                               }
