@@ -33,8 +33,6 @@ import capitalizeText from "../../../utils/capitalizeText";
 const TotalGrowthBarChart = ({ isLoading }) => {
   const [open, setOpen] = useState(false);
   const [deliveryDetails, setDeliveryDetails] = useState([]);
-  const [notDeliveryDetails, setNotDeliveryDetails] = useState([]);
-
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
   const [amountsCollected, setAmountsCollected] = useState({});
   const theme = useTheme(); // Import useTheme from @mui/material/styles
@@ -60,15 +58,19 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   async function updateInvoiceStatus() {
     try {
-      const invoiceIds = notDeliveryDetails.flatMap(delivery => delivery.shops.map(shop => shop.invoiceId));
+      const invoiceIds = selectedDeliveryGuy.shops.map((shop => shop.invoiceId));
 
-      await axios.post("/api/update/invoice-status", invoiceIds);
+        await axios.post("/api/update/invoice-status", {
+        invoiceIds,
+      staffId: selectedDeliveryGuy.staffId,
+      deliveryId: selectedDeliveryGuy.id,
+    });
       setOpen(false)
 
-      const completedDetails = deliveryDetails.map(delivery => ({
-        ...delivery,
-        shops: delivery.shops.filter(shop => shop.shop.status === "COMPLETED")
-      }));
+      const completedDetails = {
+        ...selectedDeliveryGuy,
+        shops: selectedDeliveryGuy.shops.filter(shop => shop.shop.status === "COMPLETED")
+      };
 
       updateCreditDebit(completedDetails)
 
@@ -83,7 +85,6 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   async function updateCreditDebit(data) {
     try {
-
       const invoiceDetails = data.flatMap(delivery =>
         delivery.shops.map(shop => ({
           invoiceId: shop.invoiceId,
@@ -132,13 +133,11 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   };
 
   const handleSave = () => {
-    const filteredDetails = deliveryDetails.map(delivery => ({
-      ...delivery,
-      shops: delivery.shops.filter(shop => shop.shop.status !== "COMPLETED")
-    }));
+    const isAnyShopsNotDelivered = selectedDeliveryGuy.shops.filter((shop) => {
+      return shop.shop.status === 'NOT_COMPLETED';
+    });
 
-    if (filteredDetails.length > 0) {
-      setNotDeliveryDetails(filteredDetails);
+    if (isAnyShopsNotDelivered.length > 0) {
       setConfirmationOpen(true);
     }
     else {

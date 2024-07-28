@@ -1551,12 +1551,11 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
       }
     });
 
-    const isDeliveryCompleted = updatedShops.every((shop) => shop.shop.status === 'COMPLETED');
-
     await prisma.delivery.update({
       where: { id: deliveryId },
-      data: { shops: updatedShops, status: isDeliveryCompleted ? 'COMPLETED' : 'ASSIGNED' },
+      data: { shops: updatedShops },
     });
+
     await prisma.invoice.update({
       where: {
         id: shopDetail.invoiceId,
@@ -1565,23 +1564,6 @@ app.patch("/api/update/assigned-delivery-agent/shop", async (req, res) => {
         status: 'COMPLETED',
       }
     })
-    if (isDeliveryCompleted) {
-      const staffMember = await prisma.staff.findUnique({
-        where: { email }
-      });
-
-      if (!staffMember) {
-        return res.status(404).json({
-          status: 'failure',
-          message: 'Staff member not found'
-        });
-      }
-
-      await prisma.staff.update({
-        where: { email },
-        data: { isActive: false }
-      });
-    }
 
     res.status(200).json({
       status: 'success',
@@ -1690,7 +1672,7 @@ app.post("/api/products/by-date-report", async (req, res) => {
       return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
     }
 
-    if (typeName === "Sales Data") {
+    if (typeName === 2) {
       invoices = await prisma.invoice.findMany({
         where: {
           invoiceDate: {
@@ -1710,13 +1692,14 @@ app.post("/api/products/by-date-report", async (req, res) => {
           existingProduct.sales.push({
             invoiceId: invoice.id,
             invoiceDate: invoice.invoiceDate,
+            invoiceNumber: invoice.invoiceNumber,
             products: invoice.products,
           });
         } else {
           salesMap.set(customerName, {
             Slno: invoice.shop.SLNO,
             sales: [{
-              invoiceId: invoice.id,
+              invoiceId: invoice.invoiceNumber,
               invoiceDate: invoice.invoiceDate,
               products: invoice.products,
             }]
@@ -1725,7 +1708,7 @@ app.post("/api/products/by-date-report", async (req, res) => {
       }
 
     }
-    else if (typeName === "Purchase Data") {
+    else if (typeName === 1) {
       invoices = await prisma.supplierBill.findMany({
         where: {
           billDate: {
@@ -1750,7 +1733,7 @@ app.post("/api/products/by-date-report", async (req, res) => {
           salesMap.set(customerName, {
             gstin: invoice.supplier.gstin,
             sales: [{
-              invoiceId: invoice.id,
+              invoiceId: invoice.billNumber,
               invoiceDate: invoice.invoiceDate,
               products: invoice.products,
             }]
@@ -1819,17 +1802,28 @@ app.get("/api/fetch/current-day-delivery", async (req, res) => {
 });
 
 app.post("/api/update/invoice-status", async (req, res) => {
-  console.log(req.body)
+
+  const { invoiceIds, staffId, deliveryId } = req.body;
   try {
     const updateResult = await prisma.invoice.updateMany({
       where: {
         id: {
-          in: req.body,
+          in: invoiceIds,
         },
       },
       data: {
         status: "PENDING",
       },
+    });
+
+    await prisma.delivery.update({
+      where: { id: deliveryId },
+      data: { status: 'COMPLETED' },
+    });
+
+    await prisma.staff.update({
+      where: { userid: staffId },
+      data: { isActive: false }
     });
 
     res.json({
@@ -1870,7 +1864,7 @@ app.post("/api/update/credit-debit", async (req, res) => {
 
         await prisma.creditDebit.update({
           where: {
-            invoiceId: invoiceId
+            invoiceId,
           },
           data: {
             total: newTotal,

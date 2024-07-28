@@ -26,6 +26,7 @@ import axios from "axios";
 import emptyProfile from "../../assets/images/profileImage.jpg";
 import { useOverAllContext } from "../../context/overAllContext";
 import { UserRoles } from "../../utils/constants";
+import moment from "moment";
 
 
 const ManageEmployees = () => {
@@ -65,6 +66,7 @@ const ManageEmployees = () => {
       {
         accessorKey: "joinDate",
         header: "Join Date",
+        Cell: ({ row }) => moment(row.joinDate).format('DD/MM/YYYY'),
       },
       {
         accessorKey: "role",
@@ -352,7 +354,7 @@ const ManageEmployees = () => {
       : ""}
       onChange={(e) => setRole(e.target.value)}
   >
-    {localStorage.getItem('role') === UserRoles.OWNER && (
+    {JSON.parse(localStorage.getItem('role')) === UserRoles.OWNER && (
       <MenuItem value={UserRoles.ADMIN}>{UserRoles.ADMIN}</MenuItem>
     )}
     <MenuItem value={UserRoles.DELIVERY}>{UserRoles.DELIVERY}</MenuItem>

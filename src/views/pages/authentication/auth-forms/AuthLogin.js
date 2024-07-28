@@ -35,10 +35,13 @@ import AnimateButton from "../../../../ui-component/extended/AnimateButton";
 // assets
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { useOverAllContext } from "../../../../context/overAllContext";
+import { UserRoles } from "../../../../utils/constants";
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const FirebaseLogin = ({ ...others }) => {
+  const { setUserRole } = useOverAllContext();
   const theme = useTheme();
   const scriptedRef = useScriptRef();
   const [checked, setChecked] = useState(true);
@@ -96,12 +99,12 @@ const FirebaseLogin = ({ ...others }) => {
                 setStatus({ success: true });
                 setSubmitting(false);
                 localStorage.setItem("authenticated", "true");
-                localStorage.setItem("role", foundUser.role);
-                localStorage.setItem("userId", foundUser.Id);
-                localStorage.setItem("email", foundUser.email);
-                console.log(foundUser);
+                localStorage.setItem("role", JSON.stringify(foundUser.role));
+                localStorage.setItem("userId", JSON.stringify(foundUser.Id));
+                localStorage.setItem("email", JSON.stringify(foundUser.email));
                 localStorage.setItem("user", JSON.stringify(foundUser));
-                navigate("/dashboard");
+                setUserRole(foundUser.role);
+                navigate(foundUser.role === UserRoles.DELIVERY ? "/DeliveryStats" : "/dashboard");
               }
             } else {
               values.email = "";

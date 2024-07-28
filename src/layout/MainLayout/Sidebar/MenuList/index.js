@@ -1,47 +1,46 @@
-// material-ui
+import React, { useMemo } from "react";
 import { Typography } from "@mui/material";
-
-// project imports
 import NavGroup from "./NavGroup";
-import menuItem from "../../../../menu-items";
+import getMenuItems from "../../../../menu-items";
 import { UserRoles } from "../../../../utils/constants";
+import { useOverAllContext } from "../../../../context/overAllContext";
 
+const getFilteredMenus = (menuItems, userRole) => {
+  if (userRole === UserRoles.ADMIN || userRole === UserRoles.OWNER) {
+    return menuItems;
+  }
 
-// ==============================|| SIDEBAR MENU LIST ||============================== //
-
-const MenuList = () => {
-  const currentUserRole = localStorage.getItem('role');
-
-  let menus = menuItem;
-  if (currentUserRole === UserRoles.ADMIN || currentUserRole === UserRoles.OWNER) {
-
-    menus = menuItem.items;
-  } else if (currentUserRole === UserRoles.DELIVERY) {
-    const filteredMenu = menuItem.items.map((menu) => {
+  if (userRole === UserRoles.DELIVERY) {
+    console.log(menuItems)
+    return menuItems.map((menu) => {
       if (menu.id === 'utilities') {
         return {
           ...menu,
           children: menu.children.filter((child) => child.title !== 'Delivery'),
-        }
-      } else {
-        return menu;
+        };
       }
-    });
-    menus = filteredMenu;
-  } else {
-    menus = menuItem.items.filter((item) => item.id !== 'pages')
+      return menu;
+    }).filter((item) => (item.id !== 'sample-docs-roadmap' && item.id !== 'dashboard'));
   }
-  const navItems = menus.map((item) => {
-    switch (item.type) {
-      case "group":
-        return <NavGroup key={item.id} item={item} />;
-      default:
-        return (
-          <Typography key={item.id} variant="h6" color="error" align="center">
-            Menu Items Error
-          </Typography>
-        );
+
+  return menuItems.filter((item) => item.id !== 'pages');
+};
+
+const MenuList = () => {
+  const { userRole } = useOverAllContext();
+  const menuItems = useMemo(() => getMenuItems(userRole).items, [userRole]);
+  const filteredMenus = useMemo(() => getFilteredMenus(menuItems, userRole), [menuItems, userRole]);
+
+  const navItems = filteredMenus.map((item) => {
+    if (item.type === "group") {
+      return <NavGroup key={item.id} item={item} />;
     }
+
+    return (
+      <Typography key={item.id} variant="h6" color="error" align="center">
+        Menu Items Error
+      </Typography>
+    );
   });
 
   return <>{navItems}</>;

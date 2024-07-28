@@ -7,8 +7,11 @@ function OverAllContextProvider({ children }) {
     const [success, setSuccess] = useState(false);
     const [openErrorAlert, setOpenErrorAlert] = useState(false);
     const [errorInfo, setErrorInfo] = useState('');
+    const [userRole, setUserRole] = useState(JSON.parse(localStorage.getItem('role')));
     return (
         <overAllContext.Provider value={{
+            userRole,
+            setUserRole,
             setSuccess,
             setOpenErrorAlert,
             setErrorInfo
