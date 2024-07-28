@@ -1370,10 +1370,9 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
       },
       include: {
         shop: true,
-        products: true,
       },
     });
-
+console.log(invoices)
     if (invoices.length === 0) {
       return res.status(400).json({ status: 'failure', message: 'No invoices found for the specified areas and date' });
     }
