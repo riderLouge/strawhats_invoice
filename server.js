@@ -759,16 +759,6 @@ app.delete("/api/invoice/delete/:id", async (req, res) => {
 });
 app.post("/api/supplier-bill/create", async (req, res) => {
   try {
-    // validate request body
-
-    if (
-      !req.body.billNumber ||
-      !req.body.billTotal ||
-      !req.body.paymentMode ||
-      !req.body.pendingPayment
-    ) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
     const {
       billNumber,
       products,
@@ -780,6 +770,15 @@ app.post("/api/supplier-bill/create", async (req, res) => {
       userId,
       supplierId,
     } = req.body;
+
+    if (
+      !billNumber ||
+      !billTotal ||
+      !paymentMode ||
+      pendingPayment === null
+    ) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
     const supplier = await prisma.company.findUnique({
       where: { id: supplierId },
@@ -1878,6 +1877,76 @@ app.post("/api/update/credit-debit", async (req, res) => {
   } catch (error) {
     console.error('Error updating invoices:', error.message);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/api/fetch/supplier", async (req, res) => {
+  try {
+    await prisma.company.findMany();
+    res.status(200).json({ status: 'success', message: 'Supplier fetch successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 'failure',
+      message: 'Internal server error'
+    });
+  }
+});
+
+app.post("/api/create/supplier", async (req, res) => {
+  try {
+    const { companyName, shortName, address, email, phoneNumber, gstin, stateCode } = req.body;
+    if (!companyName) {
+      return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
+    }
+    await prisma.company.create({
+      data: {
+        cName: companyName,
+        ...(shortName ? { cShort: shortName } : {}),
+        ...(address ? { address } : {}),
+        ...(email ? { email } : {}),
+        ...(phoneNumber ? { phoneNumber } : {}),
+        ...(gstin ? { gstin } : {}),
+        ...(stateCode ? { stateCode } : {}),
+      },
+    });
+    res.status(200).json({ status: 'success', message: 'Supplier created successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 'failure',
+      message: 'Internal server error'
+    });
+  }
+});
+
+app.patch("/api/update/supplier", async (req, res) => {
+  try {
+    const { companyName, supplierId, shortName, address, email, phoneNumber, gstin, stateCode } = req.body;
+    if (!companyName || !supplierId) {
+      return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
+    }
+    await prisma.company.update({
+      where: {
+        id: supplierId,
+      },
+      data: {
+        cName: companyName,
+        ...(shortName ? { cShort: shortName } : {}),
+        ...(address ? { address } : {}),
+        ...(email ? { email } : {}),
+        ...(phoneNumber ? { phoneNumber } : {}),
+        ...(gstin ? { gstin } : {}),
+        ...(stateCode ? { stateCode } : {}),
+      },
+    });
+    res.status(200).json({ status: 'success', message: 'Supplier updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 'failure',
+      message: 'Internal server error'
+    });
   }
 });
 
