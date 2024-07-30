@@ -395,7 +395,7 @@ const Dashboard = () => {
 
   const rowsToDisplay = credit.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const processAndDownloadExcel = (data) => {
+  const processAndDownloadExcelSales = (data) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sales Data');
 
@@ -453,6 +453,14 @@ const Dashboard = () => {
     let totalCGST = 0;
     let totalIGST = 0;
 
+    // Initialize GST summary
+    const gstSummary = {
+        0: { basicValue: 0, sgst: 0, cgst: 0 },
+        5: { basicValue: 0, sgst: 0, cgst: 0 },
+        12: { basicValue: 0, sgst: 0, cgst: 0 },
+        18: { basicValue: 0, sgst: 0, cgst: 0 }
+    };
+
     data.forEach((item) => {
         const buyerName = Object.keys(item)[0];
         const buyerData = item[buyerName];
@@ -476,19 +484,20 @@ const Dashboard = () => {
                 totalCGST += cgst;
                 totalIGST += igst;
 
+                // Add to GST summary
+                if (gstSummary[gst] !== undefined) {
+                    gstSummary[gst].basicValue += salesValue;
+                    gstSummary[gst].sgst += sgst;
+                    gstSummary[gst].cgst += cgst;
+                }
+
                 const row = worksheet.addRow([
                     sNo++, buyerName, gstin, invoiceId, invoiceDate,
                     hsnNumber, salesValue, gst, sgst, cgst, igst
                 ]);
 
-                // Ensure the background color of the row is set to white
+                // Calculate the width of the column based on cell value length
                 row.eachCell((cell, colNumber) => {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFFFFFFF' }, // White fill
-                    };
-                    // Calculate the width of the column based on cell value length
                     const cellValueLength = String(cell.value).length;
                     if (cellValueLength > columnWidths[colNumber - 1]) {
                         columnWidths[colNumber - 1] = cellValueLength;
@@ -507,29 +516,53 @@ const Dashboard = () => {
     ]);
 
     // Make the total row bold
-    totalRow.eachCell((cell, colNumber) => {
+    totalRow.eachCell((cell) => {
+        cell.font = { bold: true };
+    });
+
+    // Leave three rows after the table
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+
+    // Add summary header
+    const summaryHeaderRow = worksheet.addRow([`SUMMARY ${month.toUpperCase()} ${year} SALES`]);
+    summaryHeaderRow.font = { bold: true };
+    summaryHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.mergeCells(summaryHeaderRow.number, 1, summaryHeaderRow.number, tableHeader.values.length);
+
+    // Leave one row after the summary header
+    worksheet.addRow([]);
+
+    // Add summary table header
+    const summaryTableHeader = worksheet.addRow([
+        'GST%', 'BASIC VALUE', 'SGST%', 'SGST TAX', 'CGST%', 'CGST TAX', 'TOTAL TAX', 'TOTAL VALUE'
+    ]);
+    summaryTableHeader.eachCell((cell) => {
         cell.font = { bold: true };
         cell.fill = {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FFFFFFFF' }, // White fill
+            fgColor: { argb: 'FFFFFF00' }, // Yellow fill
         };
+    });
+
+    // Add summary data rows
+    [0, 5, 12, 18].forEach((gst) => {
+        const basicValue = gstSummary[gst].basicValue;
+        const sgst = gstSummary[gst].sgst;
+        const cgst = gstSummary[gst].cgst;
+        const totalTax = sgst + cgst;
+        const totalValue = basicValue + totalTax;
+
+        worksheet.addRow([
+            gst, basicValue, gst / 2, sgst, gst / 2, cgst, totalTax, totalValue
+        ]);
     });
 
     // Dynamically determine the max row and column
     const maxRow = worksheet.lastRow.number;
     const maxColumn = tableHeader.values.length;
-
-    // Set the background color for the entire range to white
-    for (let i = 1; i <= maxRow; i++) {
-        for (let j = 1; j <= maxColumn; j++) {
-            worksheet.getCell(i, j).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFFFFFFF' }, // White fill
-            };
-        }
-    }
 
     // Set the column widths
     worksheet.columns.forEach((column, index) => {
@@ -546,6 +579,191 @@ const Dashboard = () => {
         a.click();
     });
 };
+
+const processAndDownloadExcelPurchase = (data) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Purchase Data');
+
+  // Add title in the first row and merge cells
+  const titleRow = worksheet.getRow(1);
+  titleRow.getCell(1).value = 'SRI KRISHNA AGENCIES';
+  titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  titleRow.font = { bold: true };
+
+  // Skip the second row
+  worksheet.addRow([]);
+
+  // Extract month and year from the first invoice date
+  const firstInvoiceDate = new Date(data[0][Object.keys(data[0])[0]].sales[0].products[0].invoiceDate);
+  const month = firstInvoiceDate.toLocaleString('default', { month: 'long' });
+  const year = firstInvoiceDate.getFullYear();
+
+  // Add header with dynamic date in the third row and merge cells
+  const headerRow = worksheet.getRow(3);
+  headerRow.getCell(1).value = `GST PURCHASES DURING MONTH OF ${month} ${year} GSTIN: 33DBWPS2559L1ZQ`;
+  headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  headerRow.font = { bold: true };
+
+  // Skip the fourth row
+  worksheet.addRow([]);
+
+  // Add table header in the fifth row and set background color to yellow
+  const tableHeader = worksheet.getRow(5);
+  tableHeader.values = [
+      'S.No', 'Name of the Seler', 'GSTIN', 'Bill Number', 'Bill Date',
+      'HSN Code', 'Bill Value', 'GST %', 'SGST', 'CGST', 'IGST'
+  ];
+  worksheet.mergeCells(3, 1, 3, tableHeader.values.length); // Adjusted to merge the cells up to the 11th column (based on header length)
+  worksheet.mergeCells(1, 1, 1, tableHeader.values.length); // Adjusted to merge the cells up to the 11th column (based on header length)
+  tableHeader.eachCell((cell) => {
+      cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFFF00' }, // Yellow fill
+      };
+      cell.font = { bold: true };
+  });
+
+  let sNo = 1;
+
+  // Add empty row after header
+  worksheet.addRow([]);
+
+  // Track column widths
+  const columnWidths = Array(tableHeader.values.length).fill(10); // Initialize with a default width of 10
+
+  // Initialize totals
+  let totalSalesValue = 0;
+  let totalSGST = 0;
+  let totalCGST = 0;
+  let totalIGST = 0;
+
+  // Initialize GST summary
+  const gstSummary = {
+      0: { basicValue: 0, sgst: 0, cgst: 0 },
+      5: { basicValue: 0, sgst: 0, cgst: 0 },
+      12: { basicValue: 0, sgst: 0, cgst: 0 },
+      18: { basicValue: 0, sgst: 0, cgst: 0 }
+  };
+
+  data.forEach((item) => {
+      const buyerName = Object.keys(item)[0];
+      const buyerData = item[buyerName];
+      const gstin = buyerData.Slno;
+
+      buyerData.sales.forEach((sale) => {
+          sale.products.forEach((product) => {
+              const invoiceId = sale.invoiceId;
+              const invoiceDate = product.invoiceDate.split('T')[0]; // Remove time zone
+              const hsnNumber = product.hsnNumber;
+              const salesValue = product.totalWithoutGST;
+              const gst = parseFloat(product.gst);
+              const isTamilNadu = gstin.startsWith('33'); // Tamil Nadu GSTIN starts with 33
+              const sgst = isTamilNadu ? (gst / 2 / 100) * salesValue : 0;
+              const cgst = isTamilNadu ? (gst / 2 / 100) * salesValue : 0;
+              const igst = isTamilNadu ? 0 : (gst / 100) * salesValue;
+
+              // Add to totals
+              totalSalesValue += salesValue;
+              totalSGST += sgst;
+              totalCGST += cgst;
+              totalIGST += igst;
+
+              // Add to GST summary
+              if (gstSummary[gst] !== undefined) {
+                  gstSummary[gst].basicValue += salesValue;
+                  gstSummary[gst].sgst += sgst;
+                  gstSummary[gst].cgst += cgst;
+              }
+
+              const row = worksheet.addRow([
+                  sNo++, buyerName, gstin, invoiceId, invoiceDate,
+                  hsnNumber, salesValue, gst, sgst, cgst, igst
+              ]);
+
+              // Calculate the width of the column based on cell value length
+              row.eachCell((cell, colNumber) => {
+                  const cellValueLength = String(cell.value).length;
+                  if (cellValueLength > columnWidths[colNumber - 1]) {
+                      columnWidths[colNumber - 1] = cellValueLength;
+                  }
+              });
+          });
+      });
+  });
+
+  // Leave one row after the table
+  worksheet.addRow([]);
+
+  // Add total row
+  const totalRow = worksheet.addRow([
+      '', '', '', '', '', 'Total', totalSalesValue, '', totalSGST, totalCGST, totalIGST
+  ]);
+
+  // Make the total row bold
+  totalRow.eachCell((cell) => {
+      cell.font = { bold: true };
+  });
+
+  // Leave three rows after the table
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+
+  // Add summary header
+  const summaryHeaderRow = worksheet.addRow([`SUMMARY ${month.toUpperCase()} ${year} SALES`]);
+  summaryHeaderRow.font = { bold: true };
+  summaryHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  worksheet.mergeCells(summaryHeaderRow.number, 1, summaryHeaderRow.number, tableHeader.values.length);
+
+  // Leave one row after the summary header
+  worksheet.addRow([]);
+
+  // Add summary table header
+  const summaryTableHeader = worksheet.addRow([
+      'GST%', 'BASIC VALUE', 'SGST%', 'SGST TAX', 'CGST%', 'CGST TAX', 'TOTAL TAX', 'TOTAL VALUE'
+  ]);
+  summaryTableHeader.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFFF00' }, // Yellow fill
+      };
+  });
+
+  // Add summary data rows
+  [0, 5, 12, 18].forEach((gst) => {
+      const basicValue = gstSummary[gst].basicValue;
+      const sgst = gstSummary[gst].sgst;
+      const cgst = gstSummary[gst].cgst;
+      const totalTax = sgst + cgst;
+      const totalValue = basicValue + totalTax;
+
+      worksheet.addRow([
+          gst, basicValue, gst / 2, sgst, gst / 2, cgst, totalTax, totalValue
+      ]);
+  });
+
+  // Dynamically determine the max row and column
+  const maxRow = worksheet.lastRow.number;
+  const maxColumn = tableHeader.values.length;
+
+  // Set the column widths
+  worksheet.columns.forEach((column, index) => {
+      column.width = columnWidths[index] + 2; // Add some padding for better readability
+  });
+
+  // Write to file
+  workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SalesData.xlsx';
+      a.click();
+  });
+};
   
   const handleSubmit = async (params) => {
 
@@ -556,8 +774,12 @@ const Dashboard = () => {
         setSuccess(true);
         setOpenErrorAlert(true);
         setErrorInfo(response.data.message);
-        processAndDownloadExcel(response.data.data)
-        console.log(response.data.data)
+        if(params.typeName === 2){
+          processAndDownloadExcelSales(response.data.data)
+        }
+        else if(params.typeName === 1){
+          processAndDownloadExcelPurchase(response.data.data)
+        }
       } else {
         setSuccess(false);
         setOpenErrorAlert(true);
