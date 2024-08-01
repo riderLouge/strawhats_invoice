@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MaterialReactTable } from "material-react-table";
-import { Card, Button } from "@mui/material";
+import { Card, Button, TextField } from "@mui/material";
 import * as ExcelJS from "exceljs";
 import MainCard from "../../ui-component/cards/MainCard";
 import DialogTemplate from "../../ui-component/Dialog";
@@ -13,6 +13,14 @@ const Suppliers = () => {
   const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const [cName, setCName] = useState("");
+  const [cShort, setCShort] = useState("");
+  const [address, setAddress] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [gstin, setGstin] = useState("");
+  const [stateCode, setStateCode] = useState("");
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -37,7 +45,15 @@ const Suppliers = () => {
   }, []);
 
   const handleEdit = (row) => {
-    setSelectedItem(row.original);
+    const supplier = row.original;
+    setSelectedItem(supplier);
+    setCName(supplier.cName);
+    setCShort(supplier.cShort);
+    setAddress(supplier.address);
+    setEmail(supplier.email);
+    setPhoneNumber(supplier.phoneNumber);
+    setGstin(supplier.gstin);
+    setStateCode(supplier.stateCode);
     handleOpenDialog("Edit Items");
   };
 
@@ -81,20 +97,11 @@ const Suppliers = () => {
               onMouseLeave={() => setHoveredRowEdit(null)}
               onClick={() => handleEdit(row)}
             />
-            <VisibilityIcon
-              style={{
-                cursor: "pointer",
-                color: hoveredRow === row.id ? "blue" : "inherit",
-                marginLeft: "20px",
-              }}
-              onMouseEnter={() => setHoveredRow(row.id)}
-              onMouseLeave={() => setHoveredRow(null)}
-            />
           </div>
         ),
       },
     ],
-    []
+    [hoveredRowEdit, hoveredRow]
   );
 
   const [rowSelection, setRowSelection] = useState({});
@@ -124,22 +131,65 @@ const Suppliers = () => {
 
     console.log(data);
   };
+
   const handleOpenDialog = (buttonName) => {
     setOpenDialog(true);
     setButtonClicked(buttonName);
     setDialogTitle(buttonName);
+    if (buttonName === "Add/Edit") {
+      resetForm();
+    }
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setButtonClicked("");
     setDialogTitle("");
+    resetForm();
   };
 
-  const handleSubmitDialog = () => {
-    setOpenDialog(false);
-    setButtonClicked("");
-    setDialogTitle("");
+  const resetForm = () => {
+    setCName("");
+    setCShort("");
+    setAddress("");
+    setEmail("");
+    setPhoneNumber("");
+    setGstin("");
+    setStateCode("");
+  };
+
+  const handleSubmitDialog = async () => {
+    const supplierData = {
+      cName,
+      cShort,
+      address,
+      email,
+      phoneNumber,
+      gstin,
+      stateCode,
+    };
+
+    try {
+      if (buttonClicked === "Add/Edit") {
+        if (selectedItem) {
+          // Edit supplier
+          await axios.put(`/api/company/update/${selectedItem.id}`, supplierData);
+        } else {
+          // Add supplier
+          await axios.post("/api/company/create", supplierData);
+        }
+      }
+      // Fetch updated data
+      const response = await axios.get("https://api-skainvoice.top/api/company/fetchCompany");
+      setCompanyName(response.data);
+
+      setOpenDialog(false);
+      setButtonClicked("");
+      setDialogTitle("");
+      resetForm();
+    } catch (error) {
+      console.error("Error saving supplier:", error);
+    }
   };
 
   return (
@@ -148,25 +198,11 @@ const Suppliers = () => {
         <MaterialReactTable
           columns={columns}
           data={companyName}
-          enableRowSelection
           getRowId={(row) => row.id}
           onRowSelectionChange={setRowSelection}
           state={{ rowSelection }}
         />
       </Card>
-      <Button
-        variant="contained"
-        color="secondary"
-        style={{
-          top: "10px",
-          right: "10px",
-          margin: "8px",
-          zIndex: 1,
-        }}
-        onClick={() => handleOpenDialog("Stock Adjustment")}
-      >
-        Stock Adjustment
-      </Button>
       <Button
         variant="contained"
         color="primary"
@@ -178,25 +214,11 @@ const Suppliers = () => {
         }}
         onClick={() => handleOpenDialog("Add/Edit")}
       >
-        Add / Edit Item
-      </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          margin: "8px",
-          zIndex: 1,
-        }}
-        onClick={() => handleOpenDialog("Import")}
-      >
-        Import
+        Add Supplier
       </Button>
       <DialogTemplate
         open={openDialog}
-        title={"Import"}
+        title={dialogTitle}
         body={
           buttonClicked === "Import" ? (
             <label
@@ -222,7 +244,50 @@ const Suppliers = () => {
               <span>Selected file: {fileName}</span>
             </label>
           ) : (
-            <span>{`You clicked on: ${buttonClicked}`}</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <TextField
+                label="Company Name"
+                value={cName}
+                onChange={(e) => setCName(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Company Short Name"
+                value={cShort}
+                onChange={(e) => setCShort(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Phone Number"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="GSTIN"
+                value={gstin}
+                onChange={(e) => setGstin(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="State Code"
+                value={stateCode}
+                onChange={(e) => setStateCode(e.target.value)}
+                fullWidth
+              />
+            </div>
           )
         }
         handleCloseDialog={handleCloseDialog}
