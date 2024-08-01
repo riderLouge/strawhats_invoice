@@ -11,10 +11,10 @@ datasource db {
 }
 
 enum UserRoles {
-    OWNER
-    ADMIN
-    DELIVERY
-    STAFF
+  OWNER
+  ADMIN
+  DELIVERY
+  STAFF
 }
 
 model Staff {
@@ -25,7 +25,7 @@ model Staff {
   phoneNumber String
   address     String
   designation String
-  role        UserRoles @map("user_role")
+  role        UserRoles  @map("user_role")
   photo       String
   isActive    Boolean    @default(false)
   Delivery    Delivery[]
@@ -52,7 +52,7 @@ model Shop {
 model LoginAuth {
   Id                     Int            @id @default(autoincrement())
   name                   String
-  role                   UserRoles @map("user_role")
+  role                   UserRoles      @map("user_role")
   email                  String         @unique
   password               String
   passwordResetOTP       String?
@@ -98,11 +98,11 @@ model Company {
   id           Int            @id @default(autoincrement())
   cName        String
   cShort       String
-  address String
-  email String
-  phoneNumber String
-  gstin String
-  stateCode String
+  address      String
+  email        String
+  phoneNumber  String
+  gstin        String
+  stateCode    String
   SupplierBill SupplierBill[]
 }
 
@@ -135,13 +135,13 @@ model Invoice {
 model CreditDebit {
   id            String   @id @default(uuid()) @map("credit_debit_id")
   invoiceNumber Int
-  invoiceId     String
+  invoiceId     String @unique
   invoiceDate   DateTime
   shopId        Int
   status        String
   total         Decimal
-  createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
 }
 
 model SupplierBill {

@@ -298,3 +298,4 @@ const Suppliers = () => {
 };
 
 export default Suppliers;
+

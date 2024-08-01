@@ -8,7 +8,8 @@ import DeliveryGuyImage from '../../assets/images/deliveryAgent.jpg'
 import moment from "moment";
 import capitalizeText from "../../utils/capitalizeText";
 import currencyFormatter from "../../utils/currencyFormatter";
-import { UserRoles } from "@prisma/client";
+import { UserRoles } from "../../utils/constants";
+
 
 const StyledTableCell = styled(TableCell)({
   padding: '1px 16px',
@@ -97,7 +98,7 @@ const handlePaidAmount = (e) =>{
   };
 
   const handleCompleteDelivery = (shopDetails, deliveryDetails) => {
-    console.log(shopDetails, deliveryDetails)
+    setPaidAmount('');
     setUpDateShopPopup(true);
     setSelectedShopId(shopDetails.shop.shopId);
     setSeletedDeliveryId(deliveryDetails.id);
@@ -106,7 +107,7 @@ const handlePaidAmount = (e) =>{
   const fetchDeliveryDetails = async () => {
     try {
       const response = await axios.get('/api/fetch/assigned-delivery', {
-        params: { email: localStorage.getItem('email'), date: new Date().toISOString().split('T')[0] },
+        params: { email: JSON.parse(localStorage.getItem('email')), date: new Date().toISOString().split('T')[0] },
       });
       setDeliveryDetails(response.data.data);
     } catch (error) {
@@ -121,7 +122,7 @@ const handlePaidAmount = (e) =>{
         shopId: selectedShopId,
         deliveryId: selectedDeliveryId,
         paidAmount,
-        email: localStorage.getItem('email'),
+        email: JSON.parse(localStorage.getItem('email')),
       });
 
       if (response.status === 200) {
@@ -139,13 +140,13 @@ const handlePaidAmount = (e) =>{
   };
 
   useEffect(() => {
-if(localStorage.getItem('role') === UserRoles.DELIVERY){
+if(JSON.parse(localStorage.getItem('role')) === UserRoles.DELIVERY){
   fetchDeliveryDetails();
 }
   }, [])
   return (
     <MainCard title="Delivery Stats" sx={{ position: "relative", height: '82vh', overflow: 'auto' }}>
-      {(localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER) && (
+      {(JSON.parse(localStorage.getItem('role')) === UserRoles.ADMIN || JSON.parse(localStorage.getItem('role')) === UserRoles.OWNER) && (
       <Grid container spacing={2} alignItems="center">
       <Grid item xs={8} md={3}>
         <Autocomplete
@@ -222,7 +223,7 @@ if(localStorage.getItem('role') === UserRoles.DELIVERY){
                           <StyledTableCell align="center" sx={{ p: 2 }}>Status</StyledTableCell>
                           <StyledTableCell align="center" sx={{ p: 2 }}>Paid Amount</StyledTableCell>
                           <StyledTableCell align="center" sx={{ p: 2 }}>Paid At</StyledTableCell>
-                          {localStorage.getItem('role') === UserRoles.DELIVERY && (
+                          {JSON.parse(localStorage.getItem('role')) === UserRoles.DELIVERY && (
                           <StyledTableCell align="center" sx={{ p: 2 }}></StyledTableCell>
                           )}
                         </TableRow>
@@ -254,7 +255,7 @@ if(localStorage.getItem('role') === UserRoles.DELIVERY){
                               <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
                                 {row?.shop?.paidAt ? moment(row?.shop?.paidAt).format('MMM DD, YYYY hh:mm a') : '-'}
                               </StyledTableCell>
-                              {(localStorage.getItem('role') === UserRoles.DELIVERY && row?.shop?.status !== 'COMPLETED') && (
+                              {(JSON.parse(localStorage.getItem('role')) === UserRoles.DELIVERY && row?.shop?.status !== 'COMPLETED') && (
                               <StyledTableCell align="center" sx={{ color: '#09090B', p: 2 }}>
                               <IconButton sx={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} onClick={() => handleCompleteDelivery(row, deliveryDetails)}>
                                 <DoneRoundedIcon />

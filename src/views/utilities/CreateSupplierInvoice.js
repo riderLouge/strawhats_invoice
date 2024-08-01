@@ -34,6 +34,7 @@ const UtilitiesCreateSupplierBill = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const numberRegx = /^[0-9]*$/;
   console.log(selectedSupplier);
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -72,10 +73,19 @@ const UtilitiesCreateSupplierBill = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    if (name === 'invoiceNumber') {
+
+      setFormData({
+        ...formData,
+        [name]: numberRegx.test(value) ? value : '',
+      });
+      
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleProductSelect = (product) => {
@@ -164,7 +174,7 @@ const UtilitiesCreateSupplierBill = () => {
   }
   const saveAndGenerateInvoice = async () => {
     const invoiceData = {
-      billNumber: Number(formData.invoiceNumber) || "",
+      billNumber: formData.invoiceNumber ? Number(formData.invoiceNumber) : "",
       products: tableData,
       billTotal: billTotal(tableData),
       billDate: new Date(formData.billDate).toISOString(),
@@ -178,7 +188,7 @@ const UtilitiesCreateSupplierBill = () => {
     console.log(invoiceData);
 
     try {
-      const response = await axios.post("https://api-skainvoice.top/api/supplier-bill/create", invoiceData);
+      const response = await axios.post("/api/supplier-bill/create", invoiceData);
       console.log("Invoice saved successfully:", response.data);
       setFormData({});
       setTableData([]);

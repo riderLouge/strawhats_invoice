@@ -1,18 +1,9 @@
-// assets
-import { UserRoles } from "@prisma/client";
 import { IconKey } from "@tabler/icons";
+import { UserRoles } from "../utils/constants";
 
-// constant
-const icons = {
-  IconKey,
-};
 
-// ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
-
-const getMenuItems = () => {
-
-  console.log(localStorage.getItem('role') )
-  if (localStorage.getItem('role') === UserRoles.ADMIN || localStorage.getItem('role') === UserRoles.OWNER) {
+const getMenuItems = (userRole) => {
+  if (userRole === UserRoles.ADMIN || userRole === UserRoles.OWNER) {
     return [
       {
         id: 'util-create-Bill',
@@ -29,7 +20,7 @@ const getMenuItems = () => {
         breadcrumbs: false,
       }
     ];
-  } else if (localStorage.getItem('role') === UserRoles.DELIVERY) {
+  } else if (userRole === UserRoles.DELIVERY) {
     return [
       {
         id: 'util-create-Bill',
@@ -44,21 +35,13 @@ const getMenuItems = () => {
   return [];
 };
 
-const pages = {
-  id: "pages",
-  title: `${localStorage.getItem('role')} Section`,
-  // caption: "Empty",
-  type: "group",
-  children: getMenuItems(),
-  // children: [
-  //   {
-  //     id: "authentication",
-  //     title: "Admin Access",
-  //     type: "collapse",
-  //     icon: icons.IconKey,
-  //     children: getMenuItems(),
-  //   },
-  // ],
+const getPages = (userRole) => {
+  return {
+    id: "pages",
+    title: `${userRole ? userRole : 'Guest'} Section`,
+    type: "group",
+    children: getMenuItems(userRole),
+  };
 };
 
-export default pages;
+export default getPages;

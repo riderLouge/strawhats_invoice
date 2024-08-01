@@ -1,13 +1,20 @@
+import { useContext } from 'react';
 import dashboard from "./dashboard";
 import * as constants from "../utils/constants";
-import pages from "./pages";
+import getPages from "./pages";
 import utilities from "./utilities";
 import other from "./other";
+import { useOverAllContext } from '../context/overAllContext';
 
 // ==============================|| MENU ITEMS ||============================== //
+const MenuItems = () => {
+  const { userRole } = useOverAllContext();
 
-let menuItems = {
-  items: [dashboard, pages, utilities, other],
+  let menuItems = {
+    items: [dashboard, getPages(userRole), utilities, other],
+  };
+
+  return menuItems;
 };
 
-export default menuItems;
+export default MenuItems;

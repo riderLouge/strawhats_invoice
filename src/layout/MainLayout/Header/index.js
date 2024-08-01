@@ -247,14 +247,14 @@ const Header = ({ handleLeftDrawerToggle }) => {
       const response = await axios.get(
         "https://api-skainvoice.top/api/invoices"
       );
-      console.log("response.data =",response.data)
-      const notDeliveredInvoices = response?.data.filter(invoice => invoice.status === "NOT_DELIVERED");
-      setData(response.data);   
+      console.log("response.data =",response.data.data)
+      setData(response?.data?.data.filter(invoice => invoice.status === "PENDING"));   
     } catch (error) {
       console.error("Error fetching invoices:", error);
       throw error;
     }
   };
+
 
   return (
     <>
@@ -511,7 +511,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
         body={
           <>
             <Card sx={{ overflow: "hidden" }}>
-              <MaterialReactTable columns={columns} data={data.data ?? {}} getRowId={(row) => row.id} enableRowSelection />
+              <MaterialReactTable columns={columns} data={data ?? {}} getRowId={(row) => row.id} enableRowSelection />
             </Card>
             <Button
               variant="contained"
