@@ -1893,16 +1893,16 @@ app.get("/api/fetch/supplier", async (req, res) => {
   }
 });
 
-app.post("/api/create/supplier", async (req, res) => {
+app.post("/api/company/create", async (req, res) => {
   try {
-    const { companyName, shortName, address, email, phoneNumber, gstin, stateCode } = req.body;
-    if (!companyName) {
-      return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
+    const { cName, cShort, address, email, phoneNumber, gstin, stateCode } = req.body;
+    if (!cName) {
+      return res.status(404).json({ status: 'failed', message: 'Missing required fields' });
     }
     await prisma.company.create({
       data: {
-        cName: companyName,
-        ...(shortName ? { cShort: shortName } : {}),
+        cName,
+        ...(cShort ? { cShort } : {}),
         ...(address ? { address } : {}),
         ...(email ? { email } : {}),
         ...(phoneNumber ? { phoneNumber } : {}),
@@ -1920,19 +1920,20 @@ app.post("/api/create/supplier", async (req, res) => {
   }
 });
 
-app.patch("/api/update/supplier", async (req, res) => {
+app.put("/api/company/update/:id", async (req, res) => {
   try {
-    const { companyName, supplierId, shortName, address, email, phoneNumber, gstin, stateCode } = req.body;
-    if (!companyName || !supplierId) {
-      return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
+    const { id } = req.params;
+    const { cName, cShort, address, email, phoneNumber, gstin, stateCode } = req.body;
+    if (!cName || !id) {
+      return res.status(404).json({ status: 'failed', message: 'Missing required fields' });
     }
     await prisma.company.update({
       where: {
-        id: supplierId,
+        id: Number(id),
       },
       data: {
-        cName: companyName,
-        ...(shortName ? { cShort: shortName } : {}),
+        cName,
+        ...(cShort ? { cShort } : {}),
         ...(address ? { address } : {}),
         ...(email ? { email } : {}),
         ...(phoneNumber ? { phoneNumber } : {}),
@@ -1949,6 +1950,7 @@ app.patch("/api/update/supplier", async (req, res) => {
     });
   }
 });
+
 
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {

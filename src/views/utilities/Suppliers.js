@@ -133,12 +133,14 @@ const Suppliers = () => {
   };
 
   const handleOpenDialog = (buttonName) => {
-    setOpenDialog(true);
-    setButtonClicked(buttonName);
-    setDialogTitle(buttonName);
+    console.log("in")
     if (buttonName === "Add/Edit") {
       resetForm();
     }
+    setOpenDialog(true);
+    setButtonClicked(buttonName);
+    setDialogTitle(buttonName);
+
   };
 
   const handleCloseDialog = () => {
@@ -168,9 +170,9 @@ const Suppliers = () => {
       gstin,
       stateCode,
     };
-
+    console.log(buttonClicked," = ",supplierData)
     try {
-      if (buttonClicked === "Add/Edit") {
+      if (buttonClicked === "Add/Edit" || buttonClicked === "Edit Items") {
         if (selectedItem) {
           // Edit supplier
           await axios.put(`/api/company/update/${selectedItem.id}`, supplierData);
