@@ -299,7 +299,7 @@ const Dashboard = () => {
   async function fetchProductsBasedOnArea(data) {
     try {
       const response = await axios.get(
-        "/api/get-products/based-on-area",
+        "https://api-skainvoice.top/api/get-products/based-on-area",
         {
           params: {
             invoiceDate: data.date,
@@ -764,7 +764,7 @@ const processAndDownloadExcelPurchase = (data) => {
   
   const handleSubmit = async (params) => {
 
-    const apiUrl = '/api/products/by-date-report';
+    const apiUrl = 'https://api-skainvoice.top/api/products/by-date-report';
     try {
       const response = await axios.post(apiUrl, params);
       if (response.status === 200) {

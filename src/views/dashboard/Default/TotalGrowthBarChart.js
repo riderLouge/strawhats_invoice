@@ -41,7 +41,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   async function fetchDeliveryDetails() {
     try {
-      const response = await axios.get("/api/fetch/current-day-delivery", {
+      const response = await axios.get("https://api-skainvoice.top/api/fetch/current-day-delivery", {
         params: {
           date: new Date().toISOString().split('T')[0],
         },
@@ -60,7 +60,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
     try {
       const invoiceIds = selectedDeliveryGuy.shops.map((shop => shop.invoiceId));
 
-        await axios.post("/api/update/invoice-status", {
+        await axios.post("https://api-skainvoice.top/api/update/invoice-status", {
         invoiceIds,
       staffId: selectedDeliveryGuy.staffId,
       deliveryId: selectedDeliveryGuy.id,
@@ -91,7 +91,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
           paidAmount: shop.shop.paidAmount
         }))
       );
-      await axios.post("/api/update/credit-debit", invoiceDetails);
+      await axios.post("https://api-skainvoice.top/api/update/credit-debit", invoiceDetails);
       setOpen(false)
 
     } catch (error) {

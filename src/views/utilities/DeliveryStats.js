@@ -35,7 +35,7 @@ const numberRegex = /^[0-9]*$/;
   const fetchDeliveryGuys = async () => {
     try {
       const response = await axios.get(
-        "/api/fetch/deliveryAgents"
+        "https://api-skainvoice.top/api/fetch/deliveryAgents"
       );
       setDeliveryGuys(response.data);
       console.log(response)
@@ -80,7 +80,7 @@ const handlePaidAmount = (e) =>{
 
   const fetchDeliveryAgent = async (data) => {
     try {
-      const response = await axios.get('/api/fetch/assigned-delivery-agent', {
+      const response = await axios.get('https://api-skainvoice.top/api/fetch/assigned-delivery-agent', {
         params: {
           userId: data.userId,
           date: data.date,
@@ -106,7 +106,7 @@ const handlePaidAmount = (e) =>{
 
   const fetchDeliveryDetails = async () => {
     try {
-      const response = await axios.get('/api/fetch/assigned-delivery', {
+      const response = await axios.get('https://api-skainvoice.top/api/fetch/assigned-delivery', {
         params: { email: JSON.parse(localStorage.getItem('email')), date: new Date().toISOString().split('T')[0] },
       });
       setDeliveryDetails(response.data.data);
@@ -118,7 +118,7 @@ const handlePaidAmount = (e) =>{
   };
   const handleSubmit = async () => {
     try {
-      const response = await axios.patch('/api/update/assigned-delivery-agent/shop', {
+      const response = await axios.patch('https://api-skainvoice.top/api/update/assigned-delivery-agent/shop', {
         shopId: selectedShopId,
         deliveryId: selectedDeliveryId,
         paidAmount,

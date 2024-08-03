@@ -188,7 +188,7 @@ const UtilitiesCreateSupplierBill = () => {
     console.log(invoiceData);
 
     try {
-      const response = await axios.post("/api/supplier-bill/create", invoiceData);
+      const response = await axios.post("https://api-skainvoice.top/api/supplier-bill/create", invoiceData);
       console.log("Invoice saved successfully:", response.data);
       setFormData({});
       setTableData([]);

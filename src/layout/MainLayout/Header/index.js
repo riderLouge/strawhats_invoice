@@ -141,7 +141,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   };
   const handleSubmit = async (params) => {
 
-    const apiUrl = searchBy === "Supplier" ? '/api/products/by-company-date' : '/api/products/by-zone-shop-date';
+    const apiUrl = searchBy === "Supplier" ? 'https://api-skainvoice.top/api/products/by-company-date' : 'https://api-skainvoice.top/api/products/by-zone-shop-date';
     try {
       const response = await axios.post(apiUrl, params);
       if (response.status === 200) {

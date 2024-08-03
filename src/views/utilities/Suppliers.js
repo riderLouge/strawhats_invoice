@@ -175,10 +175,10 @@ const Suppliers = () => {
       if (buttonClicked === "Add/Edit" || buttonClicked === "Edit Items") {
         if (selectedItem) {
           // Edit supplier
-          await axios.put(`/api/company/update/${selectedItem.id}`, supplierData);
+          await axios.put(`https://api-skainvoice.top/api/company/update/${selectedItem.id}`, supplierData);
         } else {
           // Add supplier
-          await axios.post("/api/company/create", supplierData);
+          await axios.post("https://api-skainvoice.top/api/company/create", supplierData);
         }
       }
       // Fetch updated data

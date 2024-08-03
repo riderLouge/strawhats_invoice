@@ -48,7 +48,7 @@ const DeliveryAgent = () => {
   const fetchDeliveryGuys = async () => {
     try {
       const response = await axios.get(
-        "/api/fetch/deliveryAgents"
+        "https://api-skainvoice.top/api/fetch/deliveryAgents"
       );
       setDeliveryGuys(response.data);
       console.log(response)
@@ -118,7 +118,7 @@ const DeliveryAgent = () => {
   };
   const assignDeliveryAgent = async (params) => {
     try {
-      const response = await axios.post('/api/shop/assign-delivery-agent', params);
+      const response = await axios.post('https://api-skainvoice.top/api/shop/assign-delivery-agent', params);
       console.log(response);
       setOpen(false);
     } catch (error) {
