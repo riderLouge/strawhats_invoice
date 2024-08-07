@@ -36,6 +36,31 @@ const UtilitiesCreateSupplierBill = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const numberRegx = /^[0-9]*$/;
   console.log(selectedSupplier);
+
+
+  const clearCustomerDetails = () => {
+    setSelectedSupplier(null);
+    setFormData({
+      ...formData,
+      invoiceNumber: "",
+      billDate: "",
+      customerName: "",
+      billingAddress: "",
+      phoneNumber: "",
+      gstin: "",
+      city: "",
+      state: "",
+      productName: "",
+      quantity: "",
+      rate: "",
+      hsnNumber: "",
+      discount: "",
+      gst: "",
+      mrp: "",
+      purchasePrice: "",
+      paymentType: '',
+    });
+  };
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -79,7 +104,7 @@ const UtilitiesCreateSupplierBill = () => {
         ...formData,
         [name]: numberRegx.test(value) ? value : '',
       });
-      
+
     } else {
       setFormData({
         ...formData,
@@ -143,7 +168,7 @@ const UtilitiesCreateSupplierBill = () => {
     ]);
 
     setFormData({
-      ...formData, 
+      ...formData,
       productName: "",
       quantity: "",
       rate: "",
@@ -155,7 +180,7 @@ const UtilitiesCreateSupplierBill = () => {
     });
 
     setSelectedProduct(null);
-    
+
 
   };
 
@@ -185,15 +210,21 @@ const UtilitiesCreateSupplierBill = () => {
       userId: JSON.parse(localStorage.getItem("userId")),
     };
 
-    console.log(invoiceData);
-
     try {
       const response = await axios.post("https://api-skainvoice.top/api/supplier-bill/create", invoiceData);
-      console.log("Invoice saved successfully:", response.data);
-      setFormData({});
-      setTableData([]);
+      if (response.status === 201) {
+        setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo("Invoice created successfully");
+        setTableData([]);
+        clearCustomerDetails();
+        setTableData([]);
+      }
     } catch (error) {
       console.error("Error saving invoice:", error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.error);
     }
   };
   const columns = [
@@ -263,236 +294,236 @@ const UtilitiesCreateSupplierBill = () => {
   };
   const handlePaymentTypeSelect = (value) => {
     setFormData((prevData) => ({ ...prevData, paymentType: value }))
-};
-console.log(formData);
-return (
-  <MainCard title="Invoice">
-    <Grid item xs={12}>
-      <SubCard title="Create Supplier bills" sx={{ mb: 2 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Bill Number"
-              variant="outlined"
-              name="invoiceNumber"
-              value={formData.invoiceNumber}
-              onChange={handleChange}
-            />
+  };
+  console.log(formData);
+  return (
+    <MainCard title="Invoice">
+      <Grid item xs={12}>
+        <SubCard title="Create Supplier bills" sx={{ mb: 2 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Bill Number"
+                variant="outlined"
+                name="invoiceNumber"
+                value={formData.invoiceNumber}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                type="date"
+                variant="outlined"
+                name="billDate"
+                value={formData.billDate}
+                onChange={handleChange}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              type="date"
-              variant="outlined"
-              name="billDate"
-              value={formData.billDate}
-              onChange={handleChange}
-            />
+        </SubCard>
+        <SubCard>
+          <Grid container spacing={3}>
+            <Grid item xs={6}>
+              <Autocomplete
+                fullWidth
+                options={suppliers}
+                getOptionLabel={(option) => option.cName}
+                value={selectedSupplier}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Supplier Name"
+                    variant="outlined"
+                  />
+                )}
+                onChange={(event, value) => handleSupplierSelect(value)}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Supplier Address"
+                variant="outlined"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Pending Payment"
+                variant="outlined"
+                name="pendingPayment"
+                value={formData.pendingPayment}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Autocomplete
+                fullWidth
+                options={['CASH', 'UPI', 'CARD', 'NET BANKING']}
+                getOptionLabel={(option) => option}
+                value={formData.paymentType}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Payment Type"
+                    variant="outlined"
+                    name="paymentType"
+                  />
+                )}
+                onChange={(_, value) => handlePaymentTypeSelect(value)}
+              />
+            </Grid>
           </Grid>
+          <Grid container spacing={2} mt={2}>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={clearSupplierDetails}
+              >
+                Clear
+              </Button>
+            </Grid>
+          </Grid>
+        </SubCard>
+      </Grid>
+      <Grid
+        container
+        spacing={2}
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{
+          marginTop: 2,
+          paddingBottom: 4,
+          borderBottom: "1px solid #ccc",
+        }}
+      >
+        <Grid item xs={12} sm={4} md={2}>
+          <Autocomplete
+            fullWidth
+            options={products}
+            getOptionLabel={(option) => option.NAME}
+            value={selectedProduct}
+            onChange={(event, newValue) => handleProductSelect(newValue)}
+            renderInput={(params) => (
+              <TextField {...params} label="Product Name" variant="outlined" />
+            )}
+          />
         </Grid>
-      </SubCard>
-      <SubCard>
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <Autocomplete
-              fullWidth
-              options={suppliers}
-              getOptionLabel={(option) => option.cName}
-              value={selectedSupplier}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Supplier Name"
-                  variant="outlined"
-                />
-              )}
-              onChange={(event, value) => handleSupplierSelect(value)}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Supplier Address"
-              variant="outlined"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Pending Payment"
-              variant="outlined"
-              name="pendingPayment"
-              value={formData.pendingPayment}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Autocomplete
-              fullWidth
-              options={['CASH', 'UPI', 'CARD', 'NET BANKING']}
-              getOptionLabel={(option) => option}
-              value={formData.paymentType}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Payment Type"
-                  variant="outlined"
-                  name="paymentType"
-                />
-              )}
-              onChange={(_, value) => handlePaymentTypeSelect(value)}
-            />
-          </Grid>
+        <Grid item xs={12} sm={2} md={2}>
+          <TextField
+            fullWidth
+            label="Quantity"
+            variant="outlined"
+            type="number"
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+          />
         </Grid>
+        <Grid item xs={12} sm={2} md={2}>
+          <TextField
+            fullWidth
+            label="MRP"
+            variant="outlined"
+            type="number"
+            name="mrp"
+            value={formData.mrp}
+            onChange={handleChange}
+            disabled
+          />
+        </Grid>
+        <Grid item xs={12} sm={2} md={2}>
+          <TextField
+            fullWidth
+            label="Purchase Price"
+            variant="outlined"
+            type="number"
+            name="purchasePrice"
+            value={formData.purchasePrice}
+            onChange={handleChange}
+            disabled
+          />
+        </Grid>
+        <Grid item xs={12} sm={2} md={2}>
+          <TextField
+            fullWidth
+            label="Selling Price"
+            variant="outlined"
+            type="number"
+            name="rate"
+            value={formData.rate}
+            onChange={handleChange}
+            disabled
+          />
+        </Grid>
+        <Grid item xs={12} sm={4} md={2}>
+          <TextField
+            fullWidth
+            label="HSN Number"
+            variant="outlined"
+            type="number"
+            name="hsnNumber"
+            value={formData.hsnNumber}
+            onChange={handleChange}
+            disabled
+          />
+        </Grid>
+        <Grid item xs={12} sm={2} md={2}>
+          <TextField
+            fullWidth
+            label="Discount"
+            variant="outlined"
+            type="number"
+            name="discount"
+            value={formData.discount}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={2} md={2}>
+          <TextField
+            fullWidth
+            label="GST"
+            variant="outlined"
+            type="number"
+            name="gst"
+            value={formData.gst}
+            onChange={handleChange}
+            disabled
+          />
+        </Grid>
+        <Grid item xs={12} align="right">
+          <Button variant="contained" color="primary" onClick={handleAdd}>
+            Add
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid sx={{ marginTop: 2 }}>
+        <MaterialReactTable columns={columns} data={tableData} />
         <Grid container spacing={2} mt={2}>
+          <Grid item>
+            <Button variant="contained" color="secondary">
+              Remove
+            </Button>
+          </Grid>
           <Grid item>
             <Button
               variant="contained"
-              color="secondary"
-              onClick={clearSupplierDetails}
+              color="primary"
+              onClick={saveAndGenerateInvoice}
             >
-              Clear
+              Save
             </Button>
           </Grid>
         </Grid>
-      </SubCard>
-    </Grid>
-    <Grid
-      container
-      spacing={2}
-      alignItems="center"
-      justifyContent="space-between"
-      sx={{
-        marginTop: 2,
-        paddingBottom: 4,
-        borderBottom: "1px solid #ccc",
-      }}
-    >
-      <Grid item xs={12} sm={4} md={2}>
-        <Autocomplete
-          fullWidth
-          options={products}
-          getOptionLabel={(option) => option.NAME}
-          value={selectedProduct}
-          onChange={(event, newValue) => handleProductSelect(newValue)}
-          renderInput={(params) => (
-            <TextField {...params} label="Product Name" variant="outlined" />
-          )}
-        />
       </Grid>
-      <Grid item xs={12} sm={2} md={2}>
-        <TextField
-          fullWidth
-          label="Quantity"
-          variant="outlined"
-          type="number"
-          name="quantity"
-          value={formData.quantity}
-          onChange={handleChange}
-        />
-      </Grid>
-      <Grid item xs={12} sm={2} md={2}>
-        <TextField
-          fullWidth
-          label="MRP"
-          variant="outlined"
-          type="number"
-          name="mrp"
-          value={formData.mrp}
-          onChange={handleChange}
-          disabled
-        />
-      </Grid>
-      <Grid item xs={12} sm={2} md={2}>
-        <TextField
-          fullWidth
-          label="Purchase Price"
-          variant="outlined"
-          type="number"
-          name="purchasePrice"
-          value={formData.purchasePrice}
-          onChange={handleChange}
-          disabled
-        />
-      </Grid>
-      <Grid item xs={12} sm={2} md={2}>
-        <TextField
-          fullWidth
-          label="Selling Price"
-          variant="outlined"
-          type="number"
-          name="rate"
-          value={formData.rate}
-          onChange={handleChange}
-          disabled
-        />
-      </Grid>
-      <Grid item xs={12} sm={4} md={2}>
-        <TextField
-          fullWidth
-          label="HSN Number"
-          variant="outlined"
-          type="number"
-          name="hsnNumber"
-          value={formData.hsnNumber}
-          onChange={handleChange}
-          disabled
-        />
-      </Grid>
-      <Grid item xs={12} sm={2} md={2}>
-        <TextField
-          fullWidth
-          label="Discount"
-          variant="outlined"
-          type="number"
-          name="discount"
-          value={formData.discount}
-          onChange={handleChange}
-        />
-      </Grid>
-      <Grid item xs={12} sm={2} md={2}>
-        <TextField
-          fullWidth
-          label="GST"
-          variant="outlined"
-          type="number"
-          name="gst"
-          value={formData.gst}
-          onChange={handleChange}
-          disabled
-        />
-      </Grid>
-      <Grid item xs={12} align="right">
-        <Button variant="contained" color="primary" onClick={handleAdd}>
-          Add
-        </Button>
-      </Grid>
-    </Grid>
-    <Grid sx={{ marginTop: 2 }}>
-      <MaterialReactTable columns={columns} data={tableData} />
-      <Grid container spacing={2} mt={2}>
-        <Grid item>
-          <Button variant="contained" color="secondary">
-            Remove
-          </Button>
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={saveAndGenerateInvoice}
-          >
-            Save
-          </Button>
-        </Grid>
-      </Grid>
-    </Grid>
-  </MainCard>
-);
+    </MainCard>
+  );
 };
 
 export default UtilitiesCreateSupplierBill;
