@@ -249,21 +249,6 @@ export default function Invoice() {
           <SubCard title="Supplier Bills">
             <MaterialReactTable columns={columns} data={data.data ?? {}} />
           </SubCard>
-          <Button
-            variant="contained"
-            color="primary"
-            style={{
-              top: "10px",
-              right: "10px",
-              margin: "8px",
-              zIndex: 1,
-            }}
-            onClick={() => {
-              setOpenDialog(true);
-            }}
-          >
-            test
-          </Button>
         </Grid>
         <DialogTemplate
         open={openDialog}

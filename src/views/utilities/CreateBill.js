@@ -39,6 +39,8 @@ const UtilitiesCreateBill = () => {
   const [availableProducts, setAvailableProducts] = useState([]);
   const [discountType, setDiscountType] = useState('');
   const numberRegx = /^[0-9]*$/;
+  const [selectedRows, setSelectedRows] = useState([]); // State to track selected rows
+  const [rowSelection, setRowSelection] = useState({}); // State to track row selection
 
   const clearCustomerDetails = () => {
     setSelectedCustomer(null);
@@ -53,6 +55,7 @@ const UtilitiesCreateBill = () => {
       invoiceDate: '',
       invoiceNumber: '',
     });
+    setSelectedZone("")
   };
   const fetchCustomers = async () => {
     try {
@@ -69,6 +72,14 @@ const UtilitiesCreateBill = () => {
       console.error("Error fetching company:", error);
     }
   };
+
+  const handleRemove = () => {
+    const updatedTableData = tableData.filter((_, index) => !rowSelection[index]);
+    setTableData(updatedTableData); // Update the table data with the filtered data
+    setRowSelection({}); // Reset the selection after removal
+};
+
+
   const getInvoiceCount = async () => {
     try {
       const response = await axios.get(
@@ -630,19 +641,21 @@ const UtilitiesCreateBill = () => {
         </Grid>
       </Grid>
       <Grid sx={{ marginTop: 2 }}>
-        <MaterialReactTable columns={columns} data={tableData} />
+        <MaterialReactTable
+          columns={columns}
+          data={tableData}
+          enableRowSelection
+          onRowSelectionChange={setRowSelection} // Update row selection state
+          state={{ rowSelection }} // Bind selection state to the table
+        />
         <Grid container spacing={2} mt={2}>
           <Grid item>
-            <Button variant="contained" color="secondary">
-              Remove
+            <Button variant="contained" color="secondary" onClick={handleRemove}>
+              Remove Selected
             </Button>
           </Grid>
           <Grid item>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={saveAndGenerateInvoice}
-            >
+            <Button variant="contained" color="primary" onClick={saveAndGenerateInvoice}>
               Save
             </Button>
           </Grid>

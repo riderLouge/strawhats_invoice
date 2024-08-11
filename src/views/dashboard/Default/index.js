@@ -129,6 +129,9 @@ const Dashboard = () => {
 
   const handleCloseCreditDialog = () => {
     setCreditDialogOpen(false);
+    setSelectedInvoiceNumber("")
+    setSelectedShopId("")
+    setSelectedZoneName("")
   };
 
   const downloadInvoice = async (data, invoiceDate, area, allInvoices) => {
@@ -342,7 +345,6 @@ const Dashboard = () => {
     setCreditDialogOpen(true);
   };
   const handleSearch = () => {
-    // Filter data based on selected criteria
     let newData = [...credit];
 
     if (searchBy === "invoice" && selectedInvoiceNumber) {
@@ -808,6 +810,8 @@ const processAndDownloadExcelPurchase = (data) => {
     year,
   }
 
+  const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
@@ -898,6 +902,7 @@ const processAndDownloadExcelPurchase = (data) => {
         </Grid>
       </Grid>
       <DialogTemplate
+        width="sm"
         open={openDialog}
         title={"Day Sales List"}
         type={"Bill"}
@@ -1097,7 +1102,7 @@ const processAndDownloadExcelPurchase = (data) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rowsToDisplay.map((item, index) => (
+                {paginatedData.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell>{item.invoiceNumber}</TableCell>
                     <TableCell>{item.shopName}</TableCell>

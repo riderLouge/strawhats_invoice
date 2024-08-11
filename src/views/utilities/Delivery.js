@@ -95,7 +95,7 @@ const DeliveryAgent = () => {
               onMouseLeave={() => setHoveredRowIcon(null)}
               onClick={() => handleClickDeliveryGuy(row)}
             />
-            <VisibilityIcon
+            {/* <VisibilityIcon
               style={{
                 cursor: "pointer",
                 color: hoveredRow === row.id ? "blue" : "inherit",
@@ -103,7 +103,7 @@ const DeliveryAgent = () => {
               }}
               onMouseEnter={() => setHoveredRow(row.id)}
               onMouseLeave={() => setHoveredRow(null)}
-            />
+            /> */}
           </div>
 
         ),
