@@ -20,7 +20,8 @@ import {
   Typography,
   TablePagination,
   MenuItem,
-  Stack
+  Stack,
+  Checkbox
 } from "@mui/material";
 import ExcelJS from 'exceljs';
 import EarningCard from "./EarningCard";
@@ -39,6 +40,7 @@ import { useOverAllContext } from "../../../context/overAllContext";
 import { CreditCard } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import MonthYearSelector from "../../../ui-component/MonthYearSelector";
+import { padding } from "@mui/system";
 
 const Dashboard = () => {
   const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
@@ -62,6 +64,35 @@ const Dashboard = () => {
   const [month, setMonth] = useState('');
   const [typeName, setTypeName] = useState('');
   const [excelData, setExcelData] = useState('');
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [tallyText, setTallyText] = useState("");
+  
+  const handleTally = async () => {
+    if (selectedRow !== null) {
+      const selectedData = paginatedData[selectedRow];
+  
+      try {
+        await axios.post(
+          "api/update/debitcredit",
+          {
+            selectedData: selectedData,
+            tallyText: tallyText,
+          }
+        );
+  
+      } catch (error) {
+        console.error("Error during tally:", error);
+      } finally {
+        fetchZonNames()
+        setSelectedRow(null); 
+        setTallyText("")
+      } 
+    } else {
+      console.log("No row selected for tally.");
+    }
+  };
+  
+  
 
   const handleClickOpenEarningCard = () => {
     setOpenEarningCard(true);
@@ -70,6 +101,7 @@ const Dashboard = () => {
   const handleCloseEarningCard = () => {
     setOpenEarningCard(false);
   };
+
   const fetchZonNames = async () => {
     try {
       const response = await axios.get(
@@ -91,7 +123,7 @@ const Dashboard = () => {
           (shop) => shop.shopId === creditItem.shopId
         );
         if (matchingShop) {
-          console.log(matchingShop);
+
           // Update credit item with additional data from matching shop
           return {
             ...creditItem,
@@ -101,11 +133,10 @@ const Dashboard = () => {
         }
         return creditItem; // Return original credit item if no match found
       });
-      console.log("updatedCredit =",updatedCredit)
+      
       setCredit(updatedCredit);
       setDebit(debitData);
-      setFilteredData(creditData);
-      console.log(updatedCredit, "00000");
+      setFilteredData(updatedCredit);
     } catch (error) {
       console.error("Error fetching zone name:", error);
     }
@@ -120,7 +151,6 @@ const Dashboard = () => {
   const handleDeliveryPdf = () => {
     setPdfType("Delivery");
     setOpenDialog(true);
-    console.log("Grid item clicked!");
   };
 
   const handleCloseDialog = () => {
@@ -129,10 +159,13 @@ const Dashboard = () => {
 
   const handleCloseCreditDialog = () => {
     setCreditDialogOpen(false);
-    setSelectedInvoiceNumber("")
-    setSelectedShopId("")
-    setSelectedZoneName("")
+    setSelectedInvoiceNumber("");
+    setSelectedShopId("");
+    setSelectedZoneName("");
+    setSelectedRow(null);
+    setTallyText("");
   };
+  
 
   const downloadInvoice = async (data, invoiceDate, area, allInvoices) => {
     const doc = new jsPDF();
@@ -784,7 +817,6 @@ const processAndDownloadExcelPurchase = (data) => {
         setOpenErrorAlert(true);
         setErrorInfo(response.data.message);
       }
-      console.log(response.data.data);
     } catch (error) {
       console.error('Error fetching data', error);
       setSuccess(false);
@@ -974,7 +1006,7 @@ const processAndDownloadExcelPurchase = (data) => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <ToggleButtonGroup
+        <ToggleButtonGroup
             value={searchBy}
             exclusive
             onChange={handleToggle}
@@ -1092,10 +1124,11 @@ const processAndDownloadExcelPurchase = (data) => {
               </Button>
             </Grid>
           </Grid>
-          <TableContainer component={Paper} style={{ marginTop: '16px' }}>
+          <TableContainer component={Paper} style={{ marginTop: "16px" }}>
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell>Select</TableCell>
                   <TableCell>Invoice Number</TableCell>
                   <TableCell>Shop</TableCell>
                   <TableCell>Total</TableCell>
@@ -1104,6 +1137,12 @@ const processAndDownloadExcelPurchase = (data) => {
               <TableBody>
                 {paginatedData.map((item, index) => (
                   <TableRow key={index}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedRow === index}
+                        onChange={() => setSelectedRow(index)}
+                      />
+                    </TableCell>
                     <TableCell>{item.invoiceNumber}</TableCell>
                     <TableCell>{item.shopName}</TableCell>
                     <TableCell>{item.total}</TableCell>
@@ -1121,6 +1160,35 @@ const processAndDownloadExcelPurchase = (data) => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </TableContainer>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={3}>
+              <TextField
+                label="Tally"
+                multiline
+                variant="outlined"
+                value={tallyText}
+                onChange={(e) => setTallyText(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={2} >
+              <Button
+                variant="contained"
+                color="primary"
+                style={{
+                  backgroundColor: theme.palette.primary.main,
+                  height: "100%",
+                  width: "100%",
+                  padding: "11px",
+                  borderRadius:"10px",
+                }}
+                onClick={handleTally}
+              >
+                Tally
+              </Button>
+            </Grid>
+          </Grid>
+
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseCreditDialog} color="primary">

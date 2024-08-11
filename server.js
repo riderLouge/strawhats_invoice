@@ -2066,6 +2066,32 @@ app.put("/api/company/update/:id", async (req, res) => {
   }
 });
 
+app.post("/api/update/debitcredit", async (req, res) => {
+  const { selectedData, tallyText } = req.body;
+
+  try {
+    const tallyAmount = parseFloat(tallyText);
+    
+    const updatedData = await prisma.creditDebit.update({
+      where: {
+        id: selectedData.id,
+      },
+      data: {
+        total: {
+          decrement: tallyAmount,
+        },
+        updatedAt: new Date(), 
+      },
+    });
+
+    res.json({ success: true, data: updatedData });
+  } catch (error) {
+    console.error("Error during update:", error);
+    res.status(500).json({ error: "An error occurred while updating the record" });
+  }
+});
+
+
 
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
