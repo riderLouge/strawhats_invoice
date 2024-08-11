@@ -66,7 +66,7 @@ const ManageEmployees = () => {
       {
         accessorKey: "joinDate",
         header: "Join Date",
-        Cell: ({ row }) => moment(row.joinDate).format('DD/MM/YYYY'),
+        Cell: ({ row }) => moment(row.original.joinDate).format('DD/MM/YYYY'),
       },
       {
         accessorKey: "role",
@@ -157,8 +157,8 @@ const ManageEmployees = () => {
   };
 
   const handleSave = async () => {
+
     if (dialogMode === "add") {
-      console.log(role);
       const newData = {
         name: document.getElementById("staffName").value,
         email: document.getElementById("staffEmail").value,
@@ -169,8 +169,8 @@ const ManageEmployees = () => {
         photo: selectedFile === null ? "" : selectedFile.imageUrl,
         joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
-      try{
-        const response = await axios.post("https://api-skainvoice.top/api/staff/add", newData)
+      try {
+        const response = await axios.post("/api/staff/add", newData)
         if (response.status === 201) {
           setSuccess(true);
           setOpenErrorAlert(true);
@@ -179,11 +179,11 @@ const ManageEmployees = () => {
           handleCloseDialog();
         }
         console.log(response, "========");
-      }catch(error){
+      } catch (error) {
         console.log(error)
         setSuccess(false);
-          setOpenErrorAlert(true);
-          setErrorInfo(error.response.data.error);
+        setOpenErrorAlert(true);
+        setErrorInfo(error.response.data.error);
       }
 
     } else if (dialogMode === "edit") {
@@ -345,21 +345,21 @@ const ManageEmployees = () => {
                   : ""
               }
             /> */}
-              <Select
+            <Select
               id="staffRole"
-    label="Role"
-    fullWidth
-    defaultValue={dialogMode === "edit" && selectedUserDetails
-      ? selectedUserDetails.role
-      : ""}
-      onChange={(e) => setRole(e.target.value)}
-  >
-    {JSON.parse(localStorage.getItem('role')) === UserRoles.OWNER && (
-      <MenuItem value={UserRoles.ADMIN}>{UserRoles.ADMIN}</MenuItem>
-    )}
-    <MenuItem value={UserRoles.DELIVERY}>{UserRoles.DELIVERY}</MenuItem>
-    <MenuItem value={UserRoles.STAFF}>{UserRoles.STAFF}</MenuItem>
-  </Select>
+              placeholder="Role"
+              fullWidth
+              defaultValue={dialogMode === "edit" && selectedUserDetails
+                ? selectedUserDetails.role
+                : ""}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              {JSON.parse(localStorage.getItem('role')) === UserRoles.OWNER && (
+                <MenuItem value={UserRoles.ADMIN}>{UserRoles.ADMIN}</MenuItem>
+              )}
+              <MenuItem value={UserRoles.DELIVERY}>{UserRoles.DELIVERY}</MenuItem>
+              <MenuItem value={UserRoles.STAFF}>{UserRoles.STAFF}</MenuItem>
+            </Select>
             <TextField
               id="staffEmail"
               label="Email"
@@ -381,6 +381,9 @@ const ManageEmployees = () => {
                   ? selectedUserDetails.phoneNumber
                   : ""
               }
+              inputProps={{
+                maxLength: 10,
+              }}
             />
             <TextField
               id="staffAddress"

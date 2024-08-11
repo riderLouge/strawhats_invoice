@@ -148,6 +148,36 @@ app.get("/api/shops/debitcredit", async (req, res) => {
 });
 
 app.post("/api/items/add", async (req, res) => {
+  const { CNAME, NAME, MRP, PPRICE, SPRICE, GST, HSN, FQTY } = req.body;
+
+  // Validate each field individually and return specific error messages
+  if (!CNAME) {
+    return res.status(400).json({ error: "company name is required" });
+  }
+
+  if (!NAME) {
+    return res.status(400).json({ error: "Product name is required" });
+  }
+  if (!HSN) {
+    return res.status(400).json({ error: "HSN is required" });
+  }
+  
+  if (!MRP) {
+    return res.status(400).json({ error: "MRP is required" });
+  }
+  if (!PPRICE) {
+    return res.status(400).json({ error: "Purchase price is required" });
+  }
+  if (!SPRICE) {
+    return res.status(400).json({ error: "Selling price is required" });
+  }
+  if (!GST) {
+    return res.status(400).json({ error: "GST is required" });
+  }
+  if (!FQTY) {
+    return res.status(400).json({ error: "Quantity is required" });
+  }
+
   try {
     const newItem = req.body;
     const createdItem = await prisma.product.create({
@@ -160,7 +190,45 @@ app.post("/api/items/add", async (req, res) => {
   }
 });
 
+
 app.post("/api/shop/add", async (req, res) => {
+  const {
+    GRPNAM,
+    CUSNAM,
+    ADRONE,
+    SLNO,
+    TELNUM,
+    CNTPER,
+    PINCOD,
+    ZONNAM,
+  } = req.body;
+
+  // Validate each field individually and return specific error messages
+  if (!GRPNAM) {
+    return res.status(400).json({ error: "Group name is required" });
+  }
+  if (!CUSNAM) {
+    return res.status(400).json({ error: "Customer name is required" });
+  }
+  if (!ADRONE) {
+    return res.status(400).json({ error: "Address one is required" });
+  }
+  if (!SLNO) {
+    return res.status(400).json({ error: "SL no is required" });
+  }
+  if (!TELNUM) {
+    return res.status(400).json({ error: "Phone number is required" });
+  }
+  if (!CNTPER) {
+    return res.status(400).json({ error: "Contact person is required" });
+  }
+  if (!PINCOD) {
+    return res.status(400).json({ error: "Pincode is required" });
+  }
+  if (!ZONNAM) {
+    return res.status(400).json({ error: "Zone name is required" });
+  }
+
   try {
     const newItem = req.body;
     const createdItem = await prisma.shop.create({
@@ -172,6 +240,7 @@ app.post("/api/shop/add", async (req, res) => {
     res.status(500).json({ error: "An error occurred while adding the shop" });
   }
 });
+
 
 app.put("/api/shop/edit/:id", async (req, res) => {
   try {
@@ -210,24 +279,32 @@ app.get("/api/staff/staffDetails", async (req, res) => {
 app.post("/api/staff/add", async (req, res) => {
   try {
     const { email, name, joinDate, role, phoneNumber } = req.body;
+
+    // Regular expression for validating an Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (name === "") {
       return res.status(400).json({ error: "Name should not be empty" });
-    }
-    if (email === "") {
-      return res.status(400).json({ error: "Email should not be empty" });
-    }
-    if (role === "") {
-      return res.status(400).json({ error: "Role should not be empty" });
     }
     if (joinDate === null) {
       return res.status(400).json({ error: "Join Date should not be empty" });
     }
+    if (email === "") {
+      return res.status(400).json({ error: "Email should not be empty" });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+    if (role === "") {
+      return res.status(400).json({ error: "Role should not be empty" });
+    }
     if (phoneNumber === "") {
       return res.status(400).json({ error: "PhoneNumber should not be empty" });
     }
-    if (phoneNumber.length > 10 || phoneNumber.length < 10) {
-      return res.status(400).json({ error: "Please enter valid mobile number" });
+    if (phoneNumber.length !== 10) {
+      return res.status(400).json({ error: "Please enter a valid mobile number" });
     }
+
     // Check if email already exists
     const existingStaff = await prisma.staff.findUnique({
       where: {
@@ -249,8 +326,9 @@ app.post("/api/staff/add", async (req, res) => {
         role,
         email,
         password: generatedPassword(name, phoneNumber),
-      }
-    })
+      },
+    });
+
     // Send success status to the frontend
     return res
       .status(201)
@@ -260,6 +338,7 @@ app.post("/api/staff/add", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // edit the staff details
 app.put("/api/staff/edit/:id", async (req, res) => {
@@ -771,27 +850,49 @@ app.post("/api/supplier-bill/create", async (req, res) => {
       supplierId,
     } = req.body;
 
-    if (
-      !billNumber ||
-      !billTotal ||
-      !paymentMode ||
-      pendingPayment === null
-    ) {
-      return res.status(400).json({ error: "Missing required fields" });
+    // Validate each field and return specific error messages
+    if (!billNumber) {
+      return res.status(400).json({ error: "Bill number is required" });
+    }
+    if (!billTotal) {
+      return res.status(400).json({ error: "Bill total is required" });
+    }
+    if (!paymentMode) {
+      return res.status(400).json({ error: "Payment mode is required" });
+    }
+    if (pendingPayment === null || pendingPayment === undefined) {
+      return res.status(400).json({ error: "Pending payment is required" });
+    }
+    if (!billDate) {
+      return res.status(400).json({ error: "Bill date is required" });
+    }
+    if (!address) {
+      return res.status(400).json({ error: "Address is required" });
+    }
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+    if (!supplierId) {
+      return res.status(400).json({ error: "Supplier ID is required" });
+    }
+    if (!products || products.length === 0) {
+      return res.status(400).json({ error: "Products list cannot be empty" });
     }
 
+    // Check if supplier and user exist in the database
     const supplier = await prisma.company.findUnique({
       where: { id: supplierId },
     });
     const user = await prisma.loginAuth.findUnique({ where: { Id: userId } });
 
     if (!supplier) {
-      return res.status(404).json({ error: "supplier not found" });
-    } else if (!user) {
+      return res.status(404).json({ error: "Supplier not found" });
+    } 
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Create the invoice
+    // Create the supplier bill
     await prisma.supplierBill.create({
       data: {
         billNumber,
@@ -805,6 +906,7 @@ app.post("/api/supplier-bill/create", async (req, res) => {
         address,
       },
     });
+
     res.status(201).json({ message: "Invoice created successfully" });
   } catch (error) {
     console.error("Error while creating the supplier invoice:", error);
@@ -813,6 +915,7 @@ app.post("/api/supplier-bill/create", async (req, res) => {
       .json({ error: "An error occurred while creating supplier invoice" });
   }
 });
+
 app.put("/api/supplier-bill/update-product/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -1229,6 +1332,9 @@ app.post("/api/products/by-company-date", async (req, res) => {
       return acc += Number(curr.totalWithGST);
     }, 0);
     const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
+    if (mergedProducts.length === 0) {
+      return res.status(400).json({ status: 'failure', message: 'No data found!' });
+    }
     return res.json({ status: 'success', message: 'Data fetched successfully', data: mergedProducts, totalAmount: parsedAmount, totalCount: filteredProducts.length });
   } catch (error) {
     console.error(error);
@@ -1286,6 +1392,10 @@ app.post("/api/products/by-zone-shop-date", async (req, res) => {
     const mergedProducts = Array.from(productMap.values());
     const totalProductAmount = mergedProducts.reduce((acc, curr) => acc += Number(curr.totalWithGST), 0);
     const parsedAmount = Number(parseFloat(totalProductAmount).toFixed(2));
+
+    if (mergedProducts.length === 0) {
+      return res.status(400).json({ status: 'failure', message: 'No data found!' });
+    }
 
     return res.json({
       status: 'success',
@@ -1895,9 +2005,14 @@ app.get("/api/fetch/supplier", async (req, res) => {
 
 app.post("/api/company/create", async (req, res) => {
   try {
+     // Regular expression for validating an Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const { cName, cShort, address, email, phoneNumber, gstin, stateCode } = req.body;
     if (!cName) {
-      return res.status(404).json({ status: 'failed', message: 'Missing required fields' });
+      return res.status(404).json({ status: 'failed', message: 'Company name is required' });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ status: 'failed', message: "Invalid email format" });
     }
     await prisma.company.create({
       data: {

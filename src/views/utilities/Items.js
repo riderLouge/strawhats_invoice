@@ -176,7 +176,7 @@ const Items = () => {
     setOpenDialog(false);
     formData.quantity = 0;
     setFileName("");
-
+    setSelectedProduct(null);
     setButtonClicked("");
     setDialogTitle("");
   };
@@ -231,6 +231,8 @@ const Items = () => {
           setTimeout(() => {
             handleCloseDialog();
           }, 1500);
+        } else {
+          console.log(response)
         }
       } else if (buttonClicked === "Edit Items") {
         // Gather edited data from form fields
@@ -274,7 +276,19 @@ const Items = () => {
         const damagedQuantity = Number(
           document.getElementById("damagedQuantity").value
         );
-        if (damagedQuantity > productQuantity) {
+        if (!selectedProduct) {
+          setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo("Product selection is required.");
+        } else if (!damagedQuantity) {
+          setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo("Damaged quantity is required.");
+        } else if (!document.getElementById("reason").value) {
+          setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo("Reason is required.");
+        } else if (damagedQuantity > productQuantity) {
           setSuccess(false);
           setOpenErrorAlert(true);
           setErrorInfo(
@@ -322,6 +336,9 @@ const Items = () => {
       }
     } catch (error) {
       console.error("Error:", error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.error);
     }
   };
 

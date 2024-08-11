@@ -20,7 +20,8 @@ import {
   TableBody,
   Paper,
   TablePagination,
-  Card
+  Card,
+  Stack
 } from "@mui/material"; import { IconMenu2 } from "@tabler/icons";
 import moment from "moment";
 import "./Header.css";
@@ -49,12 +50,17 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [year, setYear] = useState('');
-  const [month, setMonth] = useState('');
+  const [supplierYear, setSupplierYear] = useState('');
+  const [customerYear, setCustomerYear] = useState('');
+  const [supplierMonth, setSupplierMonth] = useState('');
+  const [customerMonth, setCustomerMonth] = useState('');
   const [productData, setProductData] = useState([]); 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
   const [data, setData] = useState(false);
+  const [deliveryGuys, setDeliveryGuys] = useState([]);
+  const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
+  const [selectedDeliveries, setSelectedDeliveries] = useState([]);
 
 
   const supplierNames = [
@@ -84,17 +90,26 @@ const Header = ({ handleLeftDrawerToggle }) => {
   console.log(selectedZone, selectedCustomer)
   const supplierProductParams = {
     companyName: supplierName,
-    month,
-    year,
+    month: supplierMonth,
+    year: supplierYear,
   }
   const customerProductParams = {
     zoneName: selectedZone,
     shopName: selectedCustomer?.CUSNAM,
-    month,
-    year,
+    month: customerMonth,
+    year: customerYear,
   }
+  const fetchDeliveryGuys = async () => {
+    try {
+      const response = await axios.get('/api/fetch/deliveryAgents');
+      setDeliveryGuys(response.data);
+    } catch (error) {
+      console.error("Error fetching delivery guys:", error);
+    }
+  };
   useEffect(() => {
     fetchCustomers();
+    fetchDeliveryGuys();
     setLoading(false);
   }, []);
 
@@ -141,7 +156,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   };
   const handleSubmit = async (params) => {
 
-    const apiUrl = searchBy === "Supplier" ? 'https://api-skainvoice.top/api/products/by-company-date' : 'https://api-skainvoice.top/api/products/by-zone-shop-date';
+    const apiUrl = searchBy === "Supplier" ? '/api/products/by-company-date' : '/api/products/by-zone-shop-date';
     try {
       const response = await axios.post(apiUrl, params);
       if (response.status === 200) {
@@ -255,6 +270,31 @@ const Header = ({ handleLeftDrawerToggle }) => {
     }
   };
 
+  const handleAssignDeliveries = async () => {
+  if (!selectedDeliveryGuy || selectedDeliveries.length === 0) {
+    // Handle case when no delivery guy or deliveries are selected
+    alert('Please select a delivery guy and at least one delivery.');
+    return;
+  }
+
+  try {
+    const response = await axios.post('/api/assign-delivery', {
+      deliveries: selectedDeliveries,
+      deliveryGuyId: selectedDeliveryGuy.id, // Adjust based on your data
+    });
+    if (response.status === 200) {
+      // Handle success (e.g., show a success message)
+      setOpenPendingDelivery(false);
+      fetchInvoices(); // Refresh the list if needed
+    } else {
+      // Handle error
+      alert('Error assigning deliveries.');
+    }
+  } catch (error) {
+    console.error('Error assigning deliveries:', error);
+    alert('Error assigning deliveries.');
+  }
+};
 
   return (
     <>
@@ -398,10 +438,10 @@ const Header = ({ handleLeftDrawerToggle }) => {
                   </Grid>
                   <Grid item xs={6}>
                     <MonthYearSelector
-                      year={year}
-                      setYear={setYear}
-                      month={month}
-                      setMonth={setMonth}
+                      year={supplierYear}
+                      setYear={setSupplierYear}
+                      month={supplierMonth}
+                      setMonth={setSupplierMonth}
                     />
                   </Grid>
                 </>
@@ -446,10 +486,10 @@ const Header = ({ handleLeftDrawerToggle }) => {
                   </Grid>
                   <Grid item xs={4}>
                     <MonthYearSelector
-                      year={year}
-                      setYear={setYear}
-                      month={month}
-                      setMonth={setMonth}
+                      year={customerYear}
+                      setYear={setCustomerYear}
+                      month={customerMonth}
+                      setMonth={setCustomerMonth}
                     />
                   </Grid>
                 </>
@@ -473,17 +513,20 @@ const Header = ({ handleLeftDrawerToggle }) => {
                         <TableCell>Quantity</TableCell>
                       </TableRow>
                     </TableHead>
-                    <TableBody>
+                    <TableBody sx={{ height: '30dvh' }}>
+                      {productData.length === 0 ? (
+                        <Stack justifyContent="center" alignItems="center" sx={{ pt: 4 }}>
+                        <Typography variant="body1">No data found!</Typography>
+                        </Stack>
+                      ) : (
+                        <>
                       {productData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
                         <TableRow key={product.productId}>
                           <TableCell>{product.productName}</TableCell>
                           <TableCell>{product.quantity}</TableCell>
                         </TableRow>
                       ))}
-                      {emptyRows > 0 && (
-                        <TableRow style={{ height: 53 * emptyRows }}>
-                          <TableCell colSpan={2} />
-                        </TableRow>
+                      </>
                       )}
                     </TableBody>
                   </Table>
@@ -505,32 +548,53 @@ const Header = ({ handleLeftDrawerToggle }) => {
         handleSave={handleSubmitDialog}
       />
       <DialogTemplate
-        width="lg"
-        open={openPendingDelivery}
-        title={"PENDING INVOICES"}
-        body={
-          <>
-            <Card sx={{ overflow: "hidden" }}>
-              <MaterialReactTable columns={columns} data={data ?? {}} getRowId={(row) => row.id} enableRowSelection />
-            </Card>
-            <Button
-              variant="contained"
-              color="secondary"
-              style={{
-                top: "10px",
-                right: "10px",
-                margin: "8px",
-                zIndex: 1,
-              }}
-              onClick={() => {}}
-            >
-              Assign
-            </Button>
-         </>
-        }
-        handleCloseDialog={handleClosePendingDelivery}
-        handleSave={handleSubmitDialog}
-      />
+      width="lg"
+      open={openPendingDelivery}
+      title={"PENDING INVOICES"}
+      body={
+        <>
+          <Card sx={{ overflow: "hidden" }}>
+            <MaterialReactTable
+              columns={columns}
+              data={data ?? []}
+              getRowId={(row) => row.id}
+              enableRowSelection
+              onRowSelectionChange={(selection) => setSelectedDeliveries(selection)}
+            />
+          </Card>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={4}>
+              <Autocomplete
+                options={deliveryGuys}
+                getOptionLabel={(option) => option.name} // Adjust based on your data
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.name} {/* Adjust based on your data */}
+                  </li>
+                )}
+                renderInput={(params) => (
+                  <TextField {...params} label="Select Delivery Guy" variant="outlined" />
+                )}
+                onChange={(event, value) => setSelectedDeliveryGuy(value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <Button
+                variant="contained"
+                color="secondary"
+                style={{ margin: "8px" }}
+                onClick={handleAssignDeliveries}
+              >
+                Assign
+              </Button>
+            </Grid>
+          </Grid>
+        </>
+      }
+      handleCloseDialog={handleClosePendingDelivery}
+      handleSave={handleSubmitDialog}
+    />
       <ProfileSection />
     </>
   );

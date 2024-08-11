@@ -26,6 +26,7 @@ const UtilitiesCreateSupplierBill = () => {
     mrp: "",
     purchasePrice: "",
     paymentType: '',
+    pendingPayment:"",
   });
 
   const [tableData, setTableData] = useState([]);
@@ -35,7 +36,7 @@ const UtilitiesCreateSupplierBill = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const numberRegx = /^[0-9]*$/;
-  console.log(selectedSupplier);
+
 
 
   const clearCustomerDetails = () => {
@@ -59,6 +60,7 @@ const UtilitiesCreateSupplierBill = () => {
       mrp: "",
       purchasePrice: "",
       paymentType: '',
+      pendingPayment:"",
     });
   };
   useEffect(() => {
@@ -198,34 +200,46 @@ const UtilitiesCreateSupplierBill = () => {
     return total;
   }
   const saveAndGenerateInvoice = async () => {
-    const invoiceData = {
-      billNumber: formData.invoiceNumber ? Number(formData.invoiceNumber) : "",
-      products: tableData,
-      billTotal: billTotal(tableData),
-      billDate: new Date(formData.billDate).toISOString(),
-      paymentMode: formData.paymentType,
-      pendingPayment: Number(formData.pendingPayment),
-      address: formData.address,
-      supplierId: selectedSupplier.id,
-      userId: JSON.parse(localStorage.getItem("userId")),
-    };
 
-    try {
-      const response = await axios.post("https://api-skainvoice.top/api/supplier-bill/create", invoiceData);
-      if (response.status === 201) {
-        setSuccess(true);
-        setOpenErrorAlert(true);
-        setErrorInfo("Invoice created successfully");
-        setTableData([]);
-        clearCustomerDetails();
-        setTableData([]);
-      }
-    } catch (error) {
-      console.error("Error saving invoice:", error);
+    if (!formData.billDate) {
       setSuccess(false);
       setOpenErrorAlert(true);
-      setErrorInfo(error.response.data.error);
+      setErrorInfo("Please enter the bill date");
+    }else if(selectedSupplier === null){
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo("Please select the supplier");
+    } else {
+      const invoiceData = {
+        billNumber: formData.invoiceNumber ? Number(formData.invoiceNumber) : "",
+        products: tableData,
+        billTotal: billTotal(tableData),
+        billDate: new Date(formData.billDate).toISOString(),
+        paymentMode: formData.paymentType,
+        pendingPayment: Number(formData.pendingPayment),
+        address: formData.address,
+        supplierId: selectedSupplier.id,
+        userId: JSON.parse(localStorage.getItem("userId")),
+      };
+  
+      try {
+        const response = await axios.post("https://api-skainvoice.top/api/supplier-bill/create", invoiceData);
+        if (response.status === 201) {
+          setSuccess(true);
+          setOpenErrorAlert(true);
+          setErrorInfo("Invoice created successfully");
+          setTableData([]);
+          clearCustomerDetails();
+          setTableData([]);
+        }
+      } catch (error) {
+        console.error("Error saving invoice:", error);
+        setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo(error.response.data.error);
+      }
     }
+
   };
   const columns = [
     {
@@ -279,7 +293,9 @@ const UtilitiesCreateSupplierBill = () => {
     setFormData({
       ...formData,
       supplierName: "",
-      supplierAddress: "",
+      address: "",
+      paymentType:"",
+      pendingPayment:"",
     });
   };
 

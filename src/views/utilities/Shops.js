@@ -188,7 +188,7 @@ const Shops = () => {
           ZONNAM: document.getElementById("zoneName").value,
         };
         console.log(newData);
-        const response = await axios.post("https://api-skainvoice.top/api/shop/add", newData)
+        const response = await axios.post("/api/shop/add", newData)
         if (response.status === 200) {
           setSuccess(true);
           setOpenErrorAlert(true);
@@ -248,6 +248,9 @@ const Shops = () => {
       }
     } catch (error) {
       console.error("Error:", error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.error);
     }
   };
 

@@ -7,8 +7,10 @@ import DialogTemplate from "../../ui-component/Dialog";
 import axios from "axios";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
+import { useOverAllContext } from "../../context/overAllContext";
 
 const Suppliers = () => {
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [companyName, setCompanyName] = useState([]);
   const [hoveredRowEdit, setHoveredRowEdit] = useState(null);
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -170,7 +172,7 @@ const Suppliers = () => {
       gstin,
       stateCode,
     };
-    console.log(buttonClicked," = ",supplierData)
+    console.log(buttonClicked, " = ", supplierData)
     try {
       if (buttonClicked === "Add/Edit" || buttonClicked === "Edit Items") {
         if (selectedItem) {
@@ -191,6 +193,9 @@ const Suppliers = () => {
       resetForm();
     } catch (error) {
       console.error("Error saving supplier:", error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
     }
   };
 
@@ -273,6 +278,10 @@ const Suppliers = () => {
               />
               <TextField
                 label="Phone Number"
+                inputProps={{
+                  maxLength: 10,
+                }}
+                type="number"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 fullWidth
