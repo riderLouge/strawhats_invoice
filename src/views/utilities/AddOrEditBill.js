@@ -13,6 +13,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Chip,
 } from "@mui/material";
 import DialogTemplate from "../../ui-component/Dialog";
 import { MaterialReactTable } from "material-react-table";
@@ -29,6 +30,7 @@ import InvoiceTemplate from "./ViewInvoice";
 import axios from "axios";
 import moment from "moment";
 import { useOverAllContext } from "../../context/overAllContext";
+import capitalizeText from "../../utils/capitalizeText";
 
 const ShadowBox = ({ shadow }) => (
   <Card sx={{ mb: 3, boxShadow: shadow }}>
@@ -164,6 +166,10 @@ export default function Invoice() {
       header: "Shop Name",
     },
     {
+      accessorKey: "shop.ZONNAM",
+      header: "Zone Name",
+    },
+    {
       accessorKey: "invoiceDate",
       header: "Invoice Date",
       Cell: ({ row }) => moment(row.original.invoiceDate).format("DD/MM/YYYY"),
@@ -172,10 +178,15 @@ export default function Invoice() {
       accessorKey: "user.name",
       header: "Biller",
     },
-    // {
-    //   accessorKey: "ADRONE",
-    //   header: "Total",
-    // },
+    {
+      accessorKey: "status",
+      header: "Status",
+      Cell: ({row}) => {
+        return (
+          <Chip label={capitalizeText(row.original.status)} />
+        );
+      }
+    },
     {
       accessorKey: "actions",
       header: "Actions",

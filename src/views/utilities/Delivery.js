@@ -8,10 +8,11 @@ import MainCard from "../../ui-component/cards/MainCard";
 import axios from "axios";
 import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import DialogTemplate from "../../ui-component/Dialog";
+import { useOverAllContext } from "../../context/overAllContext";
 
 
 const DeliveryAgent = () => {
-
+  const { setSuccess, setOpenErrorAlert, setErrorInfo } = useOverAllContext();
   const [deliveryGuys, setDeliveryGuys] = useState([])
   const [rowSelection, setRowSelection] = useState({});
   const [hoveredRow, setHoveredRow] = useState({});
@@ -51,7 +52,6 @@ const DeliveryAgent = () => {
         "https://api-skainvoice.top/api/fetch/deliveryAgents"
       );
       setDeliveryGuys(response.data);
-      console.log(response)
     } catch (error) {
       console.error("Error fetching company:", error);
     }
@@ -78,8 +78,11 @@ const DeliveryAgent = () => {
         header: "Email",
       },
       {
-        accessorKey: "status",
+        accessorKey: "isActive",
         header: "Status",
+        Cell: ({ row }) => {
+          return row.original.isActive ? "Assigned" : "Not Assigned";
+        }
       },
       {
         accessorKey: "actions",
@@ -119,10 +122,19 @@ const DeliveryAgent = () => {
   const assignDeliveryAgent = async (params) => {
     try {
       const response = await axios.post('https://api-skainvoice.top/api/shop/assign-delivery-agent', params);
+      if (response.status === 200) {
+        setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(response.data.message);
+      fetchDeliveryGuys();
+      }
       console.log(response);
       setOpen(false);
     } catch (error) {
       console.log(error, 'error while assinging a agent')
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
     }
   }
   const handleSubmitDialog = () => {

@@ -1781,7 +1781,7 @@ app.post("/api/products/by-date-report", async (req, res) => {
       return res.status(404).json({ status: 'failed', message: 'Missing required fields' })
     }
 
-    if (typeName === 2) {
+    if (typeName === 2 || typeName === 3) {
       invoices = await prisma.invoice.findMany({
         where: {
           invoiceDate: {
@@ -1880,15 +1880,14 @@ app.get("/api/fetch/current-day-delivery", async (req, res) => {
 
     // Set the start and end dates
     const startDate = new Date(date);
-    startDate.setUTCHours(0, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date(date);
-    endDate.setUTCHours(23, 59, 59, 999);
-
+    endDate.setHours(23, 59, 59, 999);
 
     const data = await prisma.delivery.findMany({
       where: {
-        invoiceDate: {
+        deliveryDate: {
           gte: startDate,
           lte: endDate
         }
@@ -1949,19 +1948,18 @@ app.post("/api/update/invoice-status", async (req, res) => {
 });
 
 app.post("/api/update/credit-debit", async (req, res) => {
-
   try {
-    for (const { invoiceId, paidAmount } of req.body) {
+    const invoices = req.body; // Assuming req.body is an array of objects
+    for (const { invoiceId, paidAmount } of invoices) {
+      
       const creditRecord = await prisma.creditDebit.findFirst({
         where: {
-          invoiceId: invoiceId
+          invoiceId,
         }
       });
-
       if (creditRecord) {
         let newTotal = creditRecord.total - parseFloat(paidAmount);
         let newStatus = '';
-
         if (newTotal === 0) {
           newStatus = 'Tally';
         } else if (newTotal > 0) {
@@ -1970,7 +1968,6 @@ app.post("/api/update/credit-debit", async (req, res) => {
           newTotal = Math.abs(newTotal);
           newStatus = 'Debit';
         }
-
         await prisma.creditDebit.update({
           where: {
             invoiceId,
@@ -1989,6 +1986,7 @@ app.post("/api/update/credit-debit", async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+;
 
 app.get("/api/fetch/supplier", async (req, res) => {
   try {
@@ -2084,10 +2082,10 @@ app.post("/api/update/debitcredit", async (req, res) => {
       },
     });
 
-    res.json({ success: true, data: updatedData });
+    res.status(200).json({ status: 'success', data: updatedData, message: 'Credit details updated successfully' });
   } catch (error) {
     console.error("Error during update:", error);
-    res.status(500).json({ error: "An error occurred while updating the record" });
+    res.status(500).json({ message: "An error occurred while updating the Credit details" });
   }
 });
 

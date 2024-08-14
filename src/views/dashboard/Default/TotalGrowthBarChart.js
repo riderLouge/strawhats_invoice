@@ -29,6 +29,7 @@ import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import { useOverAllContext } from "../../../context/overAllContext";
 import capitalizeText from "../../../utils/capitalizeText";
+import moment from "moment";
 
 const TotalGrowthBarChart = ({ isLoading }) => {
   const [open, setOpen] = useState(false);
@@ -43,7 +44,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
     try {
       const response = await axios.get("https://api-skainvoice.top/api/fetch/current-day-delivery", {
         params: {
-          date: new Date().toISOString().split('T')[0],
+          date: moment(new Date()).format('YYYY-MM-DD'),
         },
       });
       setDeliveryDetails(response.data.data);
@@ -56,9 +57,12 @@ const TotalGrowthBarChart = ({ isLoading }) => {
     }
   }
 
+
   async function updateInvoiceStatus() {
+    const invoiceIds = selectedDeliveryGuy.shops
+    .filter(invoice => invoice.shop.status !== 'COMPLETED')
+    .map(invoice => invoice.invoiceId);
     try {
-      const invoiceIds = selectedDeliveryGuy.shops.map((shop => shop.invoiceId));
 
         await axios.post("https://api-skainvoice.top/api/update/invoice-status", {
         invoiceIds,
@@ -66,14 +70,6 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       deliveryId: selectedDeliveryGuy.id,
     });
       setOpen(false)
-
-      const completedDetails = {
-        ...selectedDeliveryGuy,
-        shops: selectedDeliveryGuy.shops.filter(shop => shop.shop.status === "COMPLETED")
-      };
-
-      updateCreditDebit(completedDetails)
-
     } catch (error) {
       console.error("Error fetching invoices:", error.message);
       setSuccess(false);
@@ -84,33 +80,47 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   }
 
   async function updateCreditDebit(data) {
+    const invoiceDetailsList = data.shops
+    .filter(invoice => invoice.shop.status === 'COMPLETED').map(element => ({
+      invoiceId: element.invoiceId,
+      paidAmount: element.shop.paidAmount
+    }));
+  
     try {
-      const invoiceDetails = data.flatMap(delivery =>
-        delivery.shops.map(shop => ({
-          invoiceId: shop.invoiceId,
-          paidAmount: shop.shop.paidAmount
-        }))
-      );
-      await axios.post("https://api-skainvoice.top/api/update/credit-debit", invoiceDetails);
-      setOpen(false)
-
+     const response = await axios.post("https://api-skainvoice.top/api/update/credit-debit", invoiceDetailsList);
+     if(response.status === 200){
+      setSuccess(true);
+      setOpenErrorAlert(true);
+      setErrorInfo(response?.data?.message);
+      updateInvoiceStatus();
+     }
+      setOpen(false);
     } catch (error) {
-      console.error("Error fetching invoices:", error.message);
+      console.error("Error updating invoices:", error.message);
       setSuccess(false);
       setOpenErrorAlert(true);
-      setErrorInfo(error.response.data.message);
+      setErrorInfo(error.response?.data?.message || "Unknown error");
       throw error;
     }
   }
+
+
+
 
   useEffect(() => {
     fetchDeliveryDetails();
   }, []);
 
   const handleClickOpen = (deliveryGuy) => {
-    setSelectedDeliveryGuy(deliveryGuy);
-    setAmountsCollected({});
-    setOpen(true);
+    if(deliveryGuy.status === 'COMPLETED'){
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo("Delivery already updated");
+    }else{
+      setSelectedDeliveryGuy(deliveryGuy);
+      setAmountsCollected({});
+      setOpen(true);
+    }
   };
 
   const handleClose = () => {
@@ -118,14 +128,31 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   };
 
   const handleAmountChange = (shopId, amount) => {
-    setAmountsCollected((prevAmounts) => ({
-      ...prevAmounts,
-      [shopId]: parseFloat(amount) || 0,
-    }));
+    setSelectedDeliveryGuy((prevData) => {
+      const updatedShops = prevData.shops.map((shop) => {
+
+if(shop.id === shopId){
+  return{
+    ...shop,
+    shop:{
+      ...shop.shop,
+      paidAmount: amount,
+    }
+  }
+}else{
+  return shop;
+}
+      })
+return{
+  ...prevData,
+  shops: updatedShops
+}
+    })
   };
 
   const getTotalCollected = () => {
-    return Object.values(amountsCollected).reduce((acc, curr) => acc + curr, 0);
+    console.log(selectedDeliveryGuy?.shops)
+    return selectedDeliveryGuy?.shops.reduce((acc, curr) => Number(acc) + Number(curr.shop.paidAmount), 0);
   };
 
   const getTotalAmountToBeCollected = () => {
@@ -141,14 +168,14 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       setConfirmationOpen(true);
     }
     else {
-      updateCreditDebit(deliveryDetails)
+      updateCreditDebit(selectedDeliveryGuy)
     }
   };
 
 
   const handleConfirmationClose = (confirm) => {
     if (confirm) {
-      updateInvoiceStatus();
+      updateCreditDebit(selectedDeliveryGuy);
     }
     setConfirmationOpen(false);
   };
@@ -266,6 +293,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                           <TableCell align="center">{shop.totalAmount}</TableCell>
                           <TableCell align="center">
                             <TextField
+                            disabled={shop?.shop?.status === 'NOT_COMPLETED'}
                               margin="dense"
                               label="Collected"
                               type="number"

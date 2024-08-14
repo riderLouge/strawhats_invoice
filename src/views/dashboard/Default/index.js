@@ -67,21 +67,143 @@ const Dashboard = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [tallyText, setTallyText] = useState("");
   
+
+  const processAndDownloadExcelSalesTax = (data) => {
+    const workbook = new ExcelJS.Workbook();
+    const b2bSheet = workbook.addWorksheet('b2b');
+    const b2csSheet = workbook.addWorksheet('b2cs');
+  
+    // Define table headers for b2b and b2cs sheets
+    const b2bTableHeaderValues = [
+      'GSTIN/UIN of Recipient', 'Receiver Name', "Invoice Number", 'Invoice Date',
+      'Invoice Value', 'Place of Supply', 'Reverse Charge', 'Applicable of Tax Rate %', 
+      'Invoice Type', 'E-Commerce GSTIN', 'Rate', 'Taxable Value', 'Cess Amount'
+    ];
+  
+    const b2csTableHeaderValues = [
+      "Type",'Place of Supply', 'Applicable of Tax Rate %', 'Rate', 'Taxable Value', 'Cess Amount', 'E-Commerce GSTIN'
+    ];
+  
+    // Function to add table headers to a worksheet
+    const addTableHeader = (worksheet, headerValues) => {
+      const tableHeader = worksheet.getRow(1);
+      tableHeader.values = headerValues;
+      tableHeader.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFFF00' }, // Yellow fill
+        };
+      cell.font = { bold: true, name: 'Courier New', size: 10 }; // Set font to Courier New, size 8
+      });
+    };
+  
+    // Add headers to the b2b and b2cs sheets
+    addTableHeader(b2bSheet, b2bTableHeaderValues);
+    addTableHeader(b2csSheet, b2csTableHeaderValues);
+  
+    // Add empty row after headers in both sheets
+    b2bSheet.addRow([]);
+    b2csSheet.addRow([]);
+  
+    // Track column widths for both sheets
+    const b2bColumnWidths = Array(b2bTableHeaderValues.length).fill(10);
+    const b2csColumnWidths = Array(b2csTableHeaderValues.length).fill(10);
+  
+    // Process data
+    data.forEach((item) => {
+      const buyerName = Object.keys(item)[0];
+      const buyerData = item[buyerName];
+      const gstin = buyerData.Slno;
+  
+      buyerData.sales.forEach((sale) => {
+        sale.products.forEach((product) => {
+          const invoiceId = sale.invoiceId;
+          const invoiceDate = product.invoiceDate.split('T')[0];
+          const salesValue = product.totalWithoutGST;
+          const gst = parseFloat(product.gst);
+          const isTamilNadu = gstin && gstin.startsWith('33');
+          const sgst = isTamilNadu ? (gst / 2 / 100) * salesValue : 0;
+          const cgst = isTamilNadu ? (gst / 2 / 100) * salesValue : 0;
+          const igst = isTamilNadu ? 0 : (gst / 100) * salesValue;
+  
+          if (gstin) {
+            // Add to b2b sheet
+            const row = b2bSheet.addRow([
+              gstin, "", invoiceId, invoiceDate,
+              salesValue + cgst + sgst + igst, "", "N", "", "Regular", "", gst, sgst, salesValue
+            ]);
+  
+            row.eachCell((cell, colNumber) => {
+              cell.font = { name: 'Courier New', size: 8 }; // Set font to Courier New, size 8
+              const cellValueLength = String(cell.value).length;
+              if (cellValueLength > b2bColumnWidths[colNumber - 1]) {
+                b2bColumnWidths[colNumber - 1] = cellValueLength;
+              }
+            });
+          } else {
+            // Add to b2cs sheet
+            const row = b2csSheet.addRow([
+              "OE", "33-TamilNadu", "", gst,
+              salesValue, "", ""
+            ]);
+  
+            row.eachCell((cell, colNumber) => {
+              cell.font = { name: 'Courier New', size: 8 }; // Set font to Courier New, size 8
+              const cellValueLength = String(cell.value).length;
+              if (cellValueLength > b2csColumnWidths[colNumber - 1]) {
+                b2csColumnWidths[colNumber - 1] = cellValueLength;
+              }
+            });
+          }
+        });
+      });
+    });
+  
+    // Set column widths for both sheets
+    const setColumnWidths = (worksheet, columnWidths) => {
+      worksheet.columns.forEach((column, index) => {
+        column.width = columnWidths[index] + 2;
+      });
+    };
+  
+    setColumnWidths(b2bSheet, b2bColumnWidths);
+    setColumnWidths(b2csSheet, b2csColumnWidths);
+  
+    // Write to file
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SalesTaxData.xlsx';
+      a.click();
+    });
+  };
+
   const handleTally = async () => {
     if (selectedRow !== null) {
       const selectedData = paginatedData[selectedRow];
   
       try {
-        await axios.post(
+       const response =  await axios.post(
           "api/update/debitcredit",
           {
             selectedData: selectedData,
             tallyText: tallyText,
           }
         );
-  
+        if(response.status === 200){
+          setSuccess(false);
+          setOpenErrorAlert(true);
+          setErrorInfo(response.data.message);
+
+        }
       } catch (error) {
         console.error("Error during tally:", error);
+        setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo(error.response.data.message);
       } finally {
         fetchZonNames()
         setSelectedRow(null); 
@@ -811,6 +933,8 @@ const processAndDownloadExcelPurchase = (data) => {
         }
         else if(params.typeName === 1){
           processAndDownloadExcelPurchase(response.data.data)
+        }else if(params.typeName === 3){
+          processAndDownloadExcelSalesTax(response.data.data)
         }
       } else {
         setSuccess(false);
