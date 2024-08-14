@@ -1542,6 +1542,63 @@ app.post("/api/shop/assign-delivery-agent", async (req, res) => {
   }
 });
 
+//* Assign pending delivery
+app.post("/api/assign/pending/delivery", async(req, res) =>{
+  try{
+const { invoices, staffId } = req.body;
+if(invoices.length === 0){
+  return res.status(400).json({ status: 'failure', message: 'Invoice list empty' });
+}
+if(!staffId){
+  return res.status(400).json({ status: 'failure', message: 'StaffId should not be empty' });
+}
+invoices.forEach(async (invoice) => {
+  const { invoiceDate, shop} = invoice;
+  const getTotalCount = (products) => {
+    return products.reduce((acc, curr) => {
+      return acc + Number(curr.totalWithGST);
+    }, 0);
+  }
+  const shopDetails = invoices.map(invoice => ({
+    ...invoice,
+    shop: { ...invoice.shop, status: 'NOT_COMPLETED' },
+    totalAmount: getTotalCount(invoice.products),
+    invoiceId: invoice.id,
+  }));
+const invoiceData = {
+  staffId,
+  shops: shopDetails,
+  invoiceDate,
+  deliveryDate: new Date(),
+  areas: [shop.ZONNAM],
+  status: 'ASSIGNED',
+}
+console.log(invoiceData);
+  await prisma.delivery.create({
+    data: {
+      staffId,
+      shops: shopDetails,
+      invoiceDate,
+      deliveryDate: new Date(),
+      areas: [shop.ZONNAM],
+    },
+  });
+  await prisma.invoice.update({
+    where: {
+      id: invoice.id,
+      },
+      data: {
+        status: 'ASSIGNED',
+      }
+  })
+})
+return res.status(200).json({ status: 'success', message: 'Delivery Assigned Successfully' });
+  }catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'failure', message: 'Internal server error' });
+  }
+})
+
 // fetch delivery assigned agent
 app.get("/api/fetch/assigned-delivery-agent", async (req, res) => {
   const { userId, date } = req.query;

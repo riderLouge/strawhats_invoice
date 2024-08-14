@@ -42,7 +42,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   async function fetchDeliveryDetails() {
     try {
-      const response = await axios.get("https://api-skainvoice.top/api/fetch/current-day-delivery", {
+      const response = await axios.get("/api/fetch/current-day-delivery", {
         params: {
           date: moment(new Date()).format('YYYY-MM-DD'),
         },
@@ -69,6 +69,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       staffId: selectedDeliveryGuy.staffId,
       deliveryId: selectedDeliveryGuy.id,
     });
+    fetchDeliveryDetails();
       setOpen(false)
     } catch (error) {
       console.error("Error fetching invoices:", error.message);
@@ -152,7 +153,7 @@ return{
 
   const getTotalCollected = () => {
     console.log(selectedDeliveryGuy?.shops)
-    return selectedDeliveryGuy?.shops.reduce((acc, curr) => Number(acc) + Number(curr.shop.paidAmount), 0);
+    return selectedDeliveryGuy?.shops.reduce((acc, curr) => Number(acc) + Number(curr?.shop?.paidAmount || 0), 0);
   };
 
   const getTotalAmountToBeCollected = () => {

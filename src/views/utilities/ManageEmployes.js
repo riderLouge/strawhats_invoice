@@ -248,10 +248,10 @@ const ManageEmployees = () => {
         <MaterialReactTable
           columns={columns}
           data={staffsData}
-          enableRowSelection
-          getRowId={(row) => row.id}
-          onRowSelectionChange={setRowSelection}
-          state={{ rowSelection }}
+          // enableRowSelection
+          // getRowId={(row) => row.id}
+          // onRowSelectionChange={setRowSelection}
+          // state={{ rowSelection }}
         />
       </Card>
       <Button

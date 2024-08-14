@@ -57,11 +57,11 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [productData, setProductData] = useState([]); 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
-  const [data, setData] = useState(false);
+  const [deliveryDetails, setDeliveryDetails] = useState([]);
   const [deliveryGuys, setDeliveryGuys] = useState([]);
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
-  const [selectedDeliveries, setSelectedDeliveries] = useState([]);
-
+const [selectedDeliveries, setSelectedDeliveries] = useState({});
+console.log(selectedDeliveries);
 
   const supplierNames = [
     "ASIA CANDY",
@@ -87,7 +87,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   ];
   const [selectedZone, setSelectedZone] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState([]);
-  console.log(selectedZone, selectedCustomer)
+
   const supplierProductParams = {
     companyName: supplierName,
     month: supplierMonth,
@@ -210,7 +210,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
   };
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, productData.length - page * rowsPerPage);
-
+console.log(deliveryDetails)
 
   const softwareNameStyle = {
     fontSize: "26px",
@@ -263,12 +263,14 @@ const Header = ({ handleLeftDrawerToggle }) => {
         "https://api-skainvoice.top/api/invoices"
       );
       console.log("response.data =",response.data.data)
-      setData(response?.data?.data.filter(invoice => invoice.status === "PENDING"));   
+      setDeliveryDetails(response?.data?.data.filter(invoice => invoice.status === "PENDING"));   
     } catch (error) {
       console.error("Error fetching invoices:", error);
       throw error;
     }
   };
+
+  console.log("selectedDeliveries = ",selectedDeliveries)
 
   const handleAssignDeliveries = async () => {
   if (!selectedDeliveryGuy || selectedDeliveries.length === 0) {
@@ -276,23 +278,34 @@ const Header = ({ handleLeftDrawerToggle }) => {
     alert('Please select a delivery guy and at least one delivery.');
     return;
   }
+  const selectedDeliveriesData = deliveryDetails.filter(invoice =>
+    selectedDeliveries[invoice.invoiceNumber]
+  );
+
+  console.log(selectedDeliveriesData,"];lcv;lmx",selectedDeliveryGuy)
 
   try {
-    const response = await axios.post('/api/assign-delivery', {
-      deliveries: selectedDeliveries,
-      deliveryGuyId: selectedDeliveryGuy.id, // Adjust based on your data
+    const response = await axios.post('/api/assign/pending/delivery', {
+      invoices: selectedDeliveriesData,
+      staffId: selectedDeliveryGuy.userid, // Adjust based on your data
     });
     if (response.status === 200) {
       // Handle success (e.g., show a success message)
+      setSuccess(true);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
       setOpenPendingDelivery(false);
       fetchInvoices(); // Refresh the list if needed
     } else {
-      // Handle error
-      alert('Error assigning deliveries.');
+      setSuccess(false);
+        setOpenErrorAlert(true);
+        setErrorInfo(response.data.message);
     }
   } catch (error) {
     console.error('Error assigning deliveries:', error);
-    alert('Error assigning deliveries.');
+    setSuccess(false);
+    setOpenErrorAlert(true);
+    setErrorInfo(error.response.data.message);
   }
 };
 
@@ -554,13 +567,24 @@ const Header = ({ handleLeftDrawerToggle }) => {
       body={
         <>
           <Card sx={{ overflow: "hidden" }}>
-            <MaterialReactTable
-              columns={columns}
-              data={data ?? []}
-              getRowId={(row) => row.id}
-              enableRowSelection
-              onRowSelectionChange={(selection) => setSelectedDeliveries(selection)}
-            />
+          <MaterialReactTable
+  columns={columns}
+  data={deliveryDetails}
+  getRowId={(row) => row.id}
+  muiTableBodyRowProps={({ row }) => ({
+    onClick: () => {
+      const invoiceNumber = row.original.invoiceNumber;
+      setSelectedDeliveries((prev) => ({
+      ...prev,
+      [invoiceNumber]: !prev[invoiceNumber],
+      }));
+    },
+    selected: selectedDeliveries[row.original.invoiceNumber] || false,
+    })}
+
+/>
+
+
           </Card>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={4}>

@@ -123,7 +123,7 @@ const DeliveryAgent = () => {
     try {
       const response = await axios.post('https://api-skainvoice.top/api/shop/assign-delivery-agent', params);
       if (response.status === 200) {
-        setSuccess(false);
+        setSuccess(true);
       setOpenErrorAlert(true);
       setErrorInfo(response.data.message);
       fetchDeliveryGuys();
