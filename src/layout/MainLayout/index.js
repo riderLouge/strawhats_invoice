@@ -94,7 +94,7 @@ const MainLayout = () => {
 
       {/* drawer */}
       <Sidebar
-        drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened}
+        drawerOpen={matchDownMd ? leftDrawerOpened : true}
         drawerToggle={handleLeftDrawerToggle}
       />
 
