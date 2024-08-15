@@ -42,7 +42,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 
   async function fetchDeliveryDetails() {
     try {
-      const response = await axios.get("/api/fetch/current-day-delivery", {
+      const response = await axios.get("https://api-skainvoice.top/api/fetch/current-day-delivery", {
         params: {
           date: moment(new Date()).format('YYYY-MM-DD'),
         },

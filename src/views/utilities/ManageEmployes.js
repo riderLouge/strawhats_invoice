@@ -170,7 +170,7 @@ const ManageEmployees = () => {
         joinDate: new Date(document.getElementById("staffJoinDate").value),
       };
       try {
-        const response = await axios.post("/api/staff/add", newData)
+        const response = await axios.post("https://api-skainvoice.top/api/staff/add", newData)
         if (response.status === 201) {
           setSuccess(true);
           setOpenErrorAlert(true);

@@ -101,7 +101,7 @@ console.log(selectedDeliveries);
   }
   const fetchDeliveryGuys = async () => {
     try {
-      const response = await axios.get('/api/fetch/deliveryAgents');
+      const response = await axios.get('https://api-skainvoice.top/api/fetch/deliveryAgents');
       setDeliveryGuys(response.data);
     } catch (error) {
       console.error("Error fetching delivery guys:", error);
@@ -147,7 +147,7 @@ console.log(selectedDeliveries);
   const fetchSupplierReport = async () => {
     try {
       const response = await axios.post(
-        "/api/products/by-company-date"
+        "https://api-skainvoice.top/api/products/by-company-date"
       );
       console.log(response)
     } catch (error) {
@@ -156,7 +156,7 @@ console.log(selectedDeliveries);
   };
   const handleSubmit = async (params) => {
 
-    const apiUrl = searchBy === "Supplier" ? '/api/products/by-company-date' : '/api/products/by-zone-shop-date';
+    const apiUrl = searchBy === "Supplier" ? 'https://api-skainvoice.top/api/products/by-company-date' : 'https://api-skainvoice.top/api/products/by-zone-shop-date';
     try {
       const response = await axios.post(apiUrl, params);
       if (response.status === 200) {
@@ -285,7 +285,7 @@ console.log(deliveryDetails)
   console.log(selectedDeliveriesData,"];lcv;lmx",selectedDeliveryGuy)
 
   try {
-    const response = await axios.post('/api/assign/pending/delivery', {
+    const response = await axios.post('https://api-skainvoice.top/api/assign/pending/delivery', {
       invoices: selectedDeliveriesData,
       staffId: selectedDeliveryGuy.userid, // Adjust based on your data
     });
