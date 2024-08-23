@@ -50,114 +50,155 @@ export default function InvoiceTemplate({ data, type }) {
   };
 
   const downloadInvoice = async () => {
-    const doc = new jsPDF();
-    const invoiceElement = invoiceRef.current;
-    const invoiceHeaderElement = invoiceHeaderRef.current;
-    // Product table
-    const table = invoiceElement.querySelector("table");
-    // Define content
-    const invoiceNumber = data.original?.invoiceNumber;
-    const date = moment(data?.original?.invoiceDate).format("DD/MM/YYYY");
-    const companyName = "Sri Krishna Agencies";
-    const customerName = data?.original?.shop?.CUSNAM;
-    const address =
-      (data?.original?.shop?.ADRONE || "") +
-      (data?.original?.shop?.ADRTWO || "") +
-      (data?.original?.shop?.ADRTHR || "");
-    const phoneNumber = data?.original?.shop?.TELNUM;
-
-    // Define positions
-    const invoiceNumberX = 15;
-    const invoiceNumberY = 30;
-    const dateY = 35;
-    const companyNameX = 150;
-    const companyNameY = 30;
-    const customerInfoX = 15;
-    const customerInfoY = 58;
-    const customerInfoPaddingX = 10; // Padding for Customer Info rectangle
-
-    // Draw text content
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text("INVOICE", 15, 20);
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      `Invoice Number: ${invoiceNumber}`,
-      invoiceNumberX,
-      invoiceNumberY
-    );
-    doc.text(`Date: ${date}`, invoiceNumberX, dateY);
-    doc.setFont("helvetica", "bold");
-    doc.text(companyName, companyNameX, companyNameY);
-
-    doc.setFillColor("#f5f5f5");
-    doc.rect(15, 50, 180, 50, "F");
+    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
 
     doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(
-      "Customer Info",
-      customerInfoX + customerInfoPaddingX,
-      customerInfoY + 5
-    );
+    doc.text("SRI KRISHNA AGENCIES", 3, 7);
+    doc.setFontSize(16);
+    doc.text("TAX INVOICE", 180, 7);
+    // Company and Customer Info (Top Section)
     doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      `Customer Name: ${customerName}`,
-      customerInfoX + customerInfoPaddingX,
-      customerInfoY + 15
-    );
-    doc.text(
-      `Address: ${address}`,
-      customerInfoX + customerInfoPaddingX,
-      customerInfoY + 20
-    );
-    doc.text(
-      `Phone Number: ${phoneNumber}`,
-      customerInfoX + customerInfoPaddingX,
-      customerInfoY + 25
-    );
+    doc.text("SRI KRISHNA AGENCIES", 3, 15);
+    doc.setFontSize(10);
+    doc.text("110E, NEHRU STREET, SHENBAKKAM,", 3, 20);
+    doc.text("VELLORE-632013", 3, 25);
+    doc.text("CELL NO. 9849179475, 9171235600", 3, 30);
+    doc.text("GSTIN: 33AALKFA066D12M", 3, 35);
 
-    // Product table with custom options to control the footer
+    doc.setFontSize(12);
+    doc.text("To: M.K. FANCY", 100, 15);
+    doc.setFontSize(10);
+    doc.text("LONG BAZAAR (NR) S. KANNAN", 100, 20);
+    doc.text("VELLORE-6380302783", 100, 25);
+
+    doc.setLineDash([1, 1], 0);
+    doc.line(0, 42, doc.internal.pageSize.width, 42);
+    // Invoice Details
+    doc.setFontSize(10);
+    doc.text(`BNo.: G4803`, 70, 50);
+    doc.text(`Date: 15/08/2024`, 110, 50);
+
+    doc.setLineDash([1, 1], 0);
+    doc.line(0, 55, doc.internal.pageSize.width, 55);
+
+    // Product Table
     doc.autoTable({
-      html: table,
-      startY: invoiceHeaderElement.offsetHeight - 130,
-      columnStyles: { 2: { halign: "center" } },
+      startY: 57,
+      head: [['S.No', 'Item Name', 'HSN Code', 'MRP', 'QTY', 'FREE', 'RATE', 'AMOUNT', 'GST %', 'GST AMT', 'Net Rate']],
+      body: [
+        ['1', 'GATSBY H/SP EX HOLD 66ML MEN', '33059909', '115.00', '2', '2', '87.02', '174.04', '18%', '31.33', '205.37'],
+        ['2', 'GATSBY H/SP SUPER HARD', '33059909', '120.00', '2', '2', '98.36', '196.72', '18%', '35.41', '232.13'],
+        ['3', 'GATSBY H/SP SET WET HARD', '33059909', '138.00', '2', '2', '98.36', '196.72', '18%', '35.41', '232.13'],
+        ['4', 'GATSBY H/SP SET WET ULT HARD', '33059909', '138.00', '2', '2', '0.00', '0.00', '18%', '0.00', '0.00'],
+      ],
+      theme: 'plain',
+      styles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 10 },
+        5: { cellWidth: 12 },
+        6: { cellWidth: 20 },
+        7: { cellWidth: 25 },
+        8: { cellWidth: 13 },
+        9: { cellWidth: 20 },
+        10: { cellWidth: 20 },
+      },
+      margin: { left: 0, right: 0 }, // Remove left and right margins
+      tableWidth: 'wrap',
+      didDrawCell: (data) => {
+        // Dotted Line Below Each Row
+        if (data.row.index === data.table.body.length - 1) {
+          doc.setLineDash([1, 1], 0);
+          doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+        }
+      }
     });
 
-    // Total amount
-    doc.setFont("helvetica", "bold");
-    doc.text("total", companyNameX - 5, doc.autoTableEndPosY() + 10);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      parseFloat(totalProductAmount(invoiceProducts)).toFixed(2),
-      companyNameX + 30,
-      doc.autoTableEndPosY() + 10
-    );
-    // Payment Notes Section
-    const paymentNotesText = "Payment Notes";
-    const paymentNotesY = doc.autoTableEndPosY() + 15;
-    doc.setFontSize(10);
-    doc.text(paymentNotesText, 15, paymentNotesY);
-    doc.setDrawColor("#cccccc");
-    doc.rect(
-      15,
-      paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 5,
-      doc.internal.pageSize.getWidth() - 30,
-      35,
-      "D"
-    );
+    // dot line for header
+    doc.setLineDash([1, 1], 0);
+    doc.line(0, 65, doc.internal.pageSize.width, 65);
 
-    // Customer Signature Section
-    const signatureText = "Customer Signature";
-    const signatureY =
-      paymentNotesY + doc.getTextDimensions(paymentNotesText).h + 60;
+    // Total Calculation Section (Bottom Section)
+    const finalY = doc.lastAutoTable.finalY + 10;
+    // Horizontal Dotted Line Below Total Section
+    doc.setLineDash([1, 1], 0);
+    doc.line(0, finalY - 5, 290, finalY - 5);
+
+    doc.text("Taxable", 15, finalY);
+    doc.text("SGST", 50, finalY);
+    doc.text("Tax", 85, finalY);
+    doc.text("CGST", 120, finalY);
+    doc.text("Tax Amt", 155, finalY);
+    doc.text("Cess", 190, finalY);
+    doc.text("Total GST % Val: 99.42", 225, finalY);
+    doc.text("Total GST Amt: 49.71", 225, finalY + 5);
+    doc.text("Total Amount: 652.00", 225, finalY + 10);
+
+
+
+    // Footer
+    doc.text("Rupees Six hundred fifty two only.", 15, finalY + 25);
+    doc.text("Authorized Signatory", 160, finalY + 25);
+
+    // Vertical Dotted Line on the Right Side
+    doc.setLineDash([1, 1], 0); // Set line style to dotted
+    doc.line(230, 0, 230, doc.internal.pageSize.height - 15);  // Vertical line covering the entire height of the page
+    // Company and Customer Info (Top Section)
     doc.setFontSize(10);
-    doc.text(signatureText, 15, signatureY);
+    doc.text("SRI KRISHNA AGENCIES", 233, 5);
+    doc.setFontSize(10);
+    doc.text("VELLORE-632013", 233, 10);
+    doc.setFontSize(10);
+    doc.text("CEL: 9849179475", 263, 10);
+    doc.setLineDash([1, 1], 0);
+    doc.line(237, 15, doc.internal.pageSize.width - 10, 15);
+    doc.setFontSize(10);
+    doc.text("To: M.K. FANCY", 233, 25);
+    doc.setFontSize(10);
+    doc.text("LONG BAZAAR (NR) S. KANNAN", 233, 30);
+    doc.text("VELLORE-6380302783", 233, 35);
+
+    //bill no
+
+    doc.setFontSize(10);
+    doc.text(`BNo.: G4803`, 233, 50);
+    doc.text(`Date: 15/08/2024`, 260, 50);
+
+        // Product Table
+    doc.autoTable({
+      startY: 57,
+      startX: 233,
+      head: [['Item Name','QTY']],
+      body: [
+        ['GATSBY H/SP EX HOLD 66ML MEN', '2'],
+        ['GATSBY H/SP SUPER HARD', '2'],
+        ['GATSBY H/SP SET WET HARD', '2'],
+        ['GATSBY H/SP SET WET ULT HARD', '2'],
+      ],
+      theme: 'plain',
+      styles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 60 },
+        1: { cellWidth: 10 },
+      },
+      margin: { left: 0, right: 0 }, // Remove left and right margins
+      tableWidth: 'wrap',
+      didDrawCell: (data) => {
+        // Dotted Line Below Each Row
+        if (data.row.index === data.table.body.length - 1) {
+          doc.setLineDash([1, 1], 0);
+          doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+        }
+      }
+    });
+
     doc.save("invoice.pdf");
   };
+
+
 
   useEffect(() => {
     fetchInvoiceProducts(data.original.products);
@@ -243,9 +284,8 @@ export default function InvoiceTemplate({ data, type }) {
               </Typography>
               <Typography variant="body1" style={{ marginBottom: "8px" }}>
                 <strong>Address:</strong>{" "}
-                {`${data?.original?.shop?.ADRONE || ""} ${
-                  data?.original?.shop?.ADRTWO || ""
-                } ${data?.original?.shop?.ADRTHR || ""}`}
+                {`${data?.original?.shop?.ADRONE || ""} ${data?.original?.shop?.ADRTWO || ""
+                  } ${data?.original?.shop?.ADRTHR || ""}`}
               </Typography>
               <Typography variant="body1">
                 <strong>Phone Number:</strong> {data?.original?.shop?.TELNUM}
