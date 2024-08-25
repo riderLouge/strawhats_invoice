@@ -22,6 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import moment from "moment";
+import numberToWords from "../../utils/numberToWord";
 
 export default function InvoiceTemplate({ data, type }) {
   const [invoiceProducts, setInvoiceProducts] = useState([]);
@@ -119,29 +120,56 @@ export default function InvoiceTemplate({ data, type }) {
 
     // dot line for header
     doc.setLineDash([1, 1], 0);
-    doc.line(0, 65, doc.internal.pageSize.width, 65);
+    doc.line(0, 64, doc.internal.pageSize.width, 64);
 
     // Total Calculation Section (Bottom Section)
     const finalY = doc.lastAutoTable.finalY + 10;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    console.log(finalY, pageHeight)
+    const bottomContentHeight = pageHeight - 50;
+    if(finalY > pageHeight - 50){
+      doc.addPage();
+    }
     // Horizontal Dotted Line Below Total Section
     doc.setLineDash([1, 1], 0);
-    doc.line(0, finalY - 5, 290, finalY - 5);
+    doc.line(0, bottomContentHeight - 5, doc.internal.pageSize.width, bottomContentHeight - 5);
 
-    doc.text("Taxable", 15, finalY);
-    doc.text("SGST", 50, finalY);
-    doc.text("Tax", 85, finalY);
-    doc.text("CGST", 120, finalY);
-    doc.text("Tax Amt", 155, finalY);
-    doc.text("Cess", 190, finalY);
-    doc.text("Total GST % Val: 99.42", 225, finalY);
-    doc.text("Total GST Amt: 49.71", 225, finalY + 5);
-    doc.text("Total Amount: 652.00", 225, finalY + 10);
+    const topContentHeight = bottomContentHeight + 5;
+    doc.setFontSize(10);
+    doc.text("For SRI KRISHNA AGENCIES", 3, topContentHeight);
+    doc.setFontSize(10);
+    doc.text("Authorized Signatory", 3, doc.internal.pageSize.height - 10);
+    doc.setLineDash([1, 1], 0);
+    doc.line(55, bottomContentHeight - 2, 55, doc.internal.pageSize.height - 10);
 
+    doc.setFontSize(10);
+    doc.text("Taxable", 57, topContentHeight);
+    doc.text("222", 57, topContentHeight + 17);
+    doc.text("SGST", 73, topContentHeight);
+    doc.text("222", 73, topContentHeight + 17);
+    doc.text("Tax", 86, topContentHeight);
+    doc.text("222", 86, topContentHeight + 17);
+    doc.text("CGST", 100, topContentHeight);
+    doc.text("222", 100, topContentHeight + 17);
+    doc.text("Tax", 113, topContentHeight);
+    doc.text("222", 113, topContentHeight + 17);
+    doc.text("Cess", 125, topContentHeight);
+    doc.text("222", 125, topContentHeight + 17);
+    doc.text("Cess", 140, topContentHeight);
+    doc.text("222", 140, topContentHeight + 17);
+    doc.text("Total GST & Val:", 150, topContentHeight);
+    doc.text("10044.3", 185, topContentHeight);
+    doc.text("76869.32", 205, topContentHeight);
 
+    const amount = numberToWords("510");
 
-    // Footer
-    doc.text("Rupees Six hundred fifty two only.", 15, finalY + 25);
-    doc.text("Authorized Signatory", 160, finalY + 25);
+    doc.text(amount, 57, doc.internal.pageSize.height - 18);
+    doc.setLineDash([1, 1], 0);
+    doc.line(153, topContentHeight + 15, 180, topContentHeight + 15);
+    doc.text("Net Amount : 510.00", 153, topContentHeight + 23);
+    doc.text(`Total : 510`, doc.internal.pageSize.width - 60, doc.internal.pageSize.height - 40);
+
+    doc.text("Signature", doc.internal.pageSize.width - 60, doc.internal.pageSize.height - 18);
 
     // Vertical Dotted Line on the Right Side
     doc.setLineDash([1, 1], 0); // Set line style to dotted
@@ -170,7 +198,6 @@ export default function InvoiceTemplate({ data, type }) {
         // Product Table
     doc.autoTable({
       startY: 57,
-      startX: 233,
       head: [['Item Name','QTY']],
       body: [
         ['GATSBY H/SP EX HOLD 66ML MEN', '2'],
@@ -181,10 +208,10 @@ export default function InvoiceTemplate({ data, type }) {
       theme: 'plain',
       styles: { fontSize: 8 },
       columnStyles: {
-        0: { cellWidth: 60 },
+        0: { cellWidth: 55 },
         1: { cellWidth: 10 },
       },
-      margin: { left: 0, right: 0 }, // Remove left and right margins
+      margin: { left: 232, right: 0 }, // Remove left and right margins
       tableWidth: 'wrap',
       didDrawCell: (data) => {
         // Dotted Line Below Each Row
