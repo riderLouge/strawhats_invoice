@@ -60,8 +60,11 @@ const Header = ({ handleLeftDrawerToggle }) => {
   const [deliveryDetails, setDeliveryDetails] = useState([]);
   const [deliveryGuys, setDeliveryGuys] = useState([]);
   const [selectedDeliveryGuy, setSelectedDeliveryGuy] = useState(null);
-const [selectedDeliveries, setSelectedDeliveries] = useState({});
-console.log(selectedDeliveries);
+  const [selectedDeliveries, setSelectedDeliveries] = useState({});
+  const [openBulkDownloadDialog, setOpenBulkDownloadDialog] = useState(false);
+  const [startBillNumber, setStartBillNumber] = useState('');
+  const [endBillNumber, setEndBillNumber] = useState('');
+  console.log(selectedDeliveries);
 
   const supplierNames = [
     "ASIA CANDY",
@@ -99,6 +102,22 @@ console.log(selectedDeliveries);
     month: customerMonth,
     year: customerYear,
   }
+
+  const handleBulkDownload = async () => {
+    try {
+      const response = await axios.post('/api/bulk-download', {
+        startBillNumber,
+        endBillNumber
+      });
+    
+    } catch (error) {
+      console.error('Error downloading bulk bills:', error);
+      setSuccess(false);
+      setOpenErrorAlert(true);
+      setErrorInfo('Error downloading bulk bills. Please try again.');
+    }
+  };
+
   const fetchDeliveryGuys = async () => {
     try {
       const response = await axios.get('https://api-skainvoice.top/api/fetch/deliveryAgents');
@@ -359,15 +378,25 @@ console.log(deliveryDetails)
       {/* <NotificationSection /> */}
       <Button
         variant="contained"
-        color="primary"
+        color="secondary"
         style={{
           right: "10px",
           margin: "8px",
           zIndex: 1,
         }}
-        onClick={() => { 
-          setOpenPendingDelivery(true)
-          fetchInvoices() }}
+        onClick={() => setOpenBulkDownloadDialog(true)}
+      >
+        Bulk Bill Download
+      </Button>
+      <Button
+        variant="contained"
+        color="secondary"
+        style={{
+          right: "10px",
+          margin: "8px",
+          zIndex: 1,
+        }}
+        onClick={() => { }}
       >
         Pending Delivery
       </Button>
@@ -383,6 +412,47 @@ console.log(deliveryDetails)
       >
         Report
       </Button>
+      
+      <DialogTemplate
+        type={"Invoice"}
+        width="sm"
+        open={openBulkDownloadDialog}
+        title={"Bulk Bill Download"}
+        body={
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Starting Bill Number"
+                variant="outlined"
+                value={startBillNumber}
+                onChange={(e) => setStartBillNumber(e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Ending Bill Number"
+                variant="outlined"
+                value={endBillNumber}
+                onChange={(e) => setEndBillNumber(e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleBulkDownload}
+              >
+                Download
+              </Button>
+            </Grid>
+          </Grid>
+        }
+        handleCloseDialog={() => setOpenBulkDownloadDialog(false)}
+        handleSave={() => {}} // We don't need this for the download dialog
+      />
       <DialogTemplate
         width="lg"
         open={openDialog}
