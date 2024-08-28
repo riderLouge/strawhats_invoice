@@ -28,14 +28,12 @@ export default function InvoiceTemplate({ data, type }) {
   const [invoiceProducts, setInvoiceProducts] = useState([]);
   const invoiceRef = useRef(null);
   const invoiceHeaderRef = useRef(null);
-  console.log(invoiceProducts);
   const fetchInvoiceProducts = async (products) => {
     try {
       const response = await axios.post(
         "https://api-skainvoice.top/api/invoice/products",
         { products }
       );
-      console.log(response);
       setInvoiceProducts(response.data.data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -52,46 +50,70 @@ export default function InvoiceTemplate({ data, type }) {
 
   const downloadInvoice = async () => {
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    console.log(data.original)
+    const invoiceDetails = data.original;
+    const companyName = "SRI KRISHNA AGENCIES";
+    //Customer Info Details
 
+    const customerName = invoiceDetails.shop.CUSNAM;
+    const addressOne = invoiceDetails.shop.ADRONE;
+    const addressTwo = invoiceDetails.shop.ADRTWO;
+    const addressOneThree = invoiceDetails.shop.ADRTHR;
+    const addressFour = invoiceDetails.shop.ADRFOU;
+
+    const invoiceNumber = invoiceDetails.invoiceNumber;
+    const invoiceDate = moment(invoiceDetails.invoiceDate).format('DD/MMM/YYYY');
     doc.setFontSize(16);
-    doc.text("SRI KRISHNA AGENCIES", 3, 7);
+    doc.text(companyName, 3, 7);
     doc.setFontSize(16);
     doc.text("TAX INVOICE", 180, 7);
-    // Company and Customer Info (Top Section)
     doc.setFontSize(12);
-    doc.text("SRI KRISHNA AGENCIES", 3, 15);
+    doc.text(companyName, 3, 15);
     doc.setFontSize(10);
     doc.text("110E, NEHRU STREET, SHENBAKKAM,", 3, 20);
     doc.text("VELLORE-632013", 3, 25);
     doc.text("CELL NO. 9849179475, 9171235600", 3, 30);
-    doc.text("GSTIN: 33AALKFA066D12M", 3, 35);
 
+    //Customer Info (Top Section)
     doc.setFontSize(12);
-    doc.text("To: M.K. FANCY", 100, 15);
+    doc.text(customerName, 100, 15);
     doc.setFontSize(10);
-    doc.text("LONG BAZAAR (NR) S. KANNAN", 100, 20);
-    doc.text("VELLORE-6380302783", 100, 25);
+    doc.text(addressOne, 100, 20);
+    doc.text(addressTwo, 100, 25);
+    doc.text(addressOneThree, 100, 30);
+    doc.text(addressFour, 100, 35);
 
     doc.setLineDash([1, 1], 0);
     doc.line(0, 42, doc.internal.pageSize.width, 42);
     // Invoice Details
     doc.setFontSize(10);
-    doc.text(`BNo.: G4803`, 70, 50);
-    doc.text(`Date: 15/08/2024`, 110, 50);
+    doc.text(`BNo.: ${invoiceNumber}`, 70, 50);
+    doc.text(`Date: ${invoiceDate}`, 110, 50);
 
     doc.setLineDash([1, 1], 0);
     doc.line(0, 55, doc.internal.pageSize.width, 55);
-
+    const productData = invoiceDetails.products.map((product, index) => {
+      const sNo = index + 1;
+      return [
+        sNo,
+        product.productName,
+        product.hsnNumber,
+        product.mrp,
+        product.quantity,
+        "",
+        product.rate,
+        product.purchasePrice,
+        product.gst,
+        product.totalWithGST,
+        product.productCurrentPrice,
+      ]
+    });
+    console.log(productData);
     // Product Table
     doc.autoTable({
       startY: 57,
       head: [['S.No', 'Item Name', 'HSN Code', 'MRP', 'QTY', 'FREE', 'RATE', 'AMOUNT', 'GST %', 'GST AMT', 'Net Rate']],
-      body: [
-        ['1', 'GATSBY H/SP EX HOLD 66ML MEN', '33059909', '115.00', '2', '2', '87.02', '174.04', '18%', '31.33', '205.37'],
-        ['2', 'GATSBY H/SP SUPER HARD', '33059909', '120.00', '2', '2', '98.36', '196.72', '18%', '35.41', '232.13'],
-        ['3', 'GATSBY H/SP SET WET HARD', '33059909', '138.00', '2', '2', '98.36', '196.72', '18%', '35.41', '232.13'],
-        ['4', 'GATSBY H/SP SET WET ULT HARD', '33059909', '138.00', '2', '2', '0.00', '0.00', '18%', '0.00', '0.00'],
-      ],
+      body: productData,
       theme: 'plain',
       styles: { fontSize: 8 },
       columnStyles: {
@@ -127,7 +149,7 @@ export default function InvoiceTemplate({ data, type }) {
     const pageHeight = doc.internal.pageSize.getHeight();
     console.log(finalY, pageHeight)
     const bottomContentHeight = pageHeight - 50;
-    if(finalY > pageHeight - 50){
+    if (finalY > pageHeight - 50) {
       doc.addPage();
     }
     // Horizontal Dotted Line Below Total Section
@@ -136,7 +158,7 @@ export default function InvoiceTemplate({ data, type }) {
 
     const topContentHeight = bottomContentHeight + 5;
     doc.setFontSize(10);
-    doc.text("For SRI KRISHNA AGENCIES", 3, topContentHeight);
+    doc.text(`For ${companyName}`, 3, topContentHeight);
     doc.setFontSize(10);
     doc.text("Authorized Signatory", 3, doc.internal.pageSize.height - 10);
     doc.setLineDash([1, 1], 0);
@@ -176,7 +198,7 @@ export default function InvoiceTemplate({ data, type }) {
     doc.line(230, 0, 230, doc.internal.pageSize.height - 15);  // Vertical line covering the entire height of the page
     // Company and Customer Info (Top Section)
     doc.setFontSize(10);
-    doc.text("SRI KRISHNA AGENCIES", 233, 5);
+    doc.text(companyName, 233, 5);
     doc.setFontSize(10);
     doc.text("VELLORE-632013", 233, 10);
     doc.setFontSize(10);
@@ -184,27 +206,30 @@ export default function InvoiceTemplate({ data, type }) {
     doc.setLineDash([1, 1], 0);
     doc.line(237, 15, doc.internal.pageSize.width - 10, 15);
     doc.setFontSize(10);
-    doc.text("To: M.K. FANCY", 233, 25);
+    doc.text(customerName, 233, 25);
     doc.setFontSize(10);
-    doc.text("LONG BAZAAR (NR) S. KANNAN", 233, 30);
-    doc.text("VELLORE-6380302783", 233, 35);
+    doc.text(addressOne, 233, 30);
+    doc.text(addressTwo, 233, 35);
+    doc.text(addressOneThree, 233, 40);
+    doc.text(addressFour, 233, 45);
 
     //bill no
 
     doc.setFontSize(10);
-    doc.text(`BNo.: G4803`, 233, 50);
-    doc.text(`Date: 15/08/2024`, 260, 50);
+    doc.text(`BNo.: ${invoiceNumber}`, 233, 50);
+    doc.text(`Date: ${invoiceDate}`, 260, 50);
 
-        // Product Table
+    const supplierProductData = invoiceDetails.products.map((product) => {
+      return [
+        product.productName,
+        product.quantity,
+      ]
+    });
+    // Product Table
     doc.autoTable({
       startY: 57,
-      head: [['Item Name','QTY']],
-      body: [
-        ['GATSBY H/SP EX HOLD 66ML MEN', '2'],
-        ['GATSBY H/SP SUPER HARD', '2'],
-        ['GATSBY H/SP SET WET HARD', '2'],
-        ['GATSBY H/SP SET WET ULT HARD', '2'],
-      ],
+      head: [['Item Name', 'QTY']],
+      body: supplierProductData,
       theme: 'plain',
       styles: { fontSize: 8 },
       columnStyles: {
