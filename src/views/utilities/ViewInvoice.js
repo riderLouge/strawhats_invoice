@@ -87,7 +87,7 @@ export default function InvoiceTemplate({ data, type }) {
     doc.line(0, 42, doc.internal.pageSize.width, 42);
     // Invoice Details
     doc.setFontSize(10);
-    doc.text(`BNo.: ${invoiceNumber}`, 70, 50);
+    doc.text(`BNo: ${invoiceNumber}`, 70, 50);
     doc.text(`Date: ${invoiceDate}`, 110, 50);
 
     doc.setLineDash([1, 1], 0);
@@ -216,7 +216,7 @@ export default function InvoiceTemplate({ data, type }) {
     //bill no
 
     doc.setFontSize(10);
-    doc.text(`BNo.: ${invoiceNumber}`, 233, 50);
+    doc.text(`BNo: ${invoiceNumber}`, 233, 50);
     doc.text(`Date: ${invoiceDate}`, 260, 50);
 
     const supplierProductData = invoiceDetails.products.map((product) => {
