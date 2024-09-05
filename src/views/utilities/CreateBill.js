@@ -41,6 +41,7 @@ const UtilitiesCreateBill = () => {
   const numberRegx = /^[0-9]*$/;
   const [selectedRows, setSelectedRows] = useState([]); // State to track selected rows
   const [rowSelection, setRowSelection] = useState({}); // State to track row selection
+  const currentYear = new Date().getFullYear();
 
   const clearCustomerDetails = () => {
     setSelectedCustomer(null);
@@ -87,7 +88,7 @@ const UtilitiesCreateBill = () => {
       );
       console.log(response);
       if (response.status === 200) {
-        setInvoiceNumber(response.data.count);
+        setInvoiceNumber(`${currentYear}0${response.data.count}`);
       }
     } catch (error) {
       console.error("Error fetching company:", error);
