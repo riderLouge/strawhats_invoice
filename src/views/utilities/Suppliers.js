@@ -23,6 +23,11 @@ const Suppliers = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [gstin, setGstin] = useState("");
   const [stateCode, setStateCode] = useState("");
+  const [rowSelection, setRowSelection] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [buttonClicked, setButtonClicked] = useState("");
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -106,12 +111,6 @@ const Suppliers = () => {
     [hoveredRowEdit, hoveredRow]
   );
 
-  const [rowSelection, setRowSelection] = useState({});
-  const [openDialog, setOpenDialog] = useState(false);
-  const [fileName, setFileName] = useState("");
-  const [dialogTitle, setDialogTitle] = useState("");
-  const [buttonClicked, setButtonClicked] = useState("");
-
   useEffect(() => {
     console.info({ rowSelection });
   }, [rowSelection]);
@@ -172,12 +171,15 @@ const Suppliers = () => {
       gstin,
       stateCode,
     };
-    console.log(buttonClicked, " = ", supplierData)
+
     try {
       if (buttonClicked === "Add/Edit" || buttonClicked === "Edit Items") {
         if (selectedItem) {
           // Edit supplier
-          await axios.put(`https://api-skainvoice.top/api/company/update/${selectedItem.id}`, supplierData);
+          const response = await axios.put(`https://api-skainvoice.top/api/company/update/${selectedItem.id}`, supplierData);
+          setSuccess(true)
+          setOpenErrorAlert(true)
+          setErrorInfo(response.data.message)
         } else {
           // Add supplier
           await axios.post("https://api-skainvoice.top/api/company/create", supplierData);
