@@ -94,6 +94,7 @@ export default function InvoiceTemplate({ data, type }) {
     doc.line(0, 55, doc.internal.pageSize.width, 55);
     const productData = invoiceDetails.products.map((product, index) => {
       const sNo = index + 1;
+      const amount = product.rate * product.quantity;
       return [
         sNo,
         product.productName,
@@ -102,7 +103,7 @@ export default function InvoiceTemplate({ data, type }) {
         product.quantity,
         "",
         product.rate,
-        product.purchasePrice,
+        amount,
         product.gst,
         product.totalWithGST,
         product.productCurrentPrice,
@@ -164,24 +165,38 @@ export default function InvoiceTemplate({ data, type }) {
     doc.setLineDash([1, 1], 0);
     doc.line(55, bottomContentHeight - 2, 55, doc.internal.pageSize.height - 10);
 
+
+    const handleBillFooter = (value, yAxis = 17) =>{
+      doc.text("222", 57, topContentHeight + yAxis);
+      doc.text("222", 73, topContentHeight + yAxis);
+      doc.text("222", 86, topContentHeight + yAxis);
+      doc.text("222", 100, topContentHeight + yAxis);
+      doc.text("222", 113, topContentHeight + yAxis);
+      doc.text("222", 125, topContentHeight + yAxis);
+      doc.text("222", 140, topContentHeight + yAxis);
+    }
+
+
     doc.setFontSize(10);
     doc.text("Taxable", 57, topContentHeight);
-    doc.text("222", 57, topContentHeight + 17);
+    // doc.text("222", 57, topContentHeight + 17);
     doc.text("SGST", 73, topContentHeight);
-    doc.text("222", 73, topContentHeight + 17);
+    // doc.text("222", 73, topContentHeight + 17);
     doc.text("Tax", 86, topContentHeight);
-    doc.text("222", 86, topContentHeight + 17);
+    // doc.text("222", 86, topContentHeight + 17);
     doc.text("CGST", 100, topContentHeight);
-    doc.text("222", 100, topContentHeight + 17);
+    // doc.text("222", 100, topContentHeight + 17);
     doc.text("Tax", 113, topContentHeight);
-    doc.text("222", 113, topContentHeight + 17);
+    // doc.text("222", 113, topContentHeight + 17);
     doc.text("Cess", 125, topContentHeight);
-    doc.text("222", 125, topContentHeight + 17);
+    // doc.text("222", 125, topContentHeight + 17);
     doc.text("Cess", 140, topContentHeight);
-    doc.text("222", 140, topContentHeight + 17);
+    // doc.text("222", 140, topContentHeight + 17);
     doc.text("Total GST & Val:", 150, topContentHeight);
     doc.text("10044.3", 185, topContentHeight);
     doc.text("76869.32", 205, topContentHeight);
+
+    handleBillFooter("x")
 
     const amount = numberToWords("510");
 

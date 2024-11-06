@@ -2146,7 +2146,33 @@ app.post("/api/update/debitcredit", async (req, res) => {
   }
 });
 
+app.get("/api/fetch/invoices", async (req, res) => {
+  try {
+    const {startingNuber, endingNumber} = req.query;
+    if(!startingNuber) return res.status(400).json({ status: 'failure', message: 'Starting number should not be empty' });
+    if(!endingNumber) return res.status(400).json({ status: 'failure', message: 'Ending number should not be empty' });
+    const invoices = await prisma.invoice.findMany({
+      where: {
+invoiceNumber: {
+  gte: Number(startingNuber),
+  lte: Number(endingNumber),
+}
+      },
+      include:{
+        shop: true,
+      }
+    });
+    if(invoices.length === 0) return res.status(400).json({ status: 'failure', message: 'Inovice not found' });
 
+    res.status(200).json({ status: 'success', message: 'invoice fetch successfully', data: invoices });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 'failure',
+      message: 'Internal server error'
+    });
+  }
+});
 
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
